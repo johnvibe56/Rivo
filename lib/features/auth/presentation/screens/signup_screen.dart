@@ -103,7 +103,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       await ref.read(authControllerProvider).signUpWithEmail(
             email: email,
             password: password,
-            userMetadata: {
+            data: {
               'full_name': name,
               'avatar_url': null,
             },

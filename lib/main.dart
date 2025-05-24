@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-
-import 'core/presentation/screens/app_loading_screen.dart';
-import 'core/providers/auth_provider.dart';
-import 'core/router/app_router.dart';
-import 'core/services/supabase_service.dart';
-import 'core/theme/app_theme.dart';
+import 'package:rivo/core/presentation/screens/app_loading_screen.dart';
+import 'package:rivo/core/providers/supabase_provider.dart';
+import 'package:rivo/core/router/app_router.dart';
+import 'package:rivo/core/theme/app_theme.dart';
+import 'package:rivo/features/auth/presentation/providers/auth_provider.dart';
 
 /// Provider for Supabase initialization state
 final supabaseInitializedProvider = FutureProvider<bool>((ref) async {
@@ -41,6 +39,15 @@ void main() async {
   // Ensure Flutter bindings are initialized
   WidgetsFlutterBinding.ensureInitialized();
   
+  // Load environment variables
+  await dotenv.load(fileName: ".env");
+  
+  // Initialize Supabase
+  await SupabaseService.initialize(
+    supabaseUrl: dotenv.env['SUPABASE_URL']!,
+    supabaseAnonKey: dotenv.env['SUPABASE_ANON_KEY']!,
+  );
+  
   // Run the app
   runApp(
     const ProviderScope(
@@ -57,113 +64,113 @@ class RivoApp extends ConsumerStatefulWidget {
   ConsumerState<RivoApp> createState() => _RivoAppState();
 }
 
-class _RivoAppState extends ConsumerState<RivoApp> {
+class _RivoAppState extends ConsumerState<RivoApp> with WidgetsBindingObserver {
+  bool _initialized = false;
+  bool _isInitializing = false;
+  
   @override
   void initState() {
     super.initState();
-    // Wait for the first frame to be rendered before checking auth state
+    WidgetsBinding.instance.addObserver(this);
+    _scheduleAuthInit();
+  }
+
+  void _scheduleAuthInit() {
+    if (_isInitializing) return;
+    _isInitializing = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _handleAuthState();
-      }
+      if (mounted) _initAuth();
     });
   }
 
-  void _handleAuthState() {
-    if (!mounted) return;
+  Future<void> _initAuth() async {
+    if (_initialized || !mounted) return;
     
     try {
-      final authState = ref.read(authStateProvider);
-      if (authState.isLoading) return;
-      
-      final router = GoRouter.maybeOf(context);
-      if (router == null) {
-        debugPrint('Router not available yet');
-        return;
-      }
-      
-      // Wait for the next frame to ensure router is ready
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Only initialize auth state if Supabase is initialized
+      if (SupabaseService.isInitialized) {
+        await ref.read(authStateProvider.notifier).initialize();
         if (!mounted) return;
-        
-        try {
-          final currentPath = router.routerDelegate.currentConfiguration.uri.path;
-          
-          if (authState.hasError) {
-            if (!currentPath.startsWith('/login')) {
-              router.go('/login');
-            }
-          } else if (authState.valueOrNull == null) {
-            if (!currentPath.startsWith('/login') && 
-                !currentPath.startsWith('/signup') &&
-                !currentPath.startsWith('/forgot-password') &&
-                currentPath != '/') {
-              router.go('/login');
-            }
-          } else if (currentPath == '/' || 
-                    currentPath == '/login' || 
-                    currentPath == '/signup' ||
-                    currentPath == '/forgot-password') {
-            router.go('/feed');
-          }
-        } catch (e) {
-          debugPrint('Navigation error in post-frame callback: $e');
-        }
-      });
+        setState(() {
+          _initialized = true;
+        });
+      } else {
+        // If Supabase isn't initialized yet, wait a bit and try again
+        await Future.delayed(const Duration(milliseconds: 100));
+        if (mounted) _initAuth();
+      }
     } catch (e) {
-      debugPrint('Error in _handleAuthState: $e');
+      debugPrint('Error initializing auth: $e');
+      // If there's an error, try to reinitialize after a delay
+      await Future.delayed(const Duration(seconds: 1));
+      if (mounted) _initAuth();
+    } finally {
+      _isInitializing = false;
     }
   }
 
   @override
-  Widget build(BuildContext context) {
-    // Watch the Supabase initialization state
-    final supabaseInitialized = ref.watch(supabaseInitializedProvider);
-    
-    // Handle auth state changes
-    ref.listen<AsyncValue<dynamic>>(authStateProvider, (_, __) => _handleAuthState());
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
 
-    return MaterialApp.router(
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
-      routerConfig: AppRouter.router,
-      builder: (context, child) {
-        // Show loading or error states based on Supabase initialization
-        return supabaseInitialized.when(
-          loading: () => const AppLoadingScreen(),
-          error: (error, stackTrace) => Scaffold(
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Failed to initialize app',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    error.toString(),
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: () => ref.refresh(supabaseInitializedProvider.future),
-                    child: const Text('Retry'),
-                  ),
-                ],
-              ),
+  @override
+  Widget build(BuildContext context) {
+    // Watch the Supabase initialization state first
+    final supabaseInitialized = ref.watch(supabaseInitializedProvider);
+
+    return supabaseInitialized.when(
+      loading: () => MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: const AppLoadingScreen(),
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: ThemeMode.system,
+      ),
+      error: (error, stackTrace) => MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                const SizedBox(height: 16),
+                Text(
+                  'Failed to initialize app',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  error.toString(),
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.red),
+                ),
+                const SizedBox(height: 24),
+                FilledButton(
+                  onPressed: () {
+                    // Try to initialize again
+                    ref.invalidate(supabaseInitializedProvider);
+                  },
+                  child: const Text('Retry'),
+                ),
+              ],
             ),
           ),
-          data: (_) => child!,
+        ),
+      ),
+      data: (_) {
+        // Once Supabase is initialized, show the app with router
+        return MaterialApp.router(
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: ThemeMode.system,
+          routerConfig: AppRouter.router,
         );
       },
     );
   }
 }
-
 

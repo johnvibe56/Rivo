@@ -13,7 +13,9 @@ const _kPasswordFieldKey = Key('password');
 
 /// Login screen that handles user authentication
 class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+  final String? redirect;
+  
+  const LoginScreen({super.key, this.redirect});
 
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
@@ -53,10 +55,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         // Clear form fields
         _emailController.clear();
         _passwordController.clear();
-        
-        // Navigate to feed on successful login
+
+        // Navigate to the intended route or home screen
         if (context.mounted) {
-          context.go('/feed');
+          final redirect = widget.redirect;
+          if (redirect != null && redirect.isNotEmpty) {
+            context.go(redirect);
+          } else {
+            context.go('/feed');
+          }
         }
       }
     } catch (e) {
@@ -82,9 +89,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       await ref.read(authControllerProvider).signInWithGoogle();
       
       if (mounted) {
-        // Navigate to feed on successful Google sign in
+        // Navigate to the intended route or home screen
         if (context.mounted) {
-          context.go('/feed');
+          final redirect = widget.redirect;
+          if (redirect != null && redirect.isNotEmpty) {
+            context.go(redirect);
+          } else {
+            context.go('/feed');
+          }
         }
       }
     } catch (e) {

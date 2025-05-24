@@ -2,20 +2,109 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:rivo/features/auth/domain/models/auth_state.dart' as app_auth;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-final authStateProvider = StreamProvider<User?>((ref) {
-  return Supabase.instance.client.auth.onAuthStateChange.map((event) {
-    return event.session?.user;
-  });
-});
+// Alias the AuthState from gotrue to avoid conflicts
+typedef GotrueAuthState = AuthState;
+
+final authStateProvider = StateNotifierProvider<AuthNotifier, AsyncValue<app_auth.AuthState>>(
+  (ref) => AuthNotifier(),
+);
 
 final authControllerProvider = Provider<AuthController>((ref) {
-  return AuthController();
+  return AuthController(ref);
 });
 
+class AuthNotifier extends StateNotifier<AsyncValue<app_auth.AuthState>> {
+  bool _mounted = true;
+  
+  AuthNotifier() : super(const AsyncValue.loading());
+  
+  @override
+  void dispose() {
+    _mounted = false;
+    super.dispose();
+  }
+  
+  @override
+  bool get mounted => _mounted;
+  
+  /// Initialize the auth state
+  Future<void> initialize() async {
+    try {
+      state = const AsyncValue.loading();
+      await _checkAuthState();
+      
+      // Listen to auth state changes
+      Supabase.instance.client.auth.onAuthStateChange.listen((event) {
+        _handleAuthChange(event.session);
+      });
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      rethrow;
+    }
+  }
+  
+  Future<void> _checkAuthState() async {
+    try {
+      state = const AsyncValue.loading();
+      final session = Supabase.instance.client.auth.currentSession;
+      if (mounted) {
+        _handleAuthChange(session);
+      }
+    } catch (e, st) {
+      if (mounted) {
+        state = AsyncValue.error(e, st);
+      }
+      rethrow;
+    }
+  }
+  
+  void _handleAuthChange(Session? session) {
+    if (!mounted) return;
+    
+    try {
+      if (session != null) {
+        // User is signed in
+        state = AsyncValue.data(app_auth.AuthState.authenticated(session.user));
+      } else {
+        // User is signed out
+        state = const AsyncValue.data(app_auth.AuthState.unauthenticated());
+      }
+    } catch (e, st) {
+      if (mounted) {
+        state = AsyncValue.error(e, st);
+      }
+    }
+  }
+
+  void setLoading() {
+    state = const AsyncValue.loading();
+  }
+
+  void setError(String message) {
+    state = AsyncValue.error(message, StackTrace.current);
+  }
+  
+  void setAuthenticated(User? user) {
+    if (user != null) {
+      state = AsyncValue.data(app_auth.AuthState.authenticated(user));
+    } else {
+      state = const AsyncValue.data(app_auth.AuthState.unauthenticated());
+    }
+  }
+  
+  void setUnauthenticated() {
+    state = const AsyncValue.data(app_auth.AuthState.unauthenticated());
+  }
+}
+
 class AuthController {
+  final Ref _ref;
   final _supabase = Supabase.instance.client;
+
+  AuthController(this._ref);
 
   /// Signs in a user with email and password
   /// 
@@ -23,87 +112,96 @@ class AuthController {
   /// [password] The user's password
   /// 
   /// Throws an [AuthException] if sign in fails
-  Future<AuthResponse> signInWithEmail({
+  Future<void> signInWithEmail({
     required String email,
     required String password,
   }) async {
+    final notifier = _ref.read(authStateProvider.notifier);
     try {
-      return await _supabase.auth.signInWithPassword(
-        email: email.trim(),
+      notifier.setLoading();
+      
+      final response = await _supabase.auth.signInWithPassword(
+        email: email,
         password: password,
       );
-    } on AuthException catch (e) {
-      throw AuthException(
-        'Failed to sign in: ${e.message}',
-        statusCode: e.statusCode,
-      );
+      
+      if (response.session == null) {
+        throw Exception('No session returned after sign in');
+      }
+      
+      notifier.setAuthenticated(response.session!.user);
     } catch (e) {
-      throw Exception('An unexpected error occurred: $e');
+      notifier.setError(e.toString());
+      rethrow;
     }
   }
 
   /// Signs up a new user with email and password
-  /// 
-  /// [email] The user's email address
-  /// [password] The user's password
-  /// [userMetadata] Optional metadata to store with the user
-  /// 
-  /// Throws an [AuthException] if sign up fails
-  Future<AuthResponse> signUpWithEmail({
+  Future<void> signUpWithEmail({
     required String email,
     required String password,
-    Map<String, dynamic>? userMetadata,
+    Map<String, dynamic>? data,
   }) async {
+    final notifier = _ref.read(authStateProvider.notifier);
     try {
-      return await _supabase.auth.signUp(
-        email: email.trim(),
+      notifier.setLoading();
+      
+      final response = await _supabase.auth.signUp(
+        email: email,
         password: password,
-        data: userMetadata,
-        emailRedirectTo: 'io.supabase.rivo://signup-callback',
-      );
-    } on AuthException catch (e) {
-      throw AuthException(
-        'Failed to sign up: ${e.message}',
-        statusCode: e.statusCode,
-      );
-    } catch (e) {
-      throw Exception('An unexpected error occurred: $e');
-    }
-  }
-  
-  /// Signs in a user with Google OAuth
-  /// 
-  /// Throws an [AuthException] if sign in fails
-  Future<AuthResponse> signInWithGoogle() async {
-    try {
-      // Use the OAuth flow for both web and mobile
-      await _supabase.auth.signInWithOAuth(
-        OAuthProvider.google,
-        authScreenLaunchMode: LaunchMode.externalApplication,
-        redirectTo: 'io.supabase.rivo://login-callback',
+        data: data,
       );
       
-      // The actual session will be handled by the auth state listener
-      // Return the current session and user
-      return AuthResponse(
-        session: _supabase.auth.currentSession,
-        user: _supabase.auth.currentUser,
-      );
-    } on AuthException catch (e) {
-      throw AuthException(
-        'Failed to sign in with Google: ${e.message}',
-        statusCode: e.statusCode,
-      );
+      if (response.session != null) {
+        notifier.setAuthenticated(response.session!.user);
+      } else {
+        // Email confirmation required
+        notifier.setUnauthenticated();
+      }
     } catch (e) {
-      throw Exception('An unexpected error occurred during Google sign in: $e');
+      notifier.setError('Failed to sign up: $e');
+      rethrow;
+    }
+  }
+
+  /// Signs in with Google
+  Future<void> signInWithGoogle() async {
+    final notifier = _ref.read(authStateProvider.notifier);
+    try {
+      notifier.setLoading();
+      
+      // Sign in with Google
+      final googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) {
+        throw Exception('Google sign in was cancelled');
+      }
+      
+      final googleAuth = await googleUser.authentication;
+      
+      // Sign in with Supabase
+      final response = await _supabase.auth.signInWithIdToken(
+        provider: OAuthProvider.google,
+        idToken: googleAuth.idToken!,
+        accessToken: googleAuth.accessToken!,
+      );
+      
+      if (response.session == null) {
+        throw Exception('No session returned after Google sign in');
+      }
+      
+      notifier.setAuthenticated(response.session!.user);
+    } catch (e) {
+      notifier.setError(e.toString());
+      rethrow;
     }
   }
 
   /// Signs out the current user
-  /// 
-  /// Throws an exception if sign out fails
   Future<void> signOut() async {
+    final notifier = _ref.read(authStateProvider.notifier);
     try {
+      notifier.setLoading();
+      
       // Sign out from Google if the user signed in with Google
       if (await GoogleSignIn().isSignedIn()) {
         await GoogleSignIn().signOut();
@@ -111,46 +209,44 @@ class AuthController {
       
       // Sign out from Supabase
       await _supabase.auth.signOut();
-    } on AuthException catch (e) {
-      throw AuthException(
-        'Failed to sign out: ${e.message}',
-        statusCode: e.statusCode,
-      );
+      notifier.setUnauthenticated();
     } catch (e) {
-      throw Exception('An unexpected error occurred during sign out: $e');
+      notifier.setError('Failed to sign out: $e');
+      rethrow;
     }
   }
 
-  User? get currentUser => _supabase.auth.currentUser;
-
-  /// Sends a password reset email to the specified email address
-  /// 
-  /// [email] The email address to send the password reset email to
-  /// 
-  /// Throws an exception if the password reset email could not be sent
+  /// Sends a password reset email
   Future<void> resetPassword({required String email}) async {
+    final notifier = _ref.read(authStateProvider.notifier);
     try {
+      notifier.setLoading();
       await _supabase.auth.resetPasswordForEmail(
         email,
-        redirectTo: 'io.supabase.rivo://reset-password', // This should match your deep link setup
+        redirectTo: 'io.supabase.rivo://reset-password',
       );
     } catch (e) {
+      notifier.setError('Failed to send password reset email: $e');
       rethrow;
+    } finally {
+      notifier.setUnauthenticated();
     }
   }
 
   /// Updates the user's password
-  /// 
-  /// [newPassword] The new password to set
-  /// 
-  /// Throws an exception if the password could not be updated
   Future<void> updatePassword(String newPassword) async {
+    final notifier = _ref.read(authStateProvider.notifier);
     try {
+      notifier.setLoading();
       await _supabase.auth.updateUser(
         UserAttributes(password: newPassword),
       );
     } catch (e) {
+      notifier.setError('Failed to update password: $e');
       rethrow;
     }
   }
+  
+  /// Gets the current user
+  User? get currentUser => _supabase.auth.currentUser;
 }

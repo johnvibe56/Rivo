@@ -16,8 +16,8 @@ class AuthGuard extends ConsumerWidget {
     final authState = ref.watch(authStateProvider);
 
     return authState.when(
-      data: (user) {
-        if (user == null) {
+      data: (authState) {
+        if (!authState.isAuthenticated) {
           // Redirect to login if user is not authenticated
           WidgetsBinding.instance.addPostFrameCallback((_) {
             context.go('/login');
@@ -44,6 +44,7 @@ class AuthGuard extends ConsumerWidget {
   }
 }
 
+/// Creates a protected route that requires authentication
 GoRoute protectedRoute({
   required String path,
   required Widget Function() builder,
