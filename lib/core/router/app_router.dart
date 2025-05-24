@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rivo/features/auth/presentation/screens/login_screen.dart';
+import 'package:rivo/features/auth/presentation/screens/signup_screen.dart';
 import 'package:rivo/features/auth/presentation/screens/splash_screen.dart';
 import 'package:rivo/features/product_feed/presentation/screens/home_screen.dart';
 import 'package:rivo/features/product_feed/presentation/screens/product_detail_screen.dart';
@@ -24,6 +25,11 @@ class AppRouter {
         path: '/login',
         name: 'login',
         builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: '/signup',
+        name: 'signup',
+        builder: (context, state) => const SignupScreen(),
       ),
       // Main App
       GoRoute(
