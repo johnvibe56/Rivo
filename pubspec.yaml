@@ -60,6 +60,12 @@ dependencies:
   # Authentication
   google_sign_in: ^6.2.1
   
+  # Functional Programming
+  dartz: ^0.10.1
+  
+  # Image Caching
+  cached_network_image: ^3.3.1
+  
   # Form Validation
   formz: ^0.7.0
   google_fonts: ^6.2.1
