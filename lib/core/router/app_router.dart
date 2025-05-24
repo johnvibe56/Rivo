@@ -8,7 +8,61 @@ import 'package:rivo/features/auth/presentation/screens/login_screen.dart';
 import 'package:rivo/features/auth/presentation/screens/signup_screen.dart';
 import 'package:rivo/features/auth/presentation/screens/splash_screen.dart';
 import 'package:rivo/features/feed/presentation/screens/feed_screen.dart';
+import 'package:rivo/features/product_feed/presentation/screens/product_feed_screen.dart';
 import 'package:rivo/features/profile/presentation/screens/profile_screen.dart';
+
+class MainScaffold extends ConsumerStatefulWidget {
+  final Widget child;
+  final int currentIndex;
+
+  const MainScaffold({
+    super.key,
+    required this.child,
+    required this.currentIndex,
+  });
+
+  @override
+  ConsumerState<MainScaffold> createState() => _MainScaffoldState();
+}
+
+class _MainScaffoldState extends ConsumerState<MainScaffold> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: widget.child,
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: widget.currentIndex,
+        onTap: (index) {
+          switch (index) {
+            case 0:
+              context.go(AppRouter.getFullPath(AppRoutes.feed));
+              break;
+            case 1:
+              context.go(AppRouter.getFullPath(AppRoutes.productFeed));
+              break;
+            case 2:
+              context.go(AppRouter.getFullPath(AppRoutes.profile));
+              break;
+          }
+        },
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Feed',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_bag),
+            label: 'Products',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 /// List of routes that don't require authentication
 const _publicRoutes = [
@@ -38,6 +92,7 @@ class AppRoutes {
   
   // Main app routes - protected
   static const String feed = 'feed';
+  static const String productFeed = 'product_feed';
   static const String productDetail = 'product_detail';
   static const String profile = 'profile';
   
@@ -47,7 +102,7 @@ class AppRoutes {
   static String getPath(String routeName, {Map<String, String>? params}) {
     switch (routeName) {
       case splash:
-        return '/';
+        return '/splash';
       case login:
         return '/login';
       case signup:
@@ -58,6 +113,8 @@ class AppRoutes {
         return '/onboarding';
       case feed:
         return '/feed';
+      case productFeed:
+        return '/products';
       case productDetail:
         return '/product/${params?['id'] ?? ':id'}';
       case profile:
@@ -69,6 +126,17 @@ class AppRoutes {
 }
 
 class AppRouter {
+  /// Helper method to get the full path for a route
+  static String getFullPath(String routeName, {Map<String, String>? params}) {
+    // For shell routes, we need to use the direct path
+    if (routeName == AppRoutes.feed) return '/feed';
+    if (routeName == AppRoutes.productFeed) return '/products';
+    if (routeName == AppRoutes.profile) return '/profile';
+    
+    // For other routes, use the getPath method
+    return AppRoutes.getPath(routeName, params: params);
+  }
+
   static final router = GoRouter(
     initialLocation: AppRoutes.getPath(AppRoutes.splash),
     errorBuilder: (context, state) => ErrorScreen(
@@ -77,30 +145,39 @@ class AppRouter {
     ),
     redirect: (BuildContext context, GoRouterState state) async {
       try {
+        // Skip redirection for public routes
+        if (_publicRoutes.any((route) => state.uri.path.startsWith(route))) {
+          return null;
+        }
+
         // Get the auth state
         final container = ProviderScope.containerOf(context);
         final authState = container.read(authStateProvider);
+        final splashPath = AppRoutes.getPath(AppRoutes.splash);
         
         return authState.when(
           data: (authState) {
             final isLoggedIn = authState.isAuthenticated;
-            final isPublicRoute = _publicRoutes.any((route) => state.matchedLocation.startsWith(route));
-            final isAuthRoute = _authRoutes.any((route) => state.matchedLocation.startsWith(route));
-            final isSplashRoute = state.matchedLocation == '/';
+            final currentPath = state.uri.path;
+            final isPublicRoute = _publicRoutes.any((route) => currentPath.startsWith(route));
+            final isAuthRoute = _authRoutes.any((route) => currentPath.startsWith(route));
+            final isSplashRoute = currentPath == '/' || currentPath == splashPath;
             
             // Handle splash screen routing
             if (isSplashRoute) {
-              if (isLoggedIn) {
-                return AppRoutes.getPath(AppRoutes.feed);
+              // If we're already on the splash screen, don't redirect
+              if (currentPath == splashPath) {
+                return null;
               }
-              return AppRoutes.getPath(AppRoutes.login);
+              // Otherwise, redirect to splash which will handle the auth state
+              return splashPath;
             }
 
             // If user is not logged in and trying to access a protected route
             if (!isLoggedIn && !isPublicRoute) {
               // Store the intended location to redirect back after login
               final redirect = Uri.encodeComponent(state.uri.toString());
-              return '${AppRoutes.getPath(AppRoutes.login)}?redirect=$redirect';
+              return '${AppRouter.getFullPath(AppRoutes.login)}?redirect=$redirect';
             }
 
             // If user is logged in and trying to access an auth route, redirect to home
@@ -110,32 +187,37 @@ class AppRouter {
               if (redirect != null && redirect.isNotEmpty) {
                 return Uri.decodeComponent(redirect);
               }
-              return AppRoutes.getPath(AppRoutes.feed);
+              return AppRouter.getFullPath(AppRoutes.feed);
             }
 
             // No redirect needed
             return null;
           },
           loading: () {
-            // If we're still loading the auth state, don't redirect yet
+            // If we're still loading the auth state, stay on the current route
+            // or go to splash if we're not already there
+            final splashPath = AppRoutes.getPath(AppRoutes.splash);
+            if (state.uri.path != splashPath) {
+              return splashPath;
+            }
             return null;
           },
           error: (error, stackTrace) {
             debugPrint('Auth state error: $error');
             // In case of error, redirect to login
-            return AppRoutes.getPath(AppRoutes.login);
+            return AppRouter.getFullPath(AppRoutes.login);
           },
         );
       } catch (e) {
         debugPrint('Router redirect error: $e');
         // In case of any error, redirect to login
-        return AppRoutes.getPath(AppRoutes.login);
+        return AppRouter.getFullPath(AppRoutes.login);
       }
     },
     routes: [
       // Splash screen (initial route)
       GoRoute(
-        path: AppRoutes.getPath(AppRoutes.splash),
+        path: '/splash',
         name: AppRoutes.splash,
         pageBuilder: (context, state) => const MaterialPage(
           child: SplashScreen(),
@@ -174,29 +256,46 @@ class AppRouter {
       // Main App - Protected Routes with Shell
       ShellRoute(
         builder: (context, state, child) {
-          return child;
+          // Determine the current index based on the current route
+          int currentIndex = 0;
+          final location = state.uri.path;
+          
+          if (location.startsWith('/products')) {
+            currentIndex = 1;
+          } else if (location.startsWith('/profile')) {
+            currentIndex = 2;
+          }
+          
+          return MainScaffold(
+            currentIndex: currentIndex,
+            child: child,
+          );
         },
         routes: [
+          // Feed screen
           GoRoute(
-            path: AppRoutes.getPath(AppRoutes.feed),
+            path: '/feed',
             name: AppRoutes.feed,
-            pageBuilder: (context, state) => CustomTransitionPage(
-              key: state.pageKey,
-              child: const FeedScreen(),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: FeedScreen(),
             ),
           ),
+          
+          // Product feed screen
           GoRoute(
-            path: AppRoutes.getPath(AppRoutes.profile),
+            path: '/products',
+            name: AppRoutes.productFeed,
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: ProductFeedScreen(),
+            ),
+          ),
+          
+          // Profile screen
+          GoRoute(
+            path: '/profile',
             name: AppRoutes.profile,
-            pageBuilder: (context, state) => CustomTransitionPage(
-              key: state.pageKey,
-              child: const ProfileScreen(),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: ProfileScreen(),
             ),
           ),
         ],

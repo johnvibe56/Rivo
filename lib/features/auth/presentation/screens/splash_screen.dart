@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rivo/core/constants/app_colors.dart';
-import 'package:rivo/core/router/app_router.dart';
+import 'package:rivo/core/router/app_router.dart' as app_router;
+import 'package:rivo/core/router/app_router.dart' show AppRoutes;
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 class SplashScreen extends ConsumerStatefulWidget {
@@ -57,9 +58,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
 
   Future<void> _navigateToNextScreen() async {
     try {
-      // Supabase is already initialized in main.dart
-      // Just wait a bit for the splash screen to show
-      await Future.delayed(const Duration(seconds: 2));
+      // Add a minimum splash duration for better UX
+      await Future.delayed(const Duration(milliseconds: 1000));
       
       if (!mounted) return;
       
@@ -67,18 +67,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
       final session = supabase.Supabase.instance.client.auth.currentSession;
       final user = session?.user;
       
-      // Add a minimum splash duration for better UX
-      await Future.wait([
-        Future.delayed(const Duration(milliseconds: 2000)), // Minimum duration
-      ]);
+      // Ensure we show the splash screen for at least 1.5 seconds
+      await Future.delayed(const Duration(milliseconds: 500));
       
       if (!mounted) return;
       
       if (user != null) {
         // User is authenticated, check if email is verified
-        final isEmailVerified = user.emailConfirmedAt != null;
+        final isEmailVerified = user.emailConfirmedAt != null || user.isAnonymous;
         
-        if (!isEmailVerified && !user.isAnonymous) {
+        if (!isEmailVerified) {
           // Email not verified, show a message and redirect to login
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -89,7 +87,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
               ),
             );
             if (mounted) {
-              context.go(AppRoutes.login);
+              // Go to login and clear the navigation stack
+              context.go(app_router.AppRouter.getFullPath(AppRoutes.login));
             }
           }
           return;
@@ -97,24 +96,20 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
         
         // Navigate to home feed
         if (mounted) {
-          context.go(AppRoutes.feed);
+          context.go(app_router.AppRouter.getFullPath(AppRoutes.feed));
         }
       } else {
-        // For now, always go to onboarding
-        // TODO: Implement actual first-time check using shared_preferences
+        // User is not authenticated, go to login
         if (mounted) {
-          context.go(AppRoutes.onboarding);
+          context.go(app_router.AppRouter.getFullPath(AppRoutes.login));
         }
       }
     } catch (e) {
       debugPrint('Error during splash navigation: $e');
       
-      // If there's an error, still try to navigate to login after a delay
+      // If there's an error, navigate to login
       if (mounted) {
-        await Future.delayed(const Duration(seconds: 1));
-        if (mounted) {
-          context.go(AppRoutes.login);
-        }
+        context.go(app_router.AppRouter.getFullPath(AppRoutes.login));
       }
     }
   }

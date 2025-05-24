@@ -48,4 +48,33 @@ class Product {
       'created_at': createdAt.toIso8601String(),
     };
   }
+
+  factory Product.mock() {
+    final now = DateTime.now();
+    final random = now.millisecondsSinceEpoch % 10;
+    final titles = [
+      'Vintage Denim Jacket',
+      'Wireless Headphones',
+      'Leather Wallet',
+      'Smart Watch',
+      'Running Shoes',
+      'Designer Sunglasses',
+      'Laptop Backpack',
+      'Coffee Maker',
+      'Yoga Mat',
+      'Bluetooth Speaker'
+    ];
+
+    return Product(
+      id: 'product_$random',
+      title: titles[random],
+      description: 'High quality ${titles[random].toLowerCase()}. In excellent condition.',
+      price: 10.0 + (random * 10.0),
+      imageUrl: 'https://picsum.photos/500/800?random=$random',
+      likedBy: [],
+      savedBy: [],
+      ownerId: 'user_$random',
+      createdAt: now.subtract(Duration(days: random)),
+    );
+  }
 }

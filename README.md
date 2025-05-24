@@ -11,33 +11,41 @@ A modern marketplace application built with Flutter and Supabase, following clea
 - ✅ Secure Credential Storage
 - ✅ Session Management
 
+### Feed & Product Browsing
+- 🎯 Infinite Scrolling Feed
+- 🔄 Pull-to-Refresh
+- 🎨 Rich Product Cards
+- ❤️ Like/Favorite Products
+- 💬 Product Details & Interactions
+- 🛒 Add to Cart Functionality
+
 ### User Interface
 - 🎨 Dark/Light Theme Support
 - 📱 Responsive Design
-- 🔄 Loading States
+- 🔄 Smooth Animations
 - 🚦 Error Handling
-- 🎯 Focus on UX Best Practices
+- 🎯 Intuitive Navigation
 
 ### ⏳ Upcoming Features
-- 🛍️ Product Listings
-- 🔍 Search and Filtering
-- ❤️ Wishlist
-- 🛒 Shopping Cart
-- 📦 Order Management
+- 🔍 Advanced Search and Filtering
 - 📊 Seller Dashboard
+- 💬 Real-time Chat
+- 📦 Order Tracking
+- 🌍 Multi-language Support
 
 ## 🛠 Tech Stack
 
-- **Framework**: Flutter
+- **Framework**: Flutter 3.x
 - **Backend**: Supabase (Auth, Database, Storage)
-- **State Management**: Riverpod
-- **Navigation**: Go Router
+- **State Management**: Riverpod 2.x
+- **Navigation**: Go Router 10.x
 - **Architecture**: Clean Architecture with Feature-First structure
 - **Form Handling**: Formz
 - **Networking**: Dio
 - **Local Storage**: Shared Preferences
 - **Environment**: Flutter DotEnv
 - **UI Components**: Flutter Material Design 3
+- **Animation**: Flutter Animation Package
 
 ## Project Structure
 
@@ -68,10 +76,11 @@ lib/
 
 ### Prerequisites
 
-- Flutter SDK (latest stable version)
-- Dart SDK (included with Flutter)
+- Flutter SDK (3.16.0 or higher)
+- Dart SDK (3.2.0 or higher)
 - Android Studio / Xcode (for running on emulator/device)
 - Supabase account (for backend services)
+- CocoaPods (for iOS development)
 
 ### Setup Instructions
 
@@ -84,19 +93,28 @@ lib/
 2. **Install dependencies**:
    ```bash
    flutter pub get
+   cd ios && pod install && cd ..
    ```
 
 3. **Set up environment variables**:
-   - Create a `.env` file in the root directory
-   - Add your Supabase credentials:
+   - Copy the example environment file:
+     ```bash
+     cp .env.example .env
      ```
-     SUPABASE_URL=your_supabase_project_url
-     SUPABASE_ANON_KEY=your_supabase_anon_key
-     ```
+   - Update the `.env` file with your Supabase credentials
 
 4. **Run the app**:
    ```bash
-   flutter run
+   # For Android
+   flutter run -d <android-device-id>
+   
+   # For iOS
+   flutter run -d <ios-device-id>
+   ```
+
+5. **Run tests**:
+   ```bash
+   flutter test
    ```
 
 ### Development Workflow
@@ -126,15 +144,27 @@ flutter test
 
 ## 📱 Screenshots
 
-*Add screenshots of your app here*
+| Feed Screen | Product Details | User Profile |
+|-------------|----------------|--------------|
+| <img src="screenshots/feed_screen.png" width="200"> | <img src="screenshots/product_screen.png" width="200"> | <img src="screenshots/profile_screen.png" width="200"> |
+
+*Screenshots are placeholders - update with actual screenshots from your app*
 
 ## 🤝 Contributing
 
-1. Fork the project
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+We welcome contributions! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
 3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
+
+### Code Style
+- Follow the [official Flutter style guide](https://dart.dev/guides/language/effective-dart/style)
+- Add comments for complex logic
+- Write tests for new features
+- Update documentation when adding new features
 
 ## 📄 License
 
