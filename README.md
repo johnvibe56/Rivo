@@ -1,51 +1,43 @@
 # Rivo - Marketplace App
 
-A modern marketplace application built with Flutter, following clean architecture principles.
+A modern marketplace application built with Flutter and Supabase, following clean architecture principles.
 
-## Current Implementation Status
+## 🚀 Features
 
-### ✅ Implemented UI Components
-- **Splash Screen**: Initial loading screen with app branding
-- **Authentication Screens**:
-  - Login screen UI (no backend integration yet)
-  - Form validation placeholders
-- **Product Feed**:
-  - Basic home screen layout with bottom navigation
-  - Placeholder for product listings
-- **Product Detail Screen**:
-  - Basic layout for product display
-  - Image gallery placeholder
-  - Seller information section
+### Authentication
+- ✅ Email/Password Sign In
+- ✅ User Registration
+- ✅ Form Validation
+- ✅ Secure Credential Storage
+- ✅ Session Management
 
-### ⏳ Pending Implementation
-- **Authentication**:
-  - Backend integration
-  - Session management
-  - User registration flow
-- **Product Feed**:
-  - Real data integration
-  - Search and filtering
-  - Pagination
-- **Wishlist**:
-  - Add/remove items
-  - Persistence
-- **Product Upload**:
-  - Image upload
-  - Form submission
-- **User Profile**:
-  - User data display
-  - Settings
-  - Order history
+### User Interface
+- 🎨 Dark/Light Theme Support
+- 📱 Responsive Design
+- 🔄 Loading States
+- 🚦 Error Handling
+- 🎯 Focus on UX Best Practices
 
-## Tech Stack
+### ⏳ Upcoming Features
+- 🛍️ Product Listings
+- 🔍 Search and Filtering
+- ❤️ Wishlist
+- 🛒 Shopping Cart
+- 📦 Order Management
+- 📊 Seller Dashboard
+
+## 🛠 Tech Stack
 
 - **Framework**: Flutter
+- **Backend**: Supabase (Auth, Database, Storage)
 - **State Management**: Riverpod
 - **Navigation**: Go Router
 - **Architecture**: Clean Architecture with Feature-First structure
 - **Form Handling**: Formz
 - **Networking**: Dio
 - **Local Storage**: Shared Preferences
+- **Environment**: Flutter DotEnv
+- **UI Components**: Flutter Material Design 3
 
 ## Project Structure
 
@@ -72,33 +64,88 @@ lib/
 └── main.dart          # App entry point
 ```
 
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
 
 - Flutter SDK (latest stable version)
 - Dart SDK (included with Flutter)
 - Android Studio / Xcode (for running on emulator/device)
+- Supabase account (for backend services)
 
-### Installation
+### Setup Instructions
 
-1. Clone the repository:
+1. **Clone the repository**:
    ```bash
    git clone https://github.com/yourusername/rivo.git
    cd rivo
    ```
 
-2. Install dependencies:
+2. **Install dependencies**:
    ```bash
    flutter pub get
    ```
 
-3. Run the app:
+3. **Set up environment variables**:
+   - Create a `.env` file in the root directory
+   - Add your Supabase credentials:
+     ```
+     SUPABASE_URL=your_supabase_project_url
+     SUPABASE_ANON_KEY=your_supabase_anon_key
+     ```
+
+4. **Run the app**:
    ```bash
    flutter run
    ```
 
-## Running Tests
+### Development Workflow
+
+- Run in development mode:
+  ```bash
+  flutter run -d <device_id> --debug
+  ```
+
+- Run tests:
+  ```bash
+  flutter test
+  ```
+
+- Generate code (if using code generation):
+  ```bash
+  flutter pub run build_runner build --delete-conflicting-outputs
+  ```
+
+## 🧪 Testing
+
+Run the following command to execute all tests:
+
+```bash
+flutter test
+```
+
+## 📱 Screenshots
+
+*Add screenshots of your app here*
+
+## 🤝 Contributing
+
+1. Fork the project
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [Flutter](https://flutter.dev/)
+- [Supabase](https://supabase.com/)
+- [Riverpod](https://riverpod.dev/)
+- [Go Router](https://pub.dev/packages/go_router)
 
 To run unit tests:
 ```bash

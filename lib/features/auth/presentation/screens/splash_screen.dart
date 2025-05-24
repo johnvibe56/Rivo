@@ -1,6 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:rivo/core/constants/app_colors.dart';
+import 'package:rivo/core/router/app_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -9,63 +14,239 @@ class SplashScreen extends ConsumerStatefulWidget {
   ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends ConsumerState<SplashScreen> {
+class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _fadeAnimation;
+  late final Animation<double> _scaleAnimation;
+  
   @override
   void initState() {
     super.initState();
+    
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    );
+    
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.65, curve: Curves.easeInOut),
+      ),
+    );
+    
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.75, curve: Curves.elasticOut),
+      ),
+    );
+    
+    // Start the animation
+    _controller.forward();
+    
+    // Start the navigation flow
     _navigateToNextScreen();
+  }
+  
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   Future<void> _navigateToNextScreen() async {
-    // TODO: Replace with actual auth state check
-    // Currently using a simple delay for demonstration purposes
-    // In production, this should check authentication state first
-    await Future.delayed(const Duration(seconds: 2));
-    
-    if (!mounted) return;
-    
-    // For now, always navigate to login
-    // TODO: Implement proper auth state check:
-    // - Check for existing session/token
-    // - Navigate to home if authenticated
-    // - Navigate to login if not authenticated
-    context.go('/login');
+    try {
+      // Supabase is already initialized in main.dart
+      // Just wait a bit for the splash screen to show
+      await Future.delayed(const Duration(seconds: 2));
+      
+      if (!mounted) return;
+      
+      // Check if user is authenticated
+      final session = supabase.Supabase.instance.client.auth.currentSession;
+      final user = session?.user;
+      
+      // Add a minimum splash duration for better UX
+      await Future.wait([
+        Future.delayed(const Duration(milliseconds: 2000)), // Minimum duration
+      ]);
+      
+      if (!mounted) return;
+      
+      if (user != null) {
+        // User is authenticated, check if email is verified
+        final isEmailVerified = user.emailConfirmedAt != null;
+        
+        if (!isEmailVerified && !user.isAnonymous) {
+          // Email not verified, show a message and redirect to login
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Please verify your email before continuing'),
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: AppColors.warning,
+              ),
+            );
+            if (mounted) {
+              context.go(AppRoutes.login);
+            }
+          }
+          return;
+        }
+        
+        // Navigate to home feed
+        if (mounted) {
+          context.go(AppRoutes.feed);
+        }
+      } else {
+        // For now, always go to onboarding
+        // TODO: Implement actual first-time check using shared_preferences
+        if (mounted) {
+          context.go(AppRoutes.onboarding);
+        }
+      }
+    } catch (e) {
+      debugPrint('Error during splash navigation: $e');
+      
+      // If there's an error, still try to navigate to login after a delay
+      if (mounted) {
+        await Future.delayed(const Duration(seconds: 1));
+        if (mounted) {
+          context.go(AppRoutes.login);
+        }
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Replace with your app logo
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.shopping_bag_outlined,
-                size: 60,
-                color: Colors.white,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              colorScheme.primary.withValues(alpha: 0.1),
+              colorScheme.surface,
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: FadeTransition(
+              opacity: _fadeAnimation,
+              child: ScaleTransition(
+                scale: _scaleAnimation,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // App logo with animation
+                    AnimatedBuilder(
+                      animation: _controller,
+                      builder: (context, child) {
+                        return Transform.rotate(
+                          angle: _controller.value * 2 * 3.14159, // One full rotation
+                          child: child,
+                        );
+                      },
+                      child: Container(
+                        width: 140,
+                        height: 140,
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              colorScheme.primary,
+                              colorScheme.primaryContainer,
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: colorScheme.primary.withValues(alpha: 0.3),
+                              blurRadius: 16,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.shopping_bag_outlined,
+                          size: 64,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 32),
+                    
+                    // App name with animation
+                    FadeTransition(
+                      opacity: Tween<double>(
+                        begin: 0.0,
+                        end: 1.0,
+                      ).animate(CurvedAnimation(
+                        parent: _controller,
+                        curve: const Interval(0.5, 1.0, curve: Curves.easeInOut),
+                      )),
+                      child: Text(
+                        'Rivo',
+                        style: theme.textTheme.displaySmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.primary,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 8),
+                    
+                    // Tagline with animation
+                    FadeTransition(
+                      opacity: Tween<double>(
+                        begin: 0.0,
+                        end: 0.8,
+                      ).animate(CurvedAnimation(
+                        parent: _controller,
+                        curve: const Interval(0.6, 1.0, curve: Curves.easeInOut),
+                      )),
+                      child: Text(
+                        'Your marketplace for everything',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: colorScheme.onSurface.withValues(alpha: 0.7),
+                        ),
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 48),
+                    
+                    // Loading indicator with animation
+                    FadeTransition(
+                      opacity: Tween<double>(
+                        begin: 0.0,
+                        end: 1.0,
+                      ).animate(CurvedAnimation(
+                        parent: _controller,
+                        curve: const Interval(0.7, 1.0, curve: Curves.easeInOut),
+                      )),
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          colorScheme.primary,
+                        ),
+                        strokeWidth: 2.5,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: 24),
-            Text(
-              'Rivo',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-            ),
-            const SizedBox(height: 8),
-            const Text('Your marketplace for everything'),
-            const SizedBox(height: 48),
-            const CircularProgressIndicator(),
-          ],
+          ),
         ),
       ),
     );

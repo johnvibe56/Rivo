@@ -57,6 +57,9 @@ dependencies:
   # Supabase
   supabase_flutter: ^2.3.4
   
+  # Authentication
+  google_sign_in: ^6.2.1
+  
   # Form Validation
   formz: ^0.7.0
   google_fonts: ^6.2.1
