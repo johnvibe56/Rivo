@@ -6,6 +6,7 @@ import 'package:rivo/core/providers/supabase_provider.dart';
 import 'package:rivo/core/router/app_router.dart';
 import 'package:rivo/core/theme/app_theme.dart';
 import 'package:rivo/features/auth/presentation/providers/auth_provider.dart';
+import 'package:rivo/core/utils/logger.dart';
 
 /// Provider for Supabase initialization state
 final supabaseInitializedProvider = FutureProvider<bool>((ref) async {
@@ -39,6 +40,9 @@ void main() async {
   // Ensure Flutter bindings are initialized
   WidgetsFlutterBinding.ensureInitialized();
   
+  // Initialize logger
+  Logger.setDebug(true); // Set to false in production
+  
   // Load environment variables
   await dotenv.load(fileName: ".env");
   
@@ -47,6 +51,9 @@ void main() async {
     supabaseUrl: dotenv.env['SUPABASE_URL']!,
     supabaseAnonKey: dotenv.env['SUPABASE_ANON_KEY']!,
   );
+  
+  // Initialize StorageService
+  // The StorageService will be lazily initialized when first used
   
   // Run the app
   runApp(

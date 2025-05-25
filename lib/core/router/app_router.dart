@@ -8,7 +8,9 @@ import 'package:rivo/features/auth/presentation/screens/login_screen.dart';
 import 'package:rivo/features/auth/presentation/screens/signup_screen.dart';
 import 'package:rivo/features/auth/presentation/screens/splash_screen.dart';
 import 'package:rivo/features/feed/presentation/screens/feed_screen.dart';
+import 'package:rivo/features/product_feed/presentation/screens/product_detail_screen.dart';
 import 'package:rivo/features/product_feed/presentation/screens/product_feed_screen.dart';
+import 'package:rivo/features/product_upload/presentation/screens/product_upload_screen.dart';
 import 'package:rivo/features/profile/presentation/screens/profile_screen.dart';
 
 class MainScaffold extends ConsumerStatefulWidget {
@@ -94,9 +96,8 @@ class AppRoutes {
   static const String feed = 'feed';
   static const String productFeed = 'product_feed';
   static const String productDetail = 'product_detail';
+  static const String productUpload = 'product_upload';
   static const String profile = 'profile';
-  
-  // Add more route names as needed
   
   // Helper to get the full path for a route
   static String getPath(String routeName, {Map<String, String>? params}) {
@@ -119,6 +120,8 @@ class AppRoutes {
         return '/product/${params?['id'] ?? ':id'}';
       case profile:
         return '/profile';
+      case productUpload:
+        return '/upload-product';
       default:
         return '/';
     }
@@ -126,6 +129,9 @@ class AppRoutes {
 }
 
 class AppRouter {
+  // Private constructor to prevent instantiation
+  AppRouter._();
+  
   /// Helper method to get the full path for a route
   static String getFullPath(String routeName, {Map<String, String>? params}) {
     // For shell routes, we need to use the direct path
@@ -136,7 +142,85 @@ class AppRouter {
     // For other routes, use the getPath method
     return AppRoutes.getPath(routeName, params: params);
   }
+  
+  static bool _isAuthPath(String path) => _authRoutes.contains(path);
 
+  // Shell route for main navigation
+  static final _shellRoute = ShellRoute(
+    builder: (context, state, child) {
+      int currentIndex = 0;
+      final location = state.uri.path;
+      
+      if (location.startsWith('/products')) {
+        currentIndex = 1;
+      } else if (location.startsWith('/profile')) {
+        currentIndex = 2;
+      }
+      
+      return MainScaffold(
+        currentIndex: currentIndex,
+        child: child,
+      );
+    },
+    routes: [
+      // Feed route
+      GoRoute(
+        path: '/feed',
+        builder: (context, state) => const FeedScreen(),
+      ),
+      
+      // Product feed route
+      GoRoute(
+        path: '/products',
+        builder: (context, state) => const ProductFeedScreen(),
+      ),
+      
+      // Product detail route
+      GoRoute(
+        path: '/product/:id',
+        builder: (context, state) {
+          final productId = state.pathParameters['id']!;
+          return ProductDetailScreen(productId: productId);
+        },
+      ),
+      
+      // Profile route
+      GoRoute(
+        path: '/profile',
+        builder: (context, state) => const ProfileScreen(),
+      ),
+      
+      // Product upload route
+      GoRoute(
+        path: '/upload-product',
+        builder: (context, state) => const ProductUploadScreen(),
+      ),
+    ],
+  );
+
+  // Auth routes
+  static final _authRoute = GoRoute(
+    path: '/login',
+    builder: (context, state) => const LoginScreen(),
+    routes: [
+      GoRoute(
+        path: 'signup',
+        builder: (context, state) => const SignupScreen(),
+      ),
+      GoRoute(
+        path: 'forgot-password',
+        builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+    ],
+  );
+
+  // Splash screen route
+  static final _splashRoute = GoRoute(
+    path: '/splash',
+    builder: (context, state) => const SplashScreen(),
+  );
+
+  // Main router configuration
   static final router = GoRouter(
     initialLocation: AppRoutes.getPath(AppRoutes.splash),
     errorBuilder: (context, state) => ErrorScreen(
@@ -160,29 +244,22 @@ class AppRouter {
             final isLoggedIn = authState.isAuthenticated;
             final currentPath = state.uri.path;
             final isPublicRoute = _publicRoutes.any((route) => currentPath.startsWith(route));
-            final isAuthRoute = _authRoutes.any((route) => currentPath.startsWith(route));
+            final isAuthPath = _isAuthPath(currentPath);
             final isSplashRoute = currentPath == '/' || currentPath == splashPath;
             
             // Handle splash screen routing
             if (isSplashRoute) {
-              // If we're already on the splash screen, don't redirect
-              if (currentPath == splashPath) {
-                return null;
-              }
-              // Otherwise, redirect to splash which will handle the auth state
-              return splashPath;
+              return currentPath == splashPath ? null : splashPath;
             }
 
             // If user is not logged in and trying to access a protected route
             if (!isLoggedIn && !isPublicRoute) {
-              // Store the intended location to redirect back after login
               final redirect = Uri.encodeComponent(state.uri.toString());
               return '${AppRouter.getFullPath(AppRoutes.login)}?redirect=$redirect';
             }
 
             // If user is logged in and trying to access an auth route, redirect to home
-            if (isLoggedIn && isAuthRoute) {
-              // Check if there's a redirect parameter
+            if (isLoggedIn && isAuthPath) {
               final redirect = state.uri.queryParameters['redirect'];
               if (redirect != null && redirect.isNotEmpty) {
                 return Uri.decodeComponent(redirect);
@@ -190,199 +267,20 @@ class AppRouter {
               return AppRouter.getFullPath(AppRoutes.feed);
             }
 
-            // No redirect needed
             return null;
           },
-          loading: () {
-            // If we're still loading the auth state, stay on the current route
-            // or go to splash if we're not already there
-            final splashPath = AppRoutes.getPath(AppRoutes.splash);
-            if (state.uri.path != splashPath) {
-              return splashPath;
-            }
-            return null;
-          },
-          error: (error, stackTrace) {
-            debugPrint('Auth state error: $error');
-            // In case of error, redirect to login
-            return AppRouter.getFullPath(AppRoutes.login);
-          },
+          loading: () => state.uri.path == splashPath ? null : splashPath,
+          error: (_, __) => AppRouter.getFullPath(AppRoutes.login),
         );
       } catch (e) {
         debugPrint('Router redirect error: $e');
-        // In case of any error, redirect to login
         return AppRouter.getFullPath(AppRoutes.login);
       }
     },
     routes: [
-      // Splash screen (initial route)
-      GoRoute(
-        path: '/splash',
-        name: AppRoutes.splash,
-        pageBuilder: (context, state) => const MaterialPage(
-          child: SplashScreen(),
-        ),
-      ),
-
-      // Auth routes
-      GoRoute(
-        path: AppRoutes.getPath(AppRoutes.login),
-        name: AppRoutes.login,
-        pageBuilder: (context, state) => MaterialPage(
-          child: LoginScreen(
-            redirect: state.uri.queryParameters['redirect'],
-          ),
-        ),
-      ),
-      GoRoute(
-        path: AppRoutes.getPath(AppRoutes.signup),
-        name: AppRoutes.signup,
-        pageBuilder: (context, state) => const MaterialPage(
-          child: SignupScreen(),
-        ),
-      ),
-      GoRoute(
-        path: AppRoutes.getPath(AppRoutes.forgotPassword),
-        name: AppRoutes.forgotPassword,
-        pageBuilder: (context, state) => CustomTransitionPage(
-          key: state.pageKey,
-          child: const ForgotPasswordScreen(),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(opacity: animation, child: child);
-          },
-        ),
-      ),
-      
-      // Main App - Protected Routes with Shell
-      ShellRoute(
-        builder: (context, state, child) {
-          // Determine the current index based on the current route
-          int currentIndex = 0;
-          final location = state.uri.path;
-          
-          if (location.startsWith('/products')) {
-            currentIndex = 1;
-          } else if (location.startsWith('/profile')) {
-            currentIndex = 2;
-          }
-          
-          return MainScaffold(
-            currentIndex: currentIndex,
-            child: child,
-          );
-        },
-        routes: [
-          // Feed screen
-          GoRoute(
-            path: '/feed',
-            name: AppRoutes.feed,
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: FeedScreen(),
-            ),
-          ),
-          
-          // Product feed screen
-          GoRoute(
-            path: '/products',
-            name: AppRoutes.productFeed,
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: ProductFeedScreen(),
-            ),
-          ),
-          
-          // Profile screen
-          GoRoute(
-            path: '/profile',
-            name: AppRoutes.profile,
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: ProfileScreen(),
-            ),
-          ),
-        ],
-      ),
-      // Product Detail - Will be implemented later
-      /*
-      GoRoute(
-        path: 'product/:id',
-        name: AppRoutes.productDetail,
-        pageBuilder: (context, state) {
-          final productId = state.pathParameters['id']!;
-          return CustomTransitionPage(
-            key: state.pageKey,
-            child: ProductDetailScreen(productId: productId),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              const begin = Offset(1.0, 0.0);
-              const end = Offset.zero;
-              const curve = Curves.easeInOut;
-                      var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                      var offsetAnimation = animation.drive(tween);
-                      return SlideTransition(position: offsetAnimation, child: child);
-                    },
-                  );
-                },
-              ),
-            ],
-          ),
-          
-          // Profile
-          GoRoute(
-            path: AppRoutes.getPath(AppRoutes.profile),
-            name: AppRoutes.profile,
-            pageBuilder: (context, state) => CustomTransitionPage(
-              key: state.pageKey,
-              child: const ProfileScreen(),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                const begin = Offset(1.0, 0.0);
-                const end = Offset.zero;
-                const curve = Curves.easeInOut;
-                var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                var offsetAnimation = animation.drive(tween);
-                return SlideTransition(position: offsetAnimation, child: child);
-              },
-            ),
-          ),
-        ],
-      ),
-      */
-      
-      // Not Found (404) - Must be the last route
-      GoRoute(
-        path: '/not_found',
-        name: 'not_found',
-        pageBuilder: (context, state) => CustomTransitionPage(
-          key: state.pageKey,
-          child: Scaffold(
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    '404',
-                    style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text('Page not found'),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: () => context.go(AppRoutes.getPath(AppRoutes.splash)),
-                    child: const Text('Go Home'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(opacity: animation, child: child);
-          },
-        ),
-      ),
+      _shellRoute,
+      _authRoute,
+      _splashRoute,
     ],
-    redirectLimit: 10,
   );
-
-  // TODO: Implement this method when needed
-  // static bool _isAuthRoute(String path) {
-  //   final authRoutes = {'/login', '/signup', '/splash', '/forgot-password'};
-  //   return authRoutes.contains(path);
-  // }
 }

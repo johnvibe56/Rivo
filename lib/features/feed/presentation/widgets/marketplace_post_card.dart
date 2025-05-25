@@ -4,14 +4,16 @@ import 'package:rivo/features/products/domain/models/product_model.dart';
 
 class MarketplacePostCard extends StatelessWidget {
   final Product product;
-  final VoidCallback onFavorite;
+  final bool isFavorite;
+  final VoidCallback onFavoritePressed;
   final VoidCallback onMessage;
   final VoidCallback onBuy;
 
   const MarketplacePostCard({
     super.key,
     required this.product,
-    required this.onFavorite,
+    this.isFavorite = false,
+    required this.onFavoritePressed,
     required this.onMessage,
     required this.onBuy,
   });
@@ -105,9 +107,13 @@ class MarketplacePostCard extends StatelessWidget {
                 Row(
                   children: [
                     // Favorite Button
-                    _buildActionButton(
-                      icon: Icons.favorite_border,
-                      onPressed: onFavorite,
+                    IconButton(
+                      onPressed: onFavoritePressed,
+                      icon: Icon(
+                        isFavorite ? Icons.favorite : Icons.favorite_border,
+                        color: isFavorite ? Colors.red : Colors.white,
+                        size: 28,
+                      ),
                     ),
                     
                     const SizedBox(width: 12),

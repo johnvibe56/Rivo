@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class Product {
   final String id;
   final String title;
@@ -22,16 +24,36 @@ class Product {
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
+    // Helper function to parse liked_by/saved_by fields which might be String or List
+    List<String> parseStringList(dynamic value) {
+      if (value == null) return [];
+      if (value is List) {
+        return List<String>.from(value);
+      } else if (value is String) {
+        try {
+          // Try to parse the string as JSON array
+          final parsed = List<dynamic>.from(jsonDecode(value));
+          return List<String>.from(parsed);
+        } catch (e) {
+          // If parsing fails, treat it as a single value array
+          return [value.toString()];
+        }
+      }
+      return [];
+    }
+
     return Product(
       id: json['id'] as String,
       title: json['title'] as String,
       description: json['description'] as String,
-      price: (json['price'] as num).toDouble(),
-      imageUrl: json['image_url'] as String,
-      likedBy: List<String>.from(json['liked_by'] as List<dynamic>? ?? []),
-      savedBy: List<String>.from(json['saved_by'] as List<dynamic>? ?? []),
-      ownerId: json['owner_id'] as String,
-      createdAt: DateTime.parse(json['created_at'] as String),
+      price: (json['price'] is num) ? (json['price'] as num).toDouble() : 0.0,
+      imageUrl: json['image_url'] as String? ?? '',
+      likedBy: parseStringList(json['liked_by']),
+      savedBy: parseStringList(json['saved_by']),
+      ownerId: json['owner_id'] as String? ?? '',
+      createdAt: json['created_at'] != null 
+          ? DateTime.tryParse(json['created_at'].toString()) ?? DateTime.now()
+          : DateTime.now(),
     );
   }
 

@@ -13,12 +13,43 @@ class ProductRepositoryImpl implements ProductRepository {
   @override
   Future<Either<Failure, List<Product>>> getProducts() async {
     try {
+      print('🔄 [DEBUG] ProductRepositoryImpl: Fetching products from remote data source');
       final products = await remoteDataSource.getProducts();
-      return Right(products.map((e) => Product.fromJson(e)).toList());
-    } on ServerException catch (e) {
+      
+      // Log the raw data for debugging
+      print('📦 [DEBUG] Raw products data from remote source:');
+      for (var product in products.take(2)) { // Log first 2 products to avoid too much output
+        print('  - ${product['id']}: ${product['title']}');
+      }
+      
+      try {
+        // Convert each product JSON to Product model
+        final productList = products.map((e) {
+          try {
+            return Product.fromJson(e);
+          } catch (e, stackTrace) {
+            print('❌ [ERROR] Failed to parse product: $e');
+            print('Product data: $e');
+            print(stackTrace);
+            rethrow;
+          }
+        }).toList();
+        
+        print('✅ [DEBUG] Successfully parsed ${productList.length} products');
+        return Right(productList);
+      } catch (e, stackTrace) {
+        print('❌ [ERROR] Failed to parse products: $e');
+        print(stackTrace);
+        return Left(ServerFailure('Failed to parse products data'));
+      }
+    } on ServerException catch (e, stackTrace) {
+      print('❌ [ERROR] ServerException in getProducts: ${e.message}');
+      print(stackTrace);
       return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure('Failed to load products'));
+    } catch (e, stackTrace) {
+      print('❌ [ERROR] Unexpected error in getProducts: $e');
+      print(stackTrace);
+      return Left(ServerFailure('Failed to load products: ${e.toString()}'));
     }
   }
 

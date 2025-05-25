@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:rivo/core/utils/logger.dart';
 import 'package:rivo/features/products/data/datasources/product_remote_data_source.dart';
 import 'package:rivo/features/products/data/repositories/product_repository_impl.dart';
 import 'package:rivo/features/products/domain/models/product_model.dart';
@@ -24,17 +25,81 @@ class ProductListNotifier extends StateNotifier<AsyncValue<List<Product>>> {
   }
 
   Future<void> getProducts() async {
-    state = const AsyncValue.loading();
-    final result = await _repository.getProducts();
-    state = result.fold(
-      (failure) => AsyncValue.error(failure, StackTrace.current) as AsyncValue<List<Product>>,
-      (products) => AsyncValue.data(products),
-    );
+    try {
+      print('🔄 [DEBUG] ProductListNotifier: Starting to fetch products...');
+      state = const AsyncValue.loading();
+      
+      print('📞 [DEBUG] Calling repository.getProducts()');
+      final stopwatch = Stopwatch()..start();
+      final result = await _repository.getProducts();
+      stopwatch.stop();
+      
+      print('⏱️ [DEBUG] getProducts took ${stopwatch.elapsedMilliseconds}ms');
+      
+      // Handle the Either result properly
+      return result.fold(
+        (failure) {
+          final errorMsg = '❌ [ERROR] Failed to fetch products: ${failure.toString()}';
+          print(errorMsg);
+          print(StackTrace.current);
+          
+          // Create a proper AsyncValue.error
+          state = AsyncValue<List<Product>>.error(
+            failure,
+            StackTrace.current,
+          );
+          
+          // Also log using the logger if it starts working
+          Logger.e(errorMsg, StackTrace.current);
+          
+          // Return a completed future
+          return Future.value();
+        },
+        (products) {
+          final successMsg = '✅ [DEBUG] Successfully fetched ${products.length} products';
+          print(successMsg);
+          
+          if (products.isEmpty) {
+            print('ℹ️ [DEBUG] No products found in the repository');
+          } else {
+            // Print details of all products for debugging
+            print('📋 [DEBUG] Products received from repository:');
+            for (var i = 0; i < products.length; i++) {
+              final p = products[i];
+              print('  ${i + 1}. ID: ${p.id}, Title: "${p.title}", Created: ${p.createdAt}');
+            }
+          }
+          
+          // Also log using the logger if it starts working
+          Logger.d(successMsg);
+          
+          // Update state with the fetched products
+          state = AsyncValue.data(products);
+          
+          // Return a completed future
+          return Future.value();
+        },
+      );
+    } catch (e, stackTrace) {
+      final errorMsg = '❌ [ERROR] Unexpected error in getProducts: $e';
+      print(errorMsg);
+      print(stackTrace);
+      
+      // Also log using the logger if it starts working
+      Logger.e(errorMsg, stackTrace, tag: 'ProductListNotifier');
+      
+      // Create a proper AsyncValue.error
+      state = AsyncValue<List<Product>>.error(
+        e,
+        stackTrace,
+      );
+      
+      // Re-throw the error to be handled by the caller if needed
+      return Future.error(e, stackTrace);
+    }
   }
 
-  Future<void> refresh() async {
-    await getProducts();
-  }
+  Future<void> refresh() => getProducts();
 }
 
 // Provider for the product list notifier
