@@ -1,11 +1,13 @@
 import 'package:dartz/dartz.dart';
 import 'package:rivo/core/error/exceptions.dart';
 import 'package:rivo/core/error/failures.dart';
+import 'package:rivo/core/utils/logger.dart';
 import 'package:rivo/features/products/data/datasources/product_remote_data_source.dart';
 import 'package:rivo/features/products/domain/models/product_model.dart';
 import 'package:rivo/features/products/domain/repositories/product_repository.dart';
 
 class ProductRepositoryImpl implements ProductRepository {
+  static const String _tag = 'ProductRepository';
   final ProductRemoteDataSource remoteDataSource;
 
   ProductRepositoryImpl({required this.remoteDataSource});
@@ -13,13 +15,13 @@ class ProductRepositoryImpl implements ProductRepository {
   @override
   Future<Either<Failure, List<Product>>> getProducts() async {
     try {
-      print('🔄 [DEBUG] ProductRepositoryImpl: Fetching products from remote data source');
+      Logger.d('Fetching products from remote data source', tag: _tag);
       final products = await remoteDataSource.getProducts();
       
       // Log the raw data for debugging
-      print('📦 [DEBUG] Raw products data from remote source:');
-      for (var product in products.take(2)) { // Log first 2 products to avoid too much output
-        print('  - ${product['id']}: ${product['title']}');
+      Logger.d('Raw products data from remote source (first 2):', tag: _tag);
+      for (var product in products.take(2)) {
+        Logger.d('- ${product['id']}: ${product['title']}', tag: _tag);
       }
       
       try {
@@ -28,27 +30,23 @@ class ProductRepositoryImpl implements ProductRepository {
           try {
             return Product.fromJson(e);
           } catch (e, stackTrace) {
-            print('❌ [ERROR] Failed to parse product: $e');
-            print('Product data: $e');
-            print(stackTrace);
+            Logger.e('Failed to parse product: $e', stackTrace, tag: _tag);
+            Logger.e('Product data: $e', stackTrace, tag: _tag);
             rethrow;
           }
         }).toList();
         
-        print('✅ [DEBUG] Successfully parsed ${productList.length} products');
+        Logger.d('Successfully parsed ${productList.length} products', tag: _tag);
         return Right(productList);
       } catch (e, stackTrace) {
-        print('❌ [ERROR] Failed to parse products: $e');
-        print(stackTrace);
+        Logger.e('Failed to parse products: $e', stackTrace, tag: _tag);
         return Left(ServerFailure('Failed to parse products data'));
       }
     } on ServerException catch (e, stackTrace) {
-      print('❌ [ERROR] ServerException in getProducts: ${e.message}');
-      print(stackTrace);
+      Logger.e('ServerException in getProducts: ${e.message}', stackTrace, tag: _tag);
       return Left(ServerFailure(e.message));
     } catch (e, stackTrace) {
-      print('❌ [ERROR] Unexpected error in getProducts: $e');
-      print(stackTrace);
+      Logger.e('Unexpected error in getProducts: $e', stackTrace, tag: _tag);
       return Left(ServerFailure('Failed to load products: ${e.toString()}'));
     }
   }
@@ -56,84 +54,113 @@ class ProductRepositoryImpl implements ProductRepository {
   @override
   Future<Either<Failure, Product>> getProductById(String id) async {
     try {
+      Logger.d('Fetching product by ID: $id', tag: _tag);
       final product = await remoteDataSource.getProductById(id);
+      Logger.d('Successfully fetched product: ${product['id']}', tag: _tag);
       return Right(Product.fromJson(product));
-    } on ServerException catch (e) {
+    } on ServerException catch (e, stackTrace) {
+      Logger.e('ServerException in getProductById: ${e.message}', stackTrace, tag: _tag);
       return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure('Failed to load product'));
+    } catch (e, stackTrace) {
+      Logger.e('Unexpected error in getProductById: $e', stackTrace, tag: _tag);
+      return Left(ServerFailure('Failed to load product: ${e.toString()}'));
     }
   }
 
   @override
   Future<Either<Failure, Product>> createProduct(Product product) async {
     try {
+      Logger.d('Creating new product: ${product.title}', tag: _tag);
       final createdProduct = await remoteDataSource.createProduct(product);
+      Logger.d('Successfully created product: ${createdProduct['id']}', tag: _tag);
       return Right(Product.fromJson(createdProduct));
-    } on ServerException catch (e) {
+    } on ServerException catch (e, stackTrace) {
+      Logger.e('ServerException in createProduct: ${e.message}', stackTrace, tag: _tag);
       return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure('Failed to create product'));
+    } catch (e, stackTrace) {
+      Logger.e('Unexpected error in createProduct: $e', stackTrace, tag: _tag);
+      return Left(ServerFailure('Failed to create product: ${e.toString()}'));
     }
   }
 
   @override
   Future<Either<Failure, Product>> updateProduct(Product product) async {
     try {
+      Logger.d('Updating product ID: ${product.id}', tag: _tag);
       final updatedProduct = await remoteDataSource.updateProduct(product);
+      Logger.d('Successfully updated product: ${product.id}', tag: _tag);
       return Right(Product.fromJson(updatedProduct));
-    } on ServerException catch (e) {
+    } on ServerException catch (e, stackTrace) {
+      Logger.e('ServerException in updateProduct: ${e.message}', stackTrace, tag: _tag);
       return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure('Failed to update product'));
+    } catch (e, stackTrace) {
+      Logger.e('Unexpected error in updateProduct: $e', stackTrace, tag: _tag);
+      return Left(ServerFailure('Failed to update product: ${e.toString()}'));
     }
   }
 
   @override
   Future<Either<Failure, void>> deleteProduct(String id) async {
     try {
+      Logger.d('Deleting product ID: $id', tag: _tag);
       await remoteDataSource.deleteProduct(id);
+      Logger.d('Successfully deleted product: $id', tag: _tag);
       return const Right(null);
-    } on ServerException catch (e) {
+    } on ServerException catch (e, stackTrace) {
+      Logger.e('ServerException in deleteProduct: ${e.message}', stackTrace, tag: _tag);
       return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure('Failed to delete product'));
+    } catch (e, stackTrace) {
+      Logger.e('Unexpected error in deleteProduct: $e', stackTrace, tag: _tag);
+      return Left(ServerFailure('Failed to delete product: ${e.toString()}'));
     }
   }
 
   @override
   Future<Either<Failure, List<Product>>> getProductsByUser(String userId) async {
     try {
+      Logger.d('Fetching products for user ID: $userId', tag: _tag);
       final products = await remoteDataSource.getProductsByUser(userId);
-      return Right(products.map((e) => Product.fromJson(e)).toList());
-    } on ServerException catch (e) {
+      final productList = products.map((e) => Product.fromJson(e)).toList();
+      Logger.d('Found ${productList.length} products for user: $userId', tag: _tag);
+      return Right(productList);
+    } on ServerException catch (e, stackTrace) {
+      Logger.e('ServerException in getProductsByUser: ${e.message}', stackTrace, tag: _tag);
       return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure('Failed to load user products'));
+    } catch (e, stackTrace) {
+      Logger.e('Unexpected error in getProductsByUser: $e', stackTrace, tag: _tag);
+      return Left(ServerFailure('Failed to load user products: ${e.toString()}'));
     }
   }
 
   @override
   Future<Either<Failure, void>> toggleLike(String productId, String userId) async {
     try {
+      Logger.d('Toggling like for product: $productId, user: $userId', tag: _tag);
       await remoteDataSource.toggleLike(productId, userId);
+      Logger.d('Successfully toggled like for product: $productId', tag: _tag);
       return const Right(null);
-    } on ServerException catch (e) {
+    } on ServerException catch (e, stackTrace) {
+      Logger.e('ServerException in toggleLike: ${e.message}', stackTrace, tag: _tag);
       return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure('Failed to toggle like'));
+    } catch (e, stackTrace) {
+      Logger.e('Unexpected error in toggleLike: $e', stackTrace, tag: _tag);
+      return Left(ServerFailure('Failed to toggle like: ${e.toString()}'));
     }
   }
 
   @override
   Future<Either<Failure, void>> toggleSave(String productId, String userId) async {
     try {
+      Logger.d('Toggling save for product: $productId, user: $userId', tag: _tag);
       await remoteDataSource.toggleSave(productId, userId);
+      Logger.d('Successfully toggled save for product: $productId', tag: _tag);
       return const Right(null);
-    } on ServerException catch (e) {
+    } on ServerException catch (e, stackTrace) {
+      Logger.e('ServerException in toggleSave: ${e.message}', stackTrace, tag: _tag);
       return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure('Failed to toggle save'));
+    } catch (e, stackTrace) {
+      Logger.e('Unexpected error in toggleSave: $e', stackTrace, tag: _tag);
+      return Left(ServerFailure('Failed to toggle save: ${e.toString()}'));
     }
   }
 }

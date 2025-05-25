@@ -11,26 +11,22 @@ abstract class AppException implements Exception {
 
 /// Thrown when there's an error communicating with the server
 class ServerException extends AppException {
-  const ServerException(String message, [StackTrace? stackTrace])
-      : super(message, stackTrace);
+  const ServerException(super.message, [super.stackTrace]);
 }
 
 /// Thrown when there's a failure in the cache
 class CacheException extends AppException {
-  const CacheException(String message, [StackTrace? stackTrace])
-      : super(message, stackTrace);
+  const CacheException(super.message, [super.stackTrace]);
 }
 
 /// Thrown when there's a network connectivity issue
 class NetworkException extends AppException {
-  const NetworkException(String message, [StackTrace? stackTrace])
-      : super(message, stackTrace);
+  const NetworkException(super.message, [super.stackTrace]);
 }
 
 /// Thrown when there's an authentication error
 class AuthenticationException extends AppException {
-  const AuthenticationException(String message, [StackTrace? stackTrace])
-      : super(message, stackTrace);
+  const AuthenticationException(super.message, [super.stackTrace]);
 }
 
 /// Thrown when there's a validation error

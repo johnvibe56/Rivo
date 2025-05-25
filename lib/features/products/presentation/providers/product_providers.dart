@@ -18,6 +18,7 @@ final productRepositoryProvider = Provider<ProductRepository>((ref) {
 
 // State Notifier for managing product list state
 class ProductListNotifier extends StateNotifier<AsyncValue<List<Product>>> {
+  static const String _tag = 'ProductListNotifier';
   final ProductRepository _repository;
   
   ProductListNotifier(this._repository) : super(const AsyncValue.loading()) {
@@ -26,22 +27,21 @@ class ProductListNotifier extends StateNotifier<AsyncValue<List<Product>>> {
 
   Future<void> getProducts() async {
     try {
-      print('🔄 [DEBUG] ProductListNotifier: Starting to fetch products...');
+      Logger.d('Starting to fetch products...', tag: _tag);
       state = const AsyncValue.loading();
       
-      print('📞 [DEBUG] Calling repository.getProducts()');
+      Logger.d('Calling repository.getProducts()', tag: _tag);
       final stopwatch = Stopwatch()..start();
       final result = await _repository.getProducts();
       stopwatch.stop();
       
-      print('⏱️ [DEBUG] getProducts took ${stopwatch.elapsedMilliseconds}ms');
+      Logger.d('getProducts took ${stopwatch.elapsedMilliseconds}ms', tag: _tag);
       
       // Handle the Either result properly
       return result.fold(
         (failure) {
-          final errorMsg = '❌ [ERROR] Failed to fetch products: ${failure.toString()}';
-          print(errorMsg);
-          print(StackTrace.current);
+          final errorMsg = 'Failed to fetch products: ${failure.toString()}';
+          Logger.e(errorMsg, StackTrace.current, tag: _tag);
           
           // Create a proper AsyncValue.error
           state = AsyncValue<List<Product>>.error(
@@ -49,29 +49,27 @@ class ProductListNotifier extends StateNotifier<AsyncValue<List<Product>>> {
             StackTrace.current,
           );
           
-          // Also log using the logger if it starts working
-          Logger.e(errorMsg, StackTrace.current);
-          
           // Return a completed future
           return Future.value();
         },
         (products) {
-          final successMsg = '✅ [DEBUG] Successfully fetched ${products.length} products';
-          print(successMsg);
+          final successMsg = 'Successfully fetched ${products.length} products';
+          Logger.d(successMsg, tag: _tag);
           
           if (products.isEmpty) {
-            print('ℹ️ [DEBUG] No products found in the repository');
+            Logger.d('No products found in the repository', tag: _tag);
           } else {
-            // Print details of all products for debugging
-            print('📋 [DEBUG] Products received from repository:');
-            for (var i = 0; i < products.length; i++) {
-              final p = products[i];
-              print('  ${i + 1}. ID: ${p.id}, Title: "${p.title}", Created: ${p.createdAt}');
+            // Log details of products for debugging (limited to 5 to avoid log spam)
+            final productsToLog = products.take(5).toList();
+            Logger.d('First ${productsToLog.length} products:', tag: _tag);
+            for (var i = 0; i < productsToLog.length; i++) {
+              final p = productsToLog[i];
+              Logger.d('${i + 1}. ID: ${p.id}, Title: "${p.title}"', tag: _tag);
+            }
+            if (products.length > 5) {
+              Logger.d('... and ${products.length - 5} more products', tag: _tag);
             }
           }
-          
-          // Also log using the logger if it starts working
-          Logger.d(successMsg);
           
           // Update state with the fetched products
           state = AsyncValue.data(products);
@@ -81,12 +79,8 @@ class ProductListNotifier extends StateNotifier<AsyncValue<List<Product>>> {
         },
       );
     } catch (e, stackTrace) {
-      final errorMsg = '❌ [ERROR] Unexpected error in getProducts: $e';
-      print(errorMsg);
-      print(stackTrace);
-      
-      // Also log using the logger if it starts working
-      Logger.e(errorMsg, stackTrace, tag: 'ProductListNotifier');
+      final errorMsg = 'Unexpected error in getProducts: $e';
+      Logger.e(errorMsg, stackTrace, tag: _tag);
       
       // Create a proper AsyncValue.error
       state = AsyncValue<List<Product>>.error(
@@ -110,20 +104,36 @@ final productListNotifierProvider = StateNotifierProvider<ProductListNotifier, A
 
 // State Notifier for managing a single product state
 class ProductNotifier extends StateNotifier<AsyncValue<Product>> {
+  static const String _tag = 'ProductNotifier';
   final ProductRepository _repository;
   
   ProductNotifier(this._repository) : super(const AsyncValue.loading());
 
   Future<void> getProduct(String id) async {
-    state = const AsyncValue.loading();
-    final result = await _repository.getProductById(id);
-    state = result.fold(
-      (failure) => AsyncValue.error(failure, StackTrace.current) as AsyncValue<Product>,
-      (product) => AsyncValue.data(product),
-    );
+    try {
+      Logger.d('Fetching product with ID: $id', tag: _tag);
+      state = const AsyncValue.loading();
+      final result = await _repository.getProductById(id);
+      
+      result.fold(
+        (failure) {
+          Logger.e('Failed to fetch product: ${failure.toString()}', StackTrace.current, tag: _tag);
+          state = AsyncValue.error(failure, StackTrace.current) as AsyncValue<Product>;
+        },
+        (product) {
+          Logger.d('Successfully fetched product: ${product.id}', tag: _tag);
+          state = AsyncValue.data(product);
+        },
+      );
+    } catch (e, stackTrace) {
+      Logger.e('Unexpected error in getProduct: $e', stackTrace, tag: _tag);
+      state = AsyncValue.error(e, stackTrace) as AsyncValue<Product>;
+      rethrow;
+    }
   }
 
   Future<void> refresh(String id) async {
+    Logger.d('Refreshing product with ID: $id', tag: _tag);
     await getProduct(id);
   }
 }
@@ -138,20 +148,36 @@ final productNotifierProvider = StateNotifierProvider.family<ProductNotifier, As
 
 // State Notifier for managing user's products
 class UserProductsNotifier extends StateNotifier<AsyncValue<List<Product>>> {
+  static const String _tag = 'UserProductsNotifier';
   final ProductRepository _repository;
   
   UserProductsNotifier(this._repository) : super(const AsyncValue.loading());
 
   Future<void> getProductsByUser(String userId) async {
-    state = const AsyncValue.loading();
-    final result = await _repository.getProductsByUser(userId);
-    state = result.fold(
-      (failure) => AsyncValue.error(failure, StackTrace.current) as AsyncValue<List<Product>>,
-      (products) => AsyncValue.data(products),
-    );
+    try {
+      Logger.d('Fetching products for user ID: $userId', tag: _tag);
+      state = const AsyncValue.loading();
+      final result = await _repository.getProductsByUser(userId);
+      
+      result.fold(
+        (failure) {
+          Logger.e('Failed to fetch user products: ${failure.toString()}', StackTrace.current, tag: _tag);
+          state = AsyncValue.error(failure, StackTrace.current) as AsyncValue<List<Product>>;
+        },
+        (products) {
+          Logger.d('Successfully fetched ${products.length} products for user: $userId', tag: _tag);
+          state = AsyncValue.data(products);
+        },
+      );
+    } catch (e, stackTrace) {
+      Logger.e('Unexpected error in getProductsByUser: $e', stackTrace, tag: _tag);
+      state = AsyncValue.error(e, stackTrace) as AsyncValue<List<Product>>;
+      rethrow;
+    }
   }
 
   Future<void> refresh(String userId) async {
+    Logger.d('Refreshing products for user ID: $userId', tag: _tag);
     await getProductsByUser(userId);
   }
 }

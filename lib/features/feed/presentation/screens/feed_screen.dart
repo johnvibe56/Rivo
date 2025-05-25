@@ -16,73 +16,82 @@ class FeedScreen extends ConsumerStatefulWidget {
 }
 
 class _FeedScreenState extends ConsumerState<FeedScreen> {
-  final PageController _pageController = PageController();
+  static const String _tag = 'FeedScreen';
   final Set<String> _favoriteProductIds = {};
-  Timer? _autoPlayTimer;
-  int _currentPage = 0;
-  final bool _isUserScrolling = false;
-  
+  final ScrollController _scrollController = ScrollController();
+  bool _isLoading = false;
+
   @override
   void initState() {
     super.initState();
-    print('🚀 [DEBUG] FeedScreen: Initializing...');
-    _startAutoPlay();
+    Logger.d('Initializing...', tag: _tag);
     
-    // Print the current route
+    // Add scroll listener for pagination
+    _scrollController.addListener(_onScroll);
+    
+    // Log the current route
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final currentRoute = ModalRoute.of(context)?.settings.name;
-      print('📍 [DEBUG] Current route: $currentRoute');
+      Logger.d('Current route: $currentRoute', tag: _tag);
       
       // Trigger initial load
-      print('🔄 [DEBUG] FeedScreen: Triggering initial product load...');
-      ref.read(productListNotifierProvider.notifier).refresh().then((_) {
-        print('✅ [DEBUG] FeedScreen: Initial product load completed');
-      }).catchError((error, stackTrace) {
-        print('❌ [ERROR] FeedScreen: Failed to load products');
-        print(error);
-        print(stackTrace);
-      });
+      _loadInitialProducts();
     });
   }
 
   @override
   void dispose() {
-    _pageController.dispose();
-    _autoPlayTimer?.cancel();
+    _scrollController.dispose();
     super.dispose();
   }
 
-  void _startAutoPlay() {
-    _autoPlayTimer?.cancel();
-    _autoPlayTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
-      if (!_isUserScrolling && mounted) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          final products = ProviderScope.containerOf(context, listen: false)
-              .read(productListNotifierProvider)
-              .valueOrNull ?? [];
-          if (products.isNotEmpty) {
-            if (_currentPage < products.length - 1) {
-              _pageController.nextPage(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-              );
-            } else {
-              _pageController.animateToPage(
-                0,
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-              );
-            }
-          }
-        });
-      }
-    });
+  Future<void> _loadInitialProducts() async {
+    Logger.d('Triggering initial product load...', tag: _tag);
+    try {
+      await ref.read(productListNotifierProvider.notifier).refresh();
+      Logger.d('Initial product load completed', tag: _tag);
+    } catch (error, stackTrace) {
+      Logger.e('Failed to load products: $error', stackTrace, tag: _tag);
+    }
   }
 
-  void _onPageChanged(int page) {
+  void _onScroll() {
+    if (_isLoading) return;
+    
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.offset;
+    final delta = MediaQuery.of(context).size.height * 0.2; // Load more when 20% from bottom
+    
+    if (currentScroll >= (maxScroll - delta)) {
+      _loadMoreProducts();
+    }
+  }
+  
+  Future<void> _loadMoreProducts() async {
+    if (_isLoading) return;
+    
     setState(() {
-      _currentPage = page;
+      _isLoading = true;
     });
+    
+    try {
+      // TODO: Implement pagination in your ProductListNotifier
+      // For now, we'll just refresh the list
+      await ref.read(productListNotifierProvider.notifier).refresh();
+    } catch (e) {
+      Logger.e('Error loading more products: $e', StackTrace.current, tag: _tag);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to load more products')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -150,7 +159,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
               ),
             ),
             data: (products) {
-              print('📊 [DEBUG] FeedScreen: Rendering ${products.length} products');
+              Logger.d('Rendering ${products.length} products', tag: _tag);
               if (products.isEmpty) {
                 return Center(
                   child: Column(
@@ -168,10 +177,6 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                     ],
                   ),
                 );
-              }
-              // Update current page if needed
-              if (_currentPage >= products.length && products.isNotEmpty) {
-                _currentPage = 0;
               }
               
               return Column(
@@ -247,42 +252,53 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                       const SizedBox(width: 8),
                     ],
                   ),
-                  // Add your feed content here
+                  // Product list with pull-to-refresh
                   Expanded(
                     child: RefreshIndicator(
                       onRefresh: () async {
                         await ref.read(productListNotifierProvider.notifier).refresh();
                       },
-                      child: PageView.builder(
-                        controller: _pageController,
-                        onPageChanged: _onPageChanged,
-                        itemCount: products.length,
+                      child: ListView.builder(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.only(bottom: 16),
+                        itemCount: products.length + (_isLoading ? 1 : 0),
                         itemBuilder: (context, index) {
+                          // Show loading indicator at the bottom when loading more
+                          if (index >= products.length) {
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 16.0),
+                              child: Center(child: CircularProgressIndicator()),
+                            );
+                          }
+                          
                           final product = products[index];
-                          return MarketplacePostCard(
-                            product: product,
-                            isFavorite: _favoriteProductIds.contains(product.id),
-                            onFavoritePressed: () {
-                              setState(() {
-                                if (_favoriteProductIds.contains(product.id)) {
-                                  _favoriteProductIds.remove(product.id);
-                                } else {
-                                  _favoriteProductIds.add(product.id);
-                                }
-                              });
-                            },
-                            onMessage: () {
-                              // TODO: Navigate to chat with seller
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Opening chat with seller...')),
-                              );
-                            },
-                            onBuy: () {
-                              // TODO: Implement buy functionality
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Buy functionality coming soon!')),
-                              );
-                            },
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                            child: MarketplacePostCard(
+                              product: product,
+                              isFavorite: _favoriteProductIds.contains(product.id),
+                              onFavoritePressed: () {
+                                setState(() {
+                                  if (_favoriteProductIds.contains(product.id)) {
+                                    _favoriteProductIds.remove(product.id);
+                                  } else {
+                                    _favoriteProductIds.add(product.id);
+                                  }
+                                });
+                              },
+                              onMessage: () {
+                                // TODO: Navigate to chat with seller
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Opening chat with seller...')),
+                                );
+                              },
+                              onBuy: () {
+                                // TODO: Implement buy functionality
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Buy functionality coming soon!')),
+                                );
+                              },
+                            ),
                           );
                         },
                       ),

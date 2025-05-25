@@ -22,7 +22,9 @@ class MarketplacePostCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     
-    return Stack(
+    return SizedBox(
+      height: 500, // Fixed height for the card
+      child: Stack(
       children: [
         // Product Image
         Positioned.fill(
@@ -171,7 +173,7 @@ class MarketplacePostCard extends StatelessWidget {
           ),
         ),
       ],
-    );
+    ));
   }
   
   Widget _buildActionButton({

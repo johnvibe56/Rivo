@@ -16,26 +16,22 @@ abstract class Failure extends Equatable {
 
 /// Thrown when there's an error communicating with the server
 class ServerFailure extends Failure {
-  const ServerFailure(String message, [StackTrace? stackTrace])
-      : super(message, stackTrace);
+  const ServerFailure(super.message, [super.stackTrace]);
 }
 
 /// Thrown when there's a failure in the cache
 class CacheFailure extends Failure {
-  const CacheFailure(String message, [StackTrace? stackTrace])
-      : super(message, stackTrace);
+  const CacheFailure(super.message, [super.stackTrace]);
 }
 
 /// Thrown when there's a network connectivity issue
 class NetworkFailure extends Failure {
-  const NetworkFailure(String message, [StackTrace? stackTrace])
-      : super(message, stackTrace);
+  const NetworkFailure(super.message, [super.stackTrace]);
 }
 
 /// Thrown when there's an authentication error
 class AuthenticationFailure extends Failure {
-  const AuthenticationFailure(String message, [StackTrace? stackTrace])
-      : super(message, stackTrace);
+  const AuthenticationFailure(super.message, [super.stackTrace]);
 }
 
 /// Thrown when there's a validation error
@@ -54,14 +50,12 @@ class ValidationFailure extends Failure {
 
 /// Thrown when there's no internet connection
 class NoInternetFailure extends Failure {
-  const NoInternetFailure([String? message, StackTrace? stackTrace])
-      : super(message ?? 'No internet connection', stackTrace);
+  const NoInternetFailure([super.message = 'No internet connection', super.stackTrace]);
 }
 
 /// Thrown when the request times out
 class TimeoutFailure extends Failure {
-  const TimeoutFailure([String? message, StackTrace? stackTrace])
-      : super(message ?? 'Request timed out', stackTrace);
+  const TimeoutFailure([super.message = 'Request timed out', super.stackTrace]);
 }
 
 /// Thrown when the server returns an unexpected status code
@@ -77,18 +71,15 @@ class ServerErrorFailure extends Failure {
 
 /// Thrown when the requested resource is not found
 class NotFoundFailure extends Failure {
-  const NotFoundFailure([String? message, StackTrace? stackTrace])
-      : super(message ?? 'Resource not found', stackTrace);
+  const NotFoundFailure([super.message = 'Resource not found', super.stackTrace]);
 }
 
 /// Thrown when the user is not authorized to perform an action
 class UnauthorizedFailure extends Failure {
-  const UnauthorizedFailure([String? message, StackTrace? stackTrace])
-      : super(message ?? 'Unauthorized', stackTrace);
+  const UnauthorizedFailure([super.message = 'Unauthorized', super.stackTrace]);
 }
 
 /// Thrown when the user doesn't have permission to perform an action
 class ForbiddenFailure extends Failure {
-  const ForbiddenFailure([String? message, StackTrace? stackTrace])
-      : super(message ?? 'Forbidden', stackTrace);
+  const ForbiddenFailure([super.message = 'Forbidden', super.stackTrace]);
 }
