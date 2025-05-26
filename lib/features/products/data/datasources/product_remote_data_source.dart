@@ -65,15 +65,23 @@ class ProductRemoteDataSource {
 
   Future<Map<String, dynamic>> createProduct(Product product) async {
     try {
-      Logger.d('Creating new product: ${product.title}', tag: _tag);
-      Logger.d('Product data: ${product.toJson()}', tag: _tag);
+      Logger.d('Creating product: ${product.title}', tag: _tag);
+      
+      // Get current user ID
+      final currentUser = _supabaseClient.auth.currentUser;
+      if (currentUser == null) {
+        Logger.e('No authenticated user found', StackTrace.current, tag: _tag);
+        throw const ServerException('User not authenticated');
+      }
+      
+      final productData = product.toJson()..['owner_id'] = currentUser.id;
       
       final response = await _supabaseClient
           .from(_table)
-          .insert(product.toJson())
+          .insert(productData)
           .select()
           .single();
-      
+          
       Logger.d('Successfully created product with ID: ${response['id']}', tag: _tag);
       return response;
     } on PostgrestException catch (e) {
@@ -81,7 +89,7 @@ class ProductRemoteDataSource {
       throw ServerException(e.message);
     } catch (e, stackTrace) {
       Logger.e('Unexpected error creating product: $e', stackTrace, tag: _tag);
-      throw ServerException('Failed to create product');
+      throw const ServerException('Failed to create product');
     }
   }
 

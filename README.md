@@ -1,257 +1,176 @@
-# Rivo - Marketplace App
+# RIVO - Vintage Marketplace App
 
-A modern marketplace application built with Flutter and Supabase, following clean architecture principles.
+A modern vertical-scroll marketplace app built with Flutter and Supabase. RIVO enables users to discover, wishlist, and upload vintage and secondhand items, with smooth navigation, real-time updates, and clean architecture.
 
-## ✨ Recent Updates
+---
 
-### Wishlist Feature (May 2024)
-- Added wishlist functionality to save favorite products
-- Implemented wishlist screen with product listings
-- Added loading states and error handling
-- Integrated with existing authentication system
-- Optimized for performance with proper state management
+## 🚀 MVP Summary (May 2024)
 
-### User Profile Enhancements (May 2024)
-- Implemented user product listing with pull-to-refresh
-- Added loading states and error handling
-- Improved data fetching with proper caching
-- Enhanced logging and debugging capabilities
-- Optimized performance for user product listings
+### ✅ Core Features Completed
 
-## 🚀 Features
+* **Authentication** with email/password
+* **Infinite Scroll Product Feed** with like/wishlist support
+* **Product Upload** with Supabase Storage
+* **Wishlist System** with Supabase-backed syncing and UI integration
+* **User Profile** displaying uploaded items
+* **Product Detail View** with dynamic routing
 
-### Authentication
-- ✅ Email/Password Sign In
-- ✅ User Registration
-- ✅ Form Validation
-- ✅ Secure Credential Storage
-- ✅ Session Management
+### 🔜 In Progress
 
-### Feed & Product Browsing
-- 🎯 Infinite Scrolling Feed
-- 🔄 Pull-to-Refresh
-- 🎨 Rich Product Cards
-- ❤️ Like/Favorite Products with Wishlist integration
-- 💬 Product Details & Interactions
-- 🛒 Add to Cart Functionality
+* Advanced Search & Filters
+* Real-time Chat between buyers and sellers
+* Seller Dashboard
+* Order & Purchase Flow
 
-### Wishlist
-- 💖 Save favorite products to your wishlist
-- 📱 Access your wishlist from the bottom navigation
-- 🔄 Real-time updates when adding/removing items
-- 📦 View all wishlisted products in one place
-- 🚀 Optimized for performance with local caching
+---
 
-### User Profile
-- 👤 View and manage user profile
-- 📦 View user's uploaded products
-- 🔄 Pull-to-refresh for user products
-- 🚀 Optimized loading states
-- 🛠 Edit profile information
+## 🔧 Tech Stack
 
-### User Interface
-- 🎨 Dark/Light Theme Support
-- 📱 Responsive Design
-- 🔄 Smooth Animations
-- 🚦 Error Handling
-- 🎯 Intuitive Navigation
+| Layer            | Technology                   |
+| ---------------- | ---------------------------- |
+| UI               | Flutter 3.x, Material 3      |
+| State Management | Riverpod 2.x                 |
+| Navigation       | Go Router 10.x               |
+| Backend          | Supabase (Auth, DB, Storage) |
+| Networking       | Dio                          |
+| Forms            | Formz                        |
+| Local Storage    | Shared Preferences           |
+| Environment      | Flutter DotEnv               |
+| Animations       | Flutter Animations           |
+| Logging          | Custom Logger                |
 
-### ⏳ Upcoming Features
-- 🔍 Advanced Search and Filtering
-- 📊 Seller Dashboard
-- 💬 Real-time Chat
-- 📦 Order Tracking
-- 🌍 Multi-language Support
+---
 
-## 🛠 Tech Stack
+## 📱 Main Features
 
-- **Framework**: Flutter 3.x
-- **Backend**: Supabase (Auth, Database, Storage)
-- **State Management**: Riverpod 2.x
-- **Navigation**: Go Router 10.x
-- **Architecture**: Clean Architecture with Feature-First structure
-- **Form Handling**: Formz
-- **Networking**: Dio
-- **Local Storage**: Shared Preferences
-- **Environment**: Flutter DotEnv
-- **UI Components**: Flutter Material Design 3
-- **Animation**: Flutter Animation Package
-- **Logging**: Custom Logger implementation
-- **Error Handling**: Comprehensive error handling with user feedback
+### 🧑‍💻 Authentication
 
-## Project Structure
+* ✅ Secure login & registration (email/password)
+* 🔐 Session persistence
+* ✅ Form validation & error feedback
 
-```
+### 🛍️ Product Feed
+
+* 🎯 Infinite vertical scroll (PageView style)
+* 💖 Wishlist / Like functionality
+* ⚡ Optimistic UI updates
+* 🔄 Real-time loading and error states
+* 🖼️ Product cards with image, title, price
+
+### ❤️ Wishlist
+
+* 🔄 Toggle save/remove products
+* 📦 View saved items in a dedicated screen
+* 🔒 Row-Level Security (RLS) enforcement per user
+* 📶 Works offline with fallback behavior
+* 📊 Products fetched via JOIN with wishlist table for scoped access
+
+### 📦 Upload Product
+
+* 📤 Image upload via Supabase Storage
+* ✏️ Add title, description, and price
+* ✅ Form validation and error states
+* 🔒 Data scoped to current user
+
+### 👤 User Profile
+
+* 🧾 See user’s uploaded items
+* 🔁 Pull-to-refresh supported
+* 🧭 Navigation to Upload screen
+* 📧 Show user email from auth
+
+### 🧩 UI/UX & Design
+
+* ☀️🌙 Light/Dark theme support
+* 📱 Responsive layout (small and large screens)
+* 🚦 Loading indicators & error messages
+* 🧭 Bottom navigation (planned)
+
+---
+
+## 🗃️ Project Structure
+
+```txt
 lib/
-├── core/
-│   ├── constants/      # App-wide constants
-│   ├── router/         # Navigation configuration
-│   ├── services/       # External services (API, storage, etc.)
-│   ├── theme/          # App theming
-│   └── utils/          # Helper functions and utilities
-│
-├── features/          # Feature modules
-│   ├── auth/           # Authentication feature
-│   │   ├── data/       # Data layer (repositories, data sources)
-│   │   ├── domain/     # Business logic (entities, use cases)
-│   │   └── presentation/ # UI layer (screens, widgets, state)
-│   │
-│   ├── product_feed/   # Product listing feature
-│   ├── wishlist/       # Wishlist feature
-│   ├── product_upload/ # Product upload feature
-│   └── profile/        # User profile feature
-│
-└── main.dart          # App entry point
+├── core/                # App-wide utilities (router, theme, services)
+├── features/
+│   ├── auth/            # Sign-in, sign-up
+│   ├── product_feed/    # Marketplace product browsing
+│   ├── wishlist/        # Wishlist logic & UI
+│   ├── product_upload/  # Upload form and storage logic
+│   └── profile/         # User profile view
+└── main.dart            # Entry point
 ```
 
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Flutter SDK (3.16.0 or higher)
-- Dart SDK (3.2.0 or higher)
-- Android Studio / Xcode (for running on emulator/device)
-- Supabase account (for backend services)
-- CocoaPods (for iOS development)
-
-### Setup Instructions
-
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/yourusername/rivo.git
-   cd rivo
-   ```
-
-2. **Install dependencies**:
-   ```bash
-   flutter pub get
-   cd ios && pod install && cd ..
-   ```
-
-3. **Set up environment variables**:
-   - Copy the example environment file:
-     ```bash
-     cp .env.example .env
-     ```
-   - Update the `.env` file with your Supabase credentials
-
-4. **Run the app**:
-   ```bash
-   # For Android
-   flutter run -d <android-device-id>
-   
-   # For iOS
-   flutter run -d <ios-device-id>
-   ```
-
-5. **Run tests**:
-   ```bash
-   flutter test
-   ```
-
-### Development Workflow
-
-- Run in development mode:
-  ```bash
-  flutter run -d <device_id> --debug
-  ```
-
-- Run tests:
-  ```bash
-  flutter test
-  ```
-
-- Generate code (if using code generation):
-  ```bash
-  flutter pub run build_runner build --delete-conflicting-outputs
-  ```
+---
 
 ## 🧪 Testing
 
-Run the following command to execute all tests:
-
 ```bash
-flutter test
+flutter test  # Run all tests
+flutter pub run build_runner build --delete-conflicting-outputs  # Generate provider code
 ```
 
-## 📱 Screenshots
+---
 
-| Feed Screen | Product Details | User Profile |
-|-------------|----------------|--------------|
-| <img src="screenshots/feed_screen.png" width="200"> | <img src="screenshots/product_screen.png" width="200"> | <img src="screenshots/profile_screen.png" width="200"> |
+## 🛠 Setup Guide
 
-*Screenshots are placeholders - update with actual screenshots from your app*
+### Prerequisites
 
-## 🐛 Bug Reports & Feature Requests
+* Flutter SDK (>= 3.16)
+* Dart SDK (>= 3.2)
+* Supabase Project (Auth + DB)
+* iOS: CocoaPods + Xcode
+* Android: Android Studio or CLI tools
 
-If you find any bugs or have feature requests, please [open an issue](https://github.com/yourusername/rivo/issues) on GitHub. When reporting a bug, please include:
-- Steps to reproduce the issue
-- Expected behavior
-- Actual behavior
-- Device/OS version
-- App version
+### Installation
 
-## 🤝 Contributing
+```bash
+git clone https://github.com/yourusername/rivo.git
+cd rivo
+flutter pub get
+cd ios && pod install && cd ..
+cp .env.example .env  # Insert your Supabase credentials
+flutter run
+```
 
-We welcome contributions! Please follow these steps:
+---
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+## 📷 Screenshots (Coming Soon)
 
-### Code Style
-- Follow the [official Flutter style guide](https://dart.dev/guides/language/effective-dart/style)
-- Add comments for complex logic
-- Write tests for new features
-- Update documentation when adding new features
+| Feed | Product Detail | Profile | Wishlist |
+| ---- | -------------- | ------- | -------- |
+| 🖼️  | 🖼️            | 🖼️     | 🖼️      |
+
+---
+
+## 📬 Feedback & Contributions
+
+Found a bug or have an idea?
+
+* [Open an issue](https://github.com/yourusername/rivo/issues)
+* Pull Requests are welcome!
+
+### Contribution Flow
+
+```bash
+git checkout -b feature/myFeature
+flutter test
+# Make changes
+git commit -m "feat: add my feature"
+git push origin feature/myFeature
+# Open a PR
+```
+
+---
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License.
 
-## 🙏 Acknowledgments
+---
 
-- [Flutter](https://flutter.dev/)
-- [Supabase](https://supabase.com/)
-- [Riverpod](https://riverpod.dev/)
-- [Go Router](https://pub.dev/packages/go_router)
+## 🙌 Acknowledgments
 
-To run unit tests:
-```bash
-flutter test
-```
-
-## Code Generation
-
-This project uses code generation for Riverpod providers. After modifying any provider annotations, run:
-
-```bash
-flutter pub run build_runner build --delete-conflicting-outputs
-```
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+* Flutter, Supabase, Riverpod, GoRouter
+* Everyone contributing to open-source tooling
