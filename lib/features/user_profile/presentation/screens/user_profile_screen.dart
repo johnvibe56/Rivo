@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:rivo/core/router/app_router.dart';
 import 'package:rivo/core/utils/logger.dart';
 import 'package:rivo/features/feed/presentation/widgets/marketplace_post_card.dart';
-
 import 'package:rivo/features/auth/presentation/providers/auth_provider.dart';
+import 'package:rivo/features/products/presentation/providers/delete_product_provider.dart';
 import 'package:rivo/features/user_profile/presentation/providers/user_profile_providers.dart';
 
 class UserProfileScreen extends ConsumerStatefulWidget {
@@ -112,11 +112,60 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
     }
   }
 
+  // Handle product deletion
+  Future<void> _handleProductDeleted() async {
+    final userId = ref.read(authStateProvider).value?.user?.id;
+    if (userId == null || !mounted) return;
+    
+    // Refresh the product list
+    await _loadUserProducts(forceRefresh: true);
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
     final user = authState.value?.user;
     final userProductsAsync = ref.watch(userProductsProvider);
+    
+      // Listen for product deletion state changes
+    ref.listen(deleteProductNotifierProvider, (previous, next) {
+      if (next.isLoading) return;
+      
+      if (next.errorMessage != null) {
+        Logger.e('Error deleting product: ${next.errorMessage}', StackTrace.current);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(next.errorMessage ?? 'Failed to delete product'),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          
+          // Reset the delete state after showing the error
+          if (next.productId != null) {
+            ref.read(deleteProductNotifierProvider.notifier).reset();
+          }
+        }
+      } else if (next.successMessage != null) {
+        // Only handle success if we're still mounted
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(next.successMessage!),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          
+          // Reset the delete state after showing the success message
+          if (next.productId != null) {
+            ref.read(deleteProductNotifierProvider.notifier).reset();
+          }
+          
+          _handleProductDeleted();
+        }
+      }
+    });
     
     // Debug log the current state
     userProductsAsync.when(
@@ -214,18 +263,21 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 16.0),
                         child: MarketplacePostCard(
-                          key: ValueKey(product.id),
+                          key: ValueKey('product-${product.id}'),
                           product: product,
                           userId: user?.id ?? '',
-                          showWishlistButton: false,
                           onTap: () {
-                            // Navigate to product detail
-                            if (context.mounted) {
-                              context.push('/product/${product.id}');
-                            }
+                            // Refresh the product list when a product is deleted
+                            _loadUserProducts(forceRefresh: true);
                           },
                           onMessage: () {
                             // Handle message action
+                            if (context.mounted) {
+                              context.push('/chat', extra: {
+                                'product': product,
+                                'sellerId': product.ownerId,
+                              });
+                            }
                           },
                           onBuy: () {
                             // Handle buy action

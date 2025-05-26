@@ -1,0 +1,18 @@
+targets:
+  $default:
+    builders:
+      riverpod_generator:
+        options:
+          # Use the new syntax for the generator
+          generate_for:
+            - lib/**/*.dart
+          # Enable the new generator
+          enabled: true
+          # Generate providers as final variables
+          final: true
+          # Generate providers with @riverpod annotation
+          riverpod_annotation: true
+          # Generate providers with @riverpod annotation
+          riverpod_generator: true
+          # Generate providers with @riverpod annotation
+          riverpod_lint: true

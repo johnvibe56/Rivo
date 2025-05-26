@@ -119,10 +119,42 @@ class ProductRemoteDataSource {
     try {
       Logger.d('Deleting product ID: $id', tag: _tag);
       
+      // First, get the product to get the image URL
+      final product = await _supabaseClient
+          .from(_table)
+          .select('image_url')
+          .eq('id', id)
+          .single();
+      
+      // Delete the product from the database
       await _supabaseClient
           .from(_table)
           .delete()
           .eq('id', id);
+      
+      // If the product had an image, delete it from storage
+      final imageUrl = product['image_url'] as String?;
+      if (imageUrl != null && imageUrl.isNotEmpty) {
+        try {
+          // Extract the file path from the URL
+          final uri = Uri.parse(imageUrl);
+          final pathSegments = uri.pathSegments;
+          if (pathSegments.length >= 3) {
+            // The path is typically: /storage/v1/object/public/bucket-name/path/to/file
+            final bucket = pathSegments[3];
+            final filePath = pathSegments.sublist(4).join('/');
+            
+            await _supabaseClient.storage
+                .from(bucket)
+                .remove([filePath]);
+                
+            Logger.d('Successfully deleted image: $filePath', tag: _tag);
+          }
+        } catch (e, stackTrace) {
+          // Log the error but don't fail the operation
+          Logger.e('Failed to delete product image: $e', stackTrace, tag: _tag);
+        }
+      }
       
       Logger.d('Successfully deleted product ID: $id', tag: _tag);
     } on PostgrestException catch (e) {

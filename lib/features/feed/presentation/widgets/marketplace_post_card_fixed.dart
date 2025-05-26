@@ -28,15 +28,15 @@ class MarketplacePostCard extends ConsumerWidget {
     this.onBuy,
     this.onTap,
   });
-
+  
   // Build delete button
   Widget _buildDeleteButton(BuildContext context, WidgetRef ref) {
     final isDeleting = ref.watch(isDeletingProductProvider(product.id));
-
+    
     debugPrint('Rendering delete button for product: ${product.id}');
     debugPrint('Is current user owner: ${product.ownerId == userId}');
     debugPrint('Is deleting: $isDeleting');
-
+    
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -65,10 +65,9 @@ class MarketplacePostCard extends ConsumerWidget {
       ),
     );
   }
-
+  
   // Show confirmation dialog before deleting
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
-    // Show confirmation dialog
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -91,17 +90,16 @@ class MarketplacePostCard extends ConsumerWidget {
     );
 
     if (confirmed != true || !context.mounted) return;
-
+    
     try {
-      // Start the deletion process
-      ref.read(deleteProductNotifierProvider.notifier).startDeleting(product.id);
+      // Reset the delete state before starting a new operation
+      ref.read(deleteProductNotifierProvider.notifier).reset();
       
       // Call the delete product function
-      final success = await ref.read(deleteProductNotifierProvider.notifier)
-          .deleteProduct(product.id);
-
+      final success = await ref.read(deleteProductNotifierProvider.notifier).deleteProduct(product.id);
+      
       if (!context.mounted) return;
-
+      
       if (success) {
         // Show success message
         if (context.mounted) {
@@ -111,7 +109,7 @@ class MarketplacePostCard extends ConsumerWidget {
               behavior: SnackBarBehavior.floating,
             ),
           );
-
+          
           // Notify parent widget about the deletion
           if (onTap != null) {
             onTap!();
@@ -134,16 +132,11 @@ class MarketplacePostCard extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('An error occurred while deleting the product'),
+            content: Text('An unexpected error occurred'),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
           ),
         );
-      }
-    } finally {
-      if (context.mounted) {
-        // Reset the delete state
-        ref.read(deleteProductNotifierProvider.notifier).reset();
       }
     }
   }
@@ -151,7 +144,7 @@ class MarketplacePostCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-
+    
     return SizedBox(
       height: 500, // Fixed height for the card
       child: Stack(
@@ -168,11 +161,13 @@ class MarketplacePostCard extends ConsumerWidget {
                     child: CachedNetworkImage(
                       imageUrl: product.imageUrl,
                       fit: BoxFit.cover,
-                      placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                      placeholder: (context, url) => const Center(
+                        child: CircularProgressIndicator(),
+                      ),
                       errorWidget: (context, url, error) => const Icon(Icons.error),
                     ),
                   ),
-
+                  
                   // Gradient overlay
                   Positioned.fill(
                     child: Container(
@@ -194,7 +189,7 @@ class MarketplacePostCard extends ConsumerWidget {
               ),
             ),
           ),
-
+          
           // Delete button (only shown to owner)
           if (product.ownerId == userId && userId.isNotEmpty)
             Positioned(
@@ -205,7 +200,7 @@ class MarketplacePostCard extends ConsumerWidget {
                 child: _buildDeleteButton(context, ref),
               ),
             ),
-
+          
           // Product Info
           Positioned(
             bottom: 0,
@@ -231,9 +226,9 @@ class MarketplacePostCard extends ConsumerWidget {
                       ),
                     ),
                   ),
-
+                  
                   const SizedBox(height: 8),
-
+                  
                   // Title
                   Text(
                     product.title,
@@ -242,9 +237,9 @@ class MarketplacePostCard extends ConsumerWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-
+                  
                   const SizedBox(height: 4),
-
+                  
                   // Description
                   Text(
                     product.description,
@@ -254,9 +249,9 @@ class MarketplacePostCard extends ConsumerWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-
+                  
                   const SizedBox(height: 16),
-
+                  
                   // Action Buttons
                   Row(
                     children: [
@@ -269,18 +264,18 @@ class MarketplacePostCard extends ConsumerWidget {
                           selectedColor: Colors.red,
                           color: Colors.white,
                         ),
-
+                      
                       const SizedBox(width: 12),
-
+                      
                       // Message Button
                       if (onMessage != null)
                         _buildActionButton(
                           icon: Icons.message,
                           onPressed: onMessage!,
                         ),
-
+                      
                       const Spacer(),
-
+                      
                       // Buy Button
                       ElevatedButton.icon(
                         onPressed: onBuy,
@@ -301,7 +296,7 @@ class MarketplacePostCard extends ConsumerWidget {
               ),
             ),
           ),
-
+          
           // Owner Info
           Positioned(
             top: 16,
@@ -325,7 +320,7 @@ class MarketplacePostCard extends ConsumerWidget {
               ],
             ),
           ),
-
+          
           // Message and Buy buttons
           if (onMessage != null || onBuy != null)
             Positioned(
@@ -341,7 +336,7 @@ class MarketplacePostCard extends ConsumerWidget {
                       backgroundColor: Colors.white,
                       child: const Icon(Icons.message, color: Colors.black),
                     ),
-                  if (onMessage != null && onBuy != null)
+                  if (onMessage != null && onBuy != null) 
                     const SizedBox(width: 12),
                   // Buy button
                   if (onBuy != null)
@@ -358,7 +353,7 @@ class MarketplacePostCard extends ConsumerWidget {
       ),
     );
   }
-
+  
   Widget _buildActionButton({
     required IconData icon,
     required VoidCallback onPressed,

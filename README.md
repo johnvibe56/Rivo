@@ -14,6 +14,7 @@ A modern vertical-scroll marketplace app built with Flutter and Supabase. RIVO e
 * **Wishlist System** with Supabase-backed syncing and UI integration
 * **User Profile** displaying uploaded items
 * **Product Detail View** with dynamic routing
+* **Bottom Navigation** connecting main app areas
 
 ### 🔜 In Progress
 
@@ -48,6 +49,7 @@ A modern vertical-scroll marketplace app built with Flutter and Supabase. RIVO e
 * ✅ Secure login & registration (email/password)
 * 🔐 Session persistence
 * ✅ Form validation & error feedback
+* ⚙️ Optional: email confirmation required (can be disabled in dev)
 
 ### 🛍️ Product Feed
 
@@ -71,6 +73,7 @@ A modern vertical-scroll marketplace app built with Flutter and Supabase. RIVO e
 * ✏️ Add title, description, and price
 * ✅ Form validation and error states
 * 🔒 Data scoped to current user
+* 👤 Includes `owner_id` from Supabase Auth
 
 ### 👤 User Profile
 
@@ -78,13 +81,14 @@ A modern vertical-scroll marketplace app built with Flutter and Supabase. RIVO e
 * 🔁 Pull-to-refresh supported
 * 🧭 Navigation to Upload screen
 * 📧 Show user email from auth
+* 🗑️ Product deletion with confirmation
 
 ### 🧩 UI/UX & Design
 
 * ☀️🌙 Light/Dark theme support
 * 📱 Responsive layout (small and large screens)
 * 🚦 Loading indicators & error messages
-* 🧭 Bottom navigation (planned)
+* 🧭 Bottom navigation between Feed, Wishlist, Profile
 
 ---
 
@@ -141,6 +145,21 @@ flutter run
 | Feed | Product Detail | Profile | Wishlist |
 | ---- | -------------- | ------- | -------- |
 | 🖼️  | 🖼️            | 🖼️     | 🖼️      |
+
+---
+
+## 🔐 Production Auth Requirements
+
+Before going live, be sure to:
+
+* ✅ Enable **email confirmation** under Supabase → Auth → Settings → Email Auth
+* ✅ Set up email templates and branding if needed
+* ✅ Enable **rate limiting** and abuse protection
+* ✅ Add reCAPTCHA (optional but recommended for sign-ups)
+
+For development:
+
+* You can disable email confirmation to test accounts more quickly
 
 ---
 

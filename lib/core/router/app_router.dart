@@ -155,7 +155,12 @@ class AppRouter {
     return AppRoutes.getPath(routeName, params: params);
   }
   
-  static bool _isAuthPath(String path) => _authRoutes.contains(path);
+  static bool _isAuthPath(String path) {
+    return path == '/login' || 
+           path == '/signup' || 
+           path == '/forgot-password' ||
+           path.startsWith('/login/');
+  }
 
   // Shell route for main navigation
   static final _shellRoute = ShellRoute(
@@ -221,20 +226,35 @@ class AppRouter {
   );
 
   // Auth routes
-  static final _authRoute = GoRoute(
-    path: '/login',
-    builder: (context, state) => const LoginScreen(),
-    routes: [
-      GoRoute(
-        path: 'signup',
-        builder: (context, state) => const SignupScreen(),
-      ),
-      GoRoute(
-        path: 'forgot-password',
-        builder: (context, state) => const ForgotPasswordScreen(),
-      ),
-    ],
-  );
+  static final _authRoutes = [
+    // Login route
+    GoRoute(
+      path: '/login',
+      builder: (context, state) => const LoginScreen(),
+    ),
+    
+    // Signup route (accessible at both /signup and /login/signup)
+    GoRoute(
+      path: '/signup',
+      builder: (context, state) => const SignupScreen(),
+    ),
+    
+    // Forgot password route (accessible at /forgot-password and /login/forgot-password)
+    GoRoute(
+      path: '/forgot-password',
+      builder: (context, state) => const ForgotPasswordScreen(),
+    ),
+    
+    // Nested routes for backward compatibility
+    GoRoute(
+      path: '/login/signup',
+      redirect: (context, state) => '/signup',
+    ),
+    GoRoute(
+      path: '/login/forgot-password',
+      redirect: (context, state) => '/forgot-password',
+    ),
+  ];
 
   // Splash screen route
   static final _splashRoute = GoRoute(
@@ -301,7 +321,7 @@ class AppRouter {
     },
     routes: [
       _shellRoute,
-      _authRoute,
+      ..._authRoutes,  // Use spread operator to include all auth routes
       _splashRoute,
     ],
   );
