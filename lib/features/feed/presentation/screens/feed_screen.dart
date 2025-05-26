@@ -23,25 +23,35 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _isLoading = false;
 
+  bool _isInitialized = false;
+  bool _isMounted = false;
+
   @override
   void initState() {
     super.initState();
+    _isMounted = true;
     Logger.d('Initializing...', tag: _tag);
-    _loadInitialProducts();
+    
+    // Set up scroll controller
     _scrollController.addListener(_onScroll);
     
-    // Schedule the wishlist initialization after the first frame
+    // Schedule the initial load after the first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_isMounted) return;
+      _isInitialized = true;
+      _loadInitialProducts();
       _initializeWishlist();
     });
   }
   
   // Initialize wishlist after the first frame
   void _initializeWishlist() {
+    if (!_isMounted) return;
+    
     final currentUserId = ref.read(authStateProvider).valueOrNull?.user?.id;
-    if (currentUserId != null && mounted) {
+    if (currentUserId != null) {
       Future.microtask(() {
-        if (mounted) {
+        if (_isMounted) {
           ref.read(wishlistNotifierProvider(currentUserId).notifier).initialize();
         }
       });
@@ -49,23 +59,54 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    
+    // Handle navigation returns by refreshing data
+    if (_isInitialized && _isMounted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_isMounted) {
+          _loadInitialProducts();
+        }
+      });
+    }
+  }
+
+  @override
   void dispose() {
+    _isMounted = false;
     _scrollController.dispose();
     super.dispose();
   }
 
   Future<void> _loadInitialProducts() async {
+    if (!_isMounted) return;
+    
+    // Capture BuildContext before async operation
+    final currentContext = context;
     Logger.d('Triggering initial product load...', tag: _tag);
+    
     try {
-      await ref.read(productListNotifierProvider.notifier).refresh();
+      // Ensure we're not in the build phase when modifying providers
+      await Future.microtask(() => 
+        ref.read(productListNotifierProvider.notifier).refresh()
+      );
       Logger.d('Initial product load completed', tag: _tag);
     } catch (error, stackTrace) {
       Logger.e('Failed to load products: $error', stackTrace, tag: _tag);
+      if (_isMounted) {
+        if (!currentContext.mounted) return;
+        ScaffoldMessenger.of(currentContext).showSnackBar(
+          const SnackBar(content: Text('Failed to load products')),
+        );
+      }
     }
   }
 
   void _onScroll() {
-    if (_isLoading) return;
+    if (_isLoading || !_isMounted) return;
+    
+    if (!_scrollController.hasClients) return;
     
     final maxScroll = _scrollController.position.maxScrollExtent;
     final currentScroll = _scrollController.offset;
@@ -77,19 +118,27 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   }
   
   Future<void> _loadMoreProducts() async {
-    if (_isLoading) return;
+    if (_isLoading || !_isMounted) return;
+    
+    // Capture BuildContext before async operation
+    final currentContext = context;
     
     try {
-      setState(() {
-        _isLoading = true;
-      });
+      if (_isMounted) {
+        setState(() {
+          _isLoading = true;
+        });
+      }
       
       // Load the next page of products
-      await ref.read(productListNotifierProvider.notifier).loadMore();
+      await Future.microtask(() => 
+        ref.read(productListNotifierProvider.notifier).loadMore()
+      );
     } catch (e, stackTrace) {
       Logger.e('Error loading more products: $e', stackTrace);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+      if (_isMounted) {
+        if (!currentContext.mounted) return;
+        ScaffoldMessenger.of(currentContext).showSnackBar(
           const SnackBar(
             content: Text('Failed to load more products'),
             backgroundColor: Colors.red,
@@ -97,10 +146,12 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         );
       }
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+      if (_isMounted) {
+        if (currentContext.mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
     }
   }
@@ -167,93 +218,96 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
             );
           }
           
-          return Column(
-            children: [
-              AppBar(
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                title: const Text(
-                  'Marketplace',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
+          return RefreshIndicator(
+            onRefresh: _loadInitialProducts,
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              controller: _scrollController,
+              slivers: [
+                SliverAppBar(
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  floating: true,
+                  title: const Text(
+                    'Marketplace',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                actions: [
-                  IconButton(
-                    icon: const Icon(Icons.refresh, color: Colors.white, size: 28),
-                    onPressed: _loadInitialProducts,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.search, color: Colors.white, size: 28),
-                    onPressed: () {
-                      // TODO: Implement search
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Search functionality coming soon!')),
-                      );
-                    },
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 28),
-                    onPressed: () {
-                      // TODO: Navigate to cart
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Cart is empty')),
-                      );
-                    },
-                  ),
-                  const SizedBox(width: 8),
-                ],
-              ),
-              // Product list with pull-to-refresh
-              Expanded(
-                child: RefreshIndicator(
-                  onRefresh: _loadInitialProducts,
-                  child: ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.only(bottom: 16),
-                    itemCount: products.length + (hasMore ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      // Show loading indicator at the bottom when there are more items to load
-                      if (hasMore && index == products.length) {
-                        return const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 16.0),
-                          child: Center(child: CircularProgressIndicator()),
+                  actions: [
+                    IconButton(
+                      icon: const Icon(Icons.refresh, color: Colors.white, size: 28),
+                      onPressed: _loadInitialProducts,
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.search, color: Colors.white, size: 28),
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Search functionality coming soon!')),
                         );
-                      }
-                      
-                      final product = products[index];
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                        child: MarketplacePostCard(
-                          key: ValueKey(product.id),
-                          product: product,
-                          userId: currentUserId ?? '',
-                          showWishlistButton: currentUserId != null,
-                          onMessage: () {
-                            if (currentUserId == null) {
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 28),
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Cart is empty')),
+                        );
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        // Show loading indicator at the bottom when there are more items to load
+                        if (hasMore && index == products.length) {
+                          return const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 16.0),
+                            child: Center(child: CircularProgressIndicator()),
+                          );
+                        }
+                        
+                        final product = products[index];
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                          child: MarketplacePostCard(
+                            key: ValueKey(product.id),
+                            product: product,
+                            userId: currentUserId ?? '',
+                            showWishlistButton: currentUserId != null,
+                            onTap: () {
+                              context.go('/product/${product.id}');
+                            },
+                            onMessage: () {
+                              if (currentUserId == null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Please sign in to message')),
+                                );
+                                return;
+                              }
+                              // TODO: Implement message functionality
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Please sign in to message')),
+                                SnackBar(content: Text('Messaging seller about ${product.title}')),
                               );
-                              return;
-                            }
-                            // TODO: Implement message functionality
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Messaging seller about ${product.title}')),
-                            );
-                          },
-                          onBuy: () {
-                            // Navigate to product details or checkout
-                            context.goNamed('product-details', pathParameters: {'id': product.id});
-                          },
-                        ),
-                      );
-                    },
+                            },
+                            onBuy: () {
+                              context.go('/product/${product.id}');
+                            },
+                          ),
+                        );
+                      },
+                      childCount: products.length + (hasMore ? 1 : 0),
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           );
         },
       ),

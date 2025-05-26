@@ -123,26 +123,38 @@ class _WishlistButtonState extends ConsumerState<WishlistButton> {
       final notifier = ref.read(wishlistNotifierProvider(widget.userId).notifier);
       debugPrint('[WishlistButton] Calling toggleWishlist on notifier');
       
-      // Schedule the toggle to run after the current build phase
-      await Future.delayed(Duration.zero, () {
+      // Use a post-frame callback to ensure we're not in the build phase
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
         if (!mounted) return;
-        notifier.toggleWishlist(widget.productId, widget.userId);
+        
+        try {
+          await notifier.toggleWishlist(widget.productId, widget.userId);
+          debugPrint('[WishlistButton] toggleWishlist completed successfully');
+          
+          // Show success feedback
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  isAdding ? 'Added to wishlist' : 'Removed from wishlist',
+                ),
+                backgroundColor: Colors.green,
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          }
+        } catch (e) {
+          debugPrint('[WishlistButton] Error in toggleWishlist: $e');
+          rethrow;
+        } finally {
+          if (mounted) {
+            setState(() => _isProcessing = false);
+          }
+        }
       });
       
-      debugPrint('[WishlistButton] toggleWishlist completed successfully');
-      
-      // Show success feedback
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              isAdding ? 'Added to wishlist' : 'Removed from wishlist',
-            ),
-            backgroundColor: Colors.green,
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      }
+      // Return immediately, the rest will be handled in the post-frame callback
+      return;
     } catch (e, stackTrace) {
       debugPrint('[WishlistButton] Error in _toggleWishlist: $e');
       debugPrint(stackTrace.toString());

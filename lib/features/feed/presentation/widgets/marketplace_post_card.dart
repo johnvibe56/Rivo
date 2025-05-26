@@ -10,6 +10,7 @@ class MarketplacePostCard extends ConsumerWidget {
   final bool showWishlistButton;
   final VoidCallback? onMessage;
   final VoidCallback? onBuy;
+  final VoidCallback? onTap;
 
   const MarketplacePostCard({
     super.key,
@@ -18,16 +19,19 @@ class MarketplacePostCard extends ConsumerWidget {
     this.showWishlistButton = false,
     this.onMessage,
     this.onBuy,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     
-    return SizedBox(
-      height: 500, // Fixed height for the card
-      child: Stack(
-      children: [
+    return GestureDetector(
+      onTap: onTap,
+      child: SizedBox(
+        height: 500, // Fixed height for the card
+        child: Stack(
+          children: [
         // Product Image
         Positioned.fill(
           child: CachedNetworkImage(
@@ -204,7 +208,8 @@ class MarketplacePostCard extends ConsumerWidget {
               ],
             ),
           ),
-      ],
+        ],
+      ),
     ));
   }
   
