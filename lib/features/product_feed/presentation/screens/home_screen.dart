@@ -52,7 +52,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               // TODO: Navigate to sell screen
               break;
             case 3:
-              context.go('/profile');
+              context.go('/user_profile');
               break;
           }
         },

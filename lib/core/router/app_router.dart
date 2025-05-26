@@ -11,7 +11,7 @@ import 'package:rivo/features/feed/presentation/screens/feed_screen.dart';
 import 'package:rivo/features/product_feed/presentation/screens/product_detail_screen.dart';
 import 'package:rivo/features/product_feed/presentation/screens/product_feed_screen.dart';
 import 'package:rivo/features/product_upload/presentation/screens/product_upload_screen.dart';
-import 'package:rivo/features/profile/presentation/screens/profile_screen.dart';
+import 'package:rivo/features/user_profile/presentation/screens/user_profile_screen.dart';
 
 class MainScaffold extends ConsumerStatefulWidget {
   final Widget child;
@@ -43,7 +43,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
               context.go(AppRouter.getFullPath(AppRoutes.productFeed));
               break;
             case 2:
-              context.go(AppRouter.getFullPath(AppRoutes.profile));
+              context.go(AppRouter.getFullPath(AppRoutes.userProfile));
               break;
           }
         },
@@ -97,7 +97,8 @@ class AppRoutes {
   static const String productFeed = 'product_feed';
   static const String productDetail = 'product_detail';
   static const String productUpload = 'product_upload';
-  static const String profile = 'profile';
+  static const String profile = 'user_profile'; // Updated to use user_profile
+  static const String userProfile = 'user_profile'; // Keeping for backward compatibility
   
   // Helper to get the full path for a route
   static String getPath(String routeName, {Map<String, String>? params}) {
@@ -119,7 +120,7 @@ class AppRoutes {
       case productDetail:
         return '/product/${params?['id'] ?? ':id'}';
       case profile:
-        return '/profile';
+        return '/user_profile';
       case productUpload:
         return '/upload-product';
       default:
@@ -137,7 +138,7 @@ class AppRouter {
     // For shell routes, we need to use the direct path
     if (routeName == AppRoutes.feed) return '/feed';
     if (routeName == AppRoutes.productFeed) return '/products';
-    if (routeName == AppRoutes.profile) return '/profile';
+    if (routeName == AppRoutes.profile || routeName == AppRoutes.userProfile) return '/user_profile';
     
     // For other routes, use the getPath method
     return AppRoutes.getPath(routeName, params: params);
@@ -153,7 +154,7 @@ class AppRouter {
       
       if (location.startsWith('/products')) {
         currentIndex = 1;
-      } else if (location.startsWith('/profile')) {
+      } else if (location.startsWith('/user_profile') || location.startsWith('/profile')) {
         currentIndex = 2;
       }
       
@@ -184,10 +185,11 @@ class AppRouter {
         },
       ),
       
-      // Profile route
+      // User Profile route
       GoRoute(
-        path: '/profile',
-        builder: (context, state) => const ProfileScreen(),
+        path: '/user_profile',
+        name: AppRoutes.userProfile,
+        builder: (context, state) => const UserProfileScreen(),
       ),
       
       // Product upload route

@@ -2,6 +2,15 @@
 
 A modern marketplace application built with Flutter and Supabase, following clean architecture principles.
 
+## ✨ Recent Updates
+
+### User Profile Enhancements (May 2024)
+- Implemented user product listing with pull-to-refresh
+- Added loading states and error handling
+- Improved data fetching with proper caching
+- Enhanced logging and debugging capabilities
+- Optimized performance for user product listings
+
 ## 🚀 Features
 
 ### Authentication
@@ -18,6 +27,13 @@ A modern marketplace application built with Flutter and Supabase, following clea
 - ❤️ Like/Favorite Products
 - 💬 Product Details & Interactions
 - 🛒 Add to Cart Functionality
+
+### User Profile
+- 👤 View and manage user profile
+- 📦 View user's uploaded products
+- 🔄 Pull-to-refresh for user products
+- 🚀 Optimized loading states
+- 🛠 Edit profile information
 
 ### User Interface
 - 🎨 Dark/Light Theme Support
@@ -46,6 +62,8 @@ A modern marketplace application built with Flutter and Supabase, following clea
 - **Environment**: Flutter DotEnv
 - **UI Components**: Flutter Material Design 3
 - **Animation**: Flutter Animation Package
+- **Logging**: Custom Logger implementation
+- **Error Handling**: Comprehensive error handling with user feedback
 
 ## Project Structure
 
@@ -149,6 +167,15 @@ flutter test
 | <img src="screenshots/feed_screen.png" width="200"> | <img src="screenshots/product_screen.png" width="200"> | <img src="screenshots/profile_screen.png" width="200"> |
 
 *Screenshots are placeholders - update with actual screenshots from your app*
+
+## 🐛 Bug Reports & Feature Requests
+
+If you find any bugs or have feature requests, please [open an issue](https://github.com/yourusername/rivo/issues) on GitHub. When reporting a bug, please include:
+- Steps to reproduce the issue
+- Expected behavior
+- Actual behavior
+- Device/OS version
+- App version
 
 ## 🤝 Contributing
 
