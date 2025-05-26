@@ -1,25 +1,27 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rivo/features/products/domain/models/product_model.dart';
+import 'package:rivo/features/wishlist/presentation/widgets/wishlist_button.dart';
 
-class MarketplacePostCard extends StatelessWidget {
+class MarketplacePostCard extends ConsumerWidget {
   final Product product;
-  final bool isFavorite;
-  final VoidCallback onFavoritePressed;
-  final VoidCallback onMessage;
-  final VoidCallback onBuy;
+  final String userId;
+  final bool showWishlistButton;
+  final VoidCallback? onMessage;
+  final VoidCallback? onBuy;
 
   const MarketplacePostCard({
     super.key,
     required this.product,
-    this.isFavorite = false,
-    required this.onFavoritePressed,
-    required this.onMessage,
-    required this.onBuy,
+    required this.userId,
+    this.showWishlistButton = false,
+    this.onMessage,
+    this.onBuy,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     
     return SizedBox(
@@ -108,23 +110,24 @@ class MarketplacePostCard extends StatelessWidget {
                 // Action Buttons
                 Row(
                   children: [
-                    // Favorite Button
-                    IconButton(
-                      onPressed: onFavoritePressed,
-                      icon: Icon(
-                        isFavorite ? Icons.favorite : Icons.favorite_border,
-                        color: isFavorite ? Colors.red : Colors.white,
-                        size: 28,
+                    // Wishlist button (only show if enabled and user is logged in)
+                    if (showWishlistButton && userId.isNotEmpty)
+                      WishlistButton(
+                        productId: product.id,
+                        userId: userId,
+                        size: 32,
+                        selectedColor: Colors.red,
+                        color: Colors.white,
                       ),
-                    ),
                     
                     const SizedBox(width: 12),
                     
                     // Message Button
-                    _buildActionButton(
-                      icon: Icons.message,
-                      onPressed: onMessage,
-                    ),
+                    if (onMessage != null)
+                      _buildActionButton(
+                        icon: Icons.message,
+                        onPressed: onMessage!,
+                      ),
                     
                     const Spacer(),
                     
@@ -172,6 +175,35 @@ class MarketplacePostCard extends StatelessWidget {
             ],
           ),
         ),
+        
+        // Message and Buy buttons
+        if (onMessage != null || onBuy != null)
+          Positioned(
+            bottom: 16,
+            right: 16,
+            child: Row(
+              children: [
+                // Message button
+                if (onMessage != null)
+                  FloatingActionButton.small(
+                    heroTag: 'message_${product.id}',
+                    onPressed: onMessage != null ? () => onMessage!() : null,
+                    backgroundColor: Colors.white,
+                    child: const Icon(Icons.message, color: Colors.black),
+                  ),
+                if (onMessage != null && onBuy != null) 
+                  const SizedBox(width: 12),
+                // Buy button
+                if (onBuy != null)
+                  FloatingActionButton(
+                    heroTag: 'buy_${product.id}',
+                    onPressed: onBuy != null ? () => onBuy!() : null,
+                    backgroundColor: theme.colorScheme.primary,
+                    child: const Icon(Icons.shopping_bag, color: Colors.white),
+                  ),
+              ],
+            ),
+          ),
       ],
     ));
   }

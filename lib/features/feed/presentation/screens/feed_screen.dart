@@ -6,7 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rivo/core/router/app_router.dart';
 import 'package:rivo/features/feed/presentation/widgets/marketplace_post_card.dart';
+import 'package:rivo/features/wishlist/presentation/providers/wishlist_providers.dart';
 import 'package:rivo/features/products/presentation/providers/product_providers.dart';
+import 'package:rivo/features/auth/presentation/providers/auth_provider.dart';
 
 class FeedScreen extends ConsumerStatefulWidget {
   const FeedScreen({super.key});
@@ -17,7 +19,7 @@ class FeedScreen extends ConsumerStatefulWidget {
 
 class _FeedScreenState extends ConsumerState<FeedScreen> {
   static const String _tag = 'FeedScreen';
-  final Set<String> _favoriteProductIds = {};
+
   final ScrollController _scrollController = ScrollController();
   bool _isLoading = false;
 
@@ -25,18 +27,25 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   void initState() {
     super.initState();
     Logger.d('Initializing...', tag: _tag);
-    
-    // Add scroll listener for pagination
+    _loadInitialProducts();
     _scrollController.addListener(_onScroll);
     
-    // Log the current route
+    // Schedule the wishlist initialization after the first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final currentRoute = ModalRoute.of(context)?.settings.name;
-      Logger.d('Current route: $currentRoute', tag: _tag);
-      
-      // Trigger initial load
-      _loadInitialProducts();
+      _initializeWishlist();
     });
+  }
+  
+  // Initialize wishlist after the first frame
+  void _initializeWishlist() {
+    final currentUserId = ref.read(authStateProvider).valueOrNull?.user?.id;
+    if (currentUserId != null && mounted) {
+      Future.microtask(() {
+        if (mounted) {
+          ref.read(wishlistNotifierProvider(currentUserId).notifier).initialize();
+        }
+      });
+    }
   }
 
   @override
@@ -107,6 +116,10 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         );
       }),
     );
+    
+    // Get current user ID from auth provider
+    final authState = ref.watch(authStateProvider);
+    final currentUserId = authState.valueOrNull?.user?.id;
 
     return Scaffold(
       floatingActionButton: FloatingActionButton(
@@ -214,28 +227,25 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                         child: MarketplacePostCard(
+                          key: ValueKey(product.id),
                           product: product,
-                          isFavorite: _favoriteProductIds.contains(product.id),
-                          onFavoritePressed: () {
-                            setState(() {
-                              if (_favoriteProductIds.contains(product.id)) {
-                                _favoriteProductIds.remove(product.id);
-                              } else {
-                                _favoriteProductIds.add(product.id);
-                              }
-                            });
-                          },
+                          userId: currentUserId ?? '',
+                          showWishlistButton: currentUserId != null,
                           onMessage: () {
-                            // TODO: Navigate to chat with seller
+                            if (currentUserId == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Please sign in to message')),
+                              );
+                              return;
+                            }
+                            // TODO: Implement message functionality
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Opening chat with seller...')),
+                              SnackBar(content: Text('Messaging seller about ${product.title}')),
                             );
                           },
                           onBuy: () {
-                            // TODO: Implement buy functionality
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Buy functionality coming soon!')),
-                            );
+                            // Navigate to product details or checkout
+                            context.goNamed('product-details', pathParameters: {'id': product.id});
                           },
                         ),
                       );
