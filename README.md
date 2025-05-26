@@ -4,6 +4,13 @@ A modern marketplace application built with Flutter and Supabase, following clea
 
 ## ✨ Recent Updates
 
+### Wishlist Feature (May 2024)
+- Added wishlist functionality to save favorite products
+- Implemented wishlist screen with product listings
+- Added loading states and error handling
+- Integrated with existing authentication system
+- Optimized for performance with proper state management
+
 ### User Profile Enhancements (May 2024)
 - Implemented user product listing with pull-to-refresh
 - Added loading states and error handling
@@ -24,9 +31,16 @@ A modern marketplace application built with Flutter and Supabase, following clea
 - 🎯 Infinite Scrolling Feed
 - 🔄 Pull-to-Refresh
 - 🎨 Rich Product Cards
-- ❤️ Like/Favorite Products
+- ❤️ Like/Favorite Products with Wishlist integration
 - 💬 Product Details & Interactions
 - 🛒 Add to Cart Functionality
+
+### Wishlist
+- 💖 Save favorite products to your wishlist
+- 📱 Access your wishlist from the bottom navigation
+- 🔄 Real-time updates when adding/removing items
+- 📦 View all wishlisted products in one place
+- 🚀 Optimized for performance with local caching
 
 ### User Profile
 - 👤 View and manage user profile

@@ -12,6 +12,7 @@ import 'package:rivo/features/product_feed/presentation/screens/product_detail_s
 import 'package:rivo/features/product_feed/presentation/screens/product_feed_screen.dart';
 import 'package:rivo/features/product_upload/presentation/screens/product_upload_screen.dart';
 import 'package:rivo/features/user_profile/presentation/screens/user_profile_screen.dart';
+import 'package:rivo/features/wishlist/presentation/screens/wishlist_screen.dart';
 
 class MainScaffold extends ConsumerStatefulWidget {
   final Widget child;
@@ -43,6 +44,9 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
               context.go(AppRouter.getFullPath(AppRoutes.productFeed));
               break;
             case 2:
+              context.go(AppRouter.getFullPath(AppRoutes.wishlist));
+              break;
+            case 3:
               context.go(AppRouter.getFullPath(AppRoutes.userProfile));
               break;
           }
@@ -55,6 +59,10 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
           BottomNavigationBarItem(
             icon: Icon(Icons.shopping_bag),
             label: 'Products',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.favorite_border),
+            label: 'Wishlist',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
@@ -99,6 +107,7 @@ class AppRoutes {
   static const String productUpload = 'product_upload';
   static const String profile = 'user_profile'; // Updated to use user_profile
   static const String userProfile = 'user_profile'; // Keeping for backward compatibility
+  static const String wishlist = 'wishlist'; // Added wishlist route
   
   // Helper to get the full path for a route
   static String getPath(String routeName, {Map<String, String>? params}) {
@@ -123,6 +132,8 @@ class AppRoutes {
         return '/user_profile';
       case productUpload:
         return '/upload-product';
+      case wishlist:
+        return '/wishlist';
       default:
         return '/';
     }
@@ -154,8 +165,10 @@ class AppRouter {
       
       if (location.startsWith('/products')) {
         currentIndex = 1;
-      } else if (location.startsWith('/user_profile') || location.startsWith('/profile')) {
+      } else if (location.startsWith('/wishlist')) {
         currentIndex = 2;
+      } else if (location.startsWith('/user_profile') || location.startsWith('/profile')) {
+        currentIndex = 3;
       }
       
       return MainScaffold(
@@ -190,6 +203,13 @@ class AppRouter {
         path: '/user_profile',
         name: AppRoutes.userProfile,
         builder: (context, state) => const UserProfileScreen(),
+      ),
+      
+      // Wishlist route
+      GoRoute(
+        path: '/wishlist',
+        name: AppRoutes.wishlist,
+        builder: (context, state) => const WishlistScreen(),
       ),
       
       // Product upload route
