@@ -11,30 +11,36 @@ class ProductRemoteDataSource {
 
   static const String _table = 'products';
 
-  Future<List<Map<String, dynamic>>> getProducts() async {
+  Future<List<Map<String, dynamic>>> getProducts({int page = 1, int limit = 10}) async {
     try {
-      Logger.d('Fetching products from Supabase...', tag: _tag);
+      Logger.d('Fetching products from Supabase (page: $page, limit: $limit)...', tag: _tag);
       
       final stopwatch = Stopwatch()..start();
+      
+      // Calculate range for pagination
+      final from = (page - 1) * limit;
+      final to = from + limit - 1;
+      
       final response = await _supabaseClient
           .from(_table)
           .select('*')
-          .order('created_at', ascending: false);
+          .order('created_at', ascending: false)
+          .range(from, to);
           
       stopwatch.stop();
       Logger.d('Supabase query took ${stopwatch.elapsedMilliseconds}ms', tag: _tag);
       
       final products = List<Map<String, dynamic>>.from(response);
-      Logger.d('Successfully fetched ${products.length} products', tag: _tag);
+      Logger.d('Successfully fetched ${products.length} products for page $page', tag: _tag);
       
-      if (products.isNotEmpty) {
-        // Log first 3 products to avoid too much output
+      if (products.isNotEmpty && page == 1) {
+        // Only log first page products to avoid too much output
         for (var i = 0; i < (products.length > 3 ? 3 : products.length); i++) {
           final p = products[i];
           Logger.d('Product ${i + 1} - ID: ${p['id']}, Title: ${p['title']}', tag: _tag);
         }
-      } else {
-        Logger.d('No products found in the database', tag: _tag);
+      } else if (products.isEmpty) {
+        Logger.d('No more products found in the database', tag: _tag);
       }
       
       return products;

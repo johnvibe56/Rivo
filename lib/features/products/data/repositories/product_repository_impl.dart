@@ -13,15 +13,22 @@ class ProductRepositoryImpl implements ProductRepository {
   ProductRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<Either<Failure, List<Product>>> getProducts() async {
+  Future<Either<Failure, List<Product>>> getProducts({int page = 1, int limit = 10}) async {
     try {
-      Logger.d('Fetching products from remote data source', tag: _tag);
-      final products = await remoteDataSource.getProducts();
+      Logger.d('Fetching products from remote data source (page: $page, limit: $limit)', tag: _tag);
+      final products = await remoteDataSource.getProducts(page: page, limit: limit);
       
-      // Log the raw data for debugging
-      Logger.d('Raw products data from remote source (first 2):', tag: _tag);
-      for (var product in products.take(2)) {
-        Logger.d('- ${product['id']}: ${product['title']}', tag: _tag);
+      if (products.isEmpty) {
+        Logger.d('No products found for page $page', tag: _tag);
+        return const Right([]);
+      }
+      
+      // Log the raw data for debugging (only first page to avoid log spam)
+      if (page == 1) {
+        Logger.d('Raw products data from remote source (first 2):', tag: _tag);
+        for (var product in products.take(2)) {
+          Logger.d('- ${product['id']}: ${product['title']}', tag: _tag);
+        }
       }
       
       try {
@@ -36,7 +43,7 @@ class ProductRepositoryImpl implements ProductRepository {
           }
         }).toList();
         
-        Logger.d('Successfully parsed ${productList.length} products', tag: _tag);
+        Logger.d('Successfully parsed ${productList.length} products for page $page', tag: _tag);
         return Right(productList);
       } catch (e, stackTrace) {
         Logger.e('Failed to parse products: $e', stackTrace, tag: _tag);

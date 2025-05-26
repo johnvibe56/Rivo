@@ -3,7 +3,7 @@ import '../../../../core/error/failures.dart';
 import '../models/product_model.dart';
 
 abstract class ProductRepository {
-  Future<Either<Failure, List<Product>>> getProducts();
+  Future<Either<Failure, List<Product>>> getProducts({int page = 1, int limit = 10});
   Future<Either<Failure, Product>> getProductById(String id);
   Future<Either<Failure, Product>> createProduct(Product product);
   Future<Either<Failure, Product>> updateProduct(Product product);
