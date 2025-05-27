@@ -103,13 +103,13 @@ class _RivoAppState extends ConsumerState<RivoApp> with WidgetsBindingObserver {
         });
       } else {
         // If Supabase isn't initialized yet, wait a bit and try again
-        await Future.delayed(const Duration(milliseconds: 100));
+        await Future<void>.delayed(const Duration(milliseconds: 100));
         if (mounted) _initAuth();
       }
     } catch (e) {
       debugPrint('Error initializing auth: $e');
       // If there's an error, try to reinitialize after a delay
-      await Future.delayed(const Duration(seconds: 1));
+      await Future<void>.delayed(const Duration(seconds: 1));
       if (mounted) _initAuth();
     } finally {
       _isInitializing = false;

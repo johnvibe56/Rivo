@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rivo/core/error/failures.dart';
 import 'package:rivo/features/auth/presentation/providers/auth_provider.dart';
 import 'package:rivo/features/product_feed/presentation/providers/product_detail_provider.dart';
+import 'package:rivo/features/products/presentation/providers/delete_product_provider.dart';
 import 'package:rivo/features/products/domain/models/product_model.dart';
 import 'package:rivo/features/products/domain/utils/product_utils.dart';
 
@@ -36,6 +37,19 @@ class ProductDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final productAsync = ref.watch(productDetailProvider(productId));
     final currentUser = ref.watch(authStateProvider).valueOrNull?.user;
+    final isDeleted = ref.watch(deletedProductsProvider).contains(productId);
+
+    // Handle case where product was deleted
+    if (isDeleted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('This product is no longer available')),
+          );
+        }
+      });
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -51,29 +65,49 @@ class ProductDetailScreen extends ConsumerWidget {
       ),
       body: productAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Failed to load product',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                error is Failure ? error.message : 'An unexpected error occurred',
-                style: Theme.of(context).textTheme.bodyMedium,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () => ref.refresh(productDetailProvider(productId)),
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
-        ),
-        data: (product) => _buildProductDetails(context, ref, product, currentUser?.id),
+        error: (error, _) {
+          // If product is not found, show a message and pop back
+          if (error is Failure && error.message.contains('not found')) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (Navigator.canPop(context)) {
+                Navigator.pop(context);
+              }
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('This product no longer exists')),
+              );
+            });
+            return const SizedBox.shrink();
+          }
+          
+          // For other errors, show error UI with retry option
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                const SizedBox(height: 16),
+                Text(
+                  'Failed to load product',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  error is Failure ? error.message : 'An unexpected error occurred',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => ref.refresh(productDetailProvider(productId)),
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          );
+        },
+        data: (product) {
+          return _buildProductDetails(context, ref, product, currentUser?.id);
+        },
       ),
     );
   }

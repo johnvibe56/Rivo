@@ -11,7 +11,7 @@ class Product {
   final String ownerId;
   final DateTime createdAt;
 
-  Product({
+  const Product({
     required this.id,
     required this.title,
     required this.description,

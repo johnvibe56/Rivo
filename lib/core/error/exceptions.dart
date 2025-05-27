@@ -39,3 +39,14 @@ class ValidationException extends AppException {
   @override
   String toString() => 'ValidationException: $errors';
 }
+
+/// Thrown when a requested resource is not found
+class NotFoundException extends AppException {
+  const NotFoundException(
+    super.message, [
+    super.stackTrace,
+  ]);
+
+  @override
+  String toString() => 'NotFoundException: $message';
+}

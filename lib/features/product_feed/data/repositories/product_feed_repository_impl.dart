@@ -8,26 +8,34 @@ import 'package:uuid/uuid.dart';
 
 class ProductFeedRepositoryImpl implements ProductFeedRepository {
   // Simulate network delay
-  final Duration _delay = const Duration(milliseconds: 500);
+  static const Duration _delay = Duration(milliseconds: 500);
   final int _totalMockProducts = 50;
 
   // Generate mock products
   List<Product> _generateMockProducts({required int start, required int limit}) {
     final end = (start + limit) > _totalMockProducts ? _totalMockProducts : start + limit;
-    return List.generate(
-      end - start,
-      (index) => Product(
-        id: const Uuid().v4(),
-        title: 'Product ${start + index + 1}',
-        description: 'This is a mock product description for product ${start + index + 1}.',
+    final now = DateTime.now();
+    const mockOwnerId = 'mock_owner_id';
+    
+    final int itemCount = end - start;
+    final List<Product> products = <Product>[]..length = itemCount;
+    for (int index = 0; index < itemCount; index++) {
+      final int productIndex = start + index;
+      // Create a non-const Product since we have runtime values
+      // ignore: prefer_const_constructors
+      products[index] = Product(
+        id: Uuid().v4(),
+        title: 'Product ${productIndex + 1}',
+        description: 'This is a mock product description for product ${productIndex + 1}.',
         price: 9.99 * (index % 5 + 1),
-        imageUrl: 'https://picsum.photos/200/300?random=${start + index}',
-        ownerId: 'mock_owner_id',
-        likedBy: List.generate(3, (_) => 'user_${DateTime.now().millisecondsSinceEpoch}'),
-        savedBy: List.generate(2, (_) => 'user_${DateTime.now().millisecondsSinceEpoch + 1}'),
-        createdAt: DateTime.now(),
-      ),
-    );
+        imageUrl: 'https://picsum.photos/200/300?random=$productIndex',
+        ownerId: mockOwnerId,
+        likedBy: const <String>[],
+        savedBy: const <String>[],
+        createdAt: now.add(Duration(seconds: index)),
+      );
+    }
+    return products;
   }
 
   @override
@@ -41,7 +49,7 @@ class ProductFeedRepositoryImpl implements ProductFeedRepository {
 
       // Simulate error for testing (every 3rd page fails)
       if (page % 3 == 0) {
-        throw ServerException('Failed to load products');
+        throw const ServerException('Failed to load products');
       }
 
       // Generate mock products
@@ -50,9 +58,9 @@ class ProductFeedRepositoryImpl implements ProductFeedRepository {
 
       return Right(products);
     } on ServerException catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('An unexpected error occurred'));
+      return const Left(ServerFailure('An unexpected error occurred'));
     }
   }
 }

@@ -65,7 +65,7 @@ class ProductUploadNotifier extends StateNotifier<ProductUploadState> {
       }}');
       
       // 1. Upload the image to Supabase Storage
-      File? imageFile = productData['image_file'] as File?;
+      final File? imageFile = productData['image_file'] as File?;
       if (imageFile == null || !await imageFile.exists()) {
         throw Exception('Please select a valid image for the product');
       }

@@ -4,7 +4,7 @@ import 'package:image_picker/image_picker.dart';
 
 class ImagePickerWidget extends StatelessWidget {
   final File? imageFile;
-  final Function(ImageSource) onImageSelected;
+  final void Function(ImageSource) onImageSelected;
   final VoidCallback? onRemoveImage;
 
   const ImagePickerWidget({
@@ -15,7 +15,7 @@ class ImagePickerWidget extends StatelessWidget {
   });
 
   Future<void> _showImageSourceDialog(BuildContext context) async {
-    final source = await showModalBottomSheet<ImageSource>(
+    final ImageSource? source = await showModalBottomSheet<ImageSource>(
       context: context,
       builder: (context) => SafeArea(
         child: Column(

@@ -6,6 +6,7 @@ import 'package:rivo/features/auth/presentation/providers/auth_provider.dart';
 import 'package:rivo/features/products/domain/models/product_model.dart';
 import 'package:rivo/features/products/domain/utils/product_utils.dart';
 import 'package:rivo/features/products/presentation/providers/product_providers.dart';
+import 'package:rivo/features/products/presentation/providers/product_repository_provider.dart';
 
 class ProductCard extends ConsumerWidget {
   final Product product;
@@ -194,7 +195,7 @@ class ProductCard extends ConsumerWidget {
     String userId,
   ) async {
     try {
-      final result = await ref.read(productRepositoryProvider).toggleLike(product.id, userId);
+      final result = await ref.read(productRepositoryRefProvider).toggleLike(product.id, userId);
       if (!context.mounted) return;
       
       result.fold(
@@ -222,7 +223,7 @@ class ProductCard extends ConsumerWidget {
     String userId,
   ) async {
     try {
-      final result = await ref.read(productRepositoryProvider).toggleSave(product.id, userId);
+      final result = await ref.read(productRepositoryRefProvider).toggleSave(product.id, userId);
       if (!context.mounted) return;
       
       result.fold(

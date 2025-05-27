@@ -156,10 +156,7 @@ class AppRouter {
   }
   
   static bool _isAuthPath(String path) {
-    return path == '/login' || 
-           path == '/signup' || 
-           path == '/forgot-password' ||
-           path.startsWith('/login/');
+    return _authRoutes.any((route) => path == route || path.startsWith('$route/'));
   }
 
   // Shell route for main navigation
@@ -226,7 +223,7 @@ class AppRouter {
   );
 
   // Auth routes
-  static final _authRoutes = [
+  static final authRouteList = [
     // Login route
     GoRoute(
       path: '/login',
@@ -321,7 +318,7 @@ class AppRouter {
     },
     routes: [
       _shellRoute,
-      ..._authRoutes,  // Use spread operator to include all auth routes
+      ...authRouteList,  // Use spread operator to include all auth routes
       _splashRoute,
     ],
   );

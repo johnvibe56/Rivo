@@ -12,7 +12,7 @@ class ToggleLikeUseCase {
     try {
       return await repository.toggleLike(productId, userId);
     } catch (e) {
-      return Left(ServerFailure('Failed to toggle like'));
+      return const Left(ServerFailure('Failed to toggle like'));
     }
   }
 }
@@ -26,7 +26,7 @@ class ToggleSaveUseCase {
     try {
       return await repository.toggleSave(productId, userId);
     } catch (e) {
-      return Left(ServerFailure('Failed to toggle save'));
+      return const Left(ServerFailure('Failed to toggle save'));
     }
   }
 }
@@ -40,7 +40,7 @@ class CreateProductUseCase {
     try {
       return await repository.createProduct(product);
     } catch (e) {
-      return Left(ServerFailure('Failed to create product'));
+      return const Left(ServerFailure('Failed to create product'));
     }
   }
 }
@@ -54,7 +54,7 @@ class UpdateProductUseCase {
     try {
       return await repository.updateProduct(product);
     } catch (e) {
-      return Left(ServerFailure('Failed to update product'));
+      return const Left(ServerFailure('Failed to update product'));
     }
   }
 }
@@ -68,7 +68,7 @@ class DeleteProductUseCase {
     try {
       return await repository.deleteProduct(id);
     } catch (e) {
-      return Left(ServerFailure('Failed to delete product'));
+      return const Left(ServerFailure('Failed to delete product'));
     }
   }
 }

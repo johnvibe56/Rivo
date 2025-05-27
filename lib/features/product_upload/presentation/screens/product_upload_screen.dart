@@ -173,7 +173,7 @@ class _ProductUploadScreenState extends ConsumerState<ProductUploadScreen> {
                   border: OutlineInputBorder(),
                   prefixText: '\$ ',
                 ),
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please enter a price';

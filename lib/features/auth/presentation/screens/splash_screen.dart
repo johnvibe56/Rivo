@@ -59,7 +59,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
   Future<void> _navigateToNextScreen() async {
     try {
       // Add a minimum splash duration for better UX
-      await Future.delayed(const Duration(milliseconds: 1000));
+      await Future<void>.delayed(const Duration(milliseconds: 1000));
       
       if (!mounted) return;
       
@@ -68,7 +68,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
       final user = session?.user;
       
       // Ensure we show the splash screen for at least 1.5 seconds
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future<void>.delayed(const Duration(milliseconds: 500));
       
       if (!mounted) return;
       

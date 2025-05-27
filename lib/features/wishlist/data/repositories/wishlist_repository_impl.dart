@@ -21,7 +21,7 @@ class WishlistRepositoryImpl implements WishlistRepository {
       return Left(ServerFailure(e.message));
     } catch (e, stackTrace) {
       Logger.e('Unexpected error in toggleWishlistItem', stackTrace, tag: _tag);
-      return Left(ServerFailure('Failed to update wishlist'));
+      return const Left(ServerFailure('Failed to update wishlist'));
     }
   }
 
@@ -35,7 +35,7 @@ class WishlistRepositoryImpl implements WishlistRepository {
       return Left(ServerFailure(e.message));
     } catch (e, stackTrace) {
       Logger.e('Unexpected error in isProductInWishlist', stackTrace, tag: _tag);
-      return Left(ServerFailure('Failed to check wishlist status'));
+      return const Left(ServerFailure('Failed to check wishlist status'));
     }
   }
 
@@ -49,7 +49,7 @@ class WishlistRepositoryImpl implements WishlistRepository {
       return Left(ServerFailure(e.message));
     } catch (e, stackTrace) {
       Logger.e('Unexpected error in getWishlistedProductIds', stackTrace, tag: _tag);
-      return Left(ServerFailure('Failed to load wishlist'));
+      return const Left(ServerFailure('Failed to load wishlist'));
     }
   }
 }

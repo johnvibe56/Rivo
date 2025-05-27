@@ -25,7 +25,7 @@ class _AppLoadingScreenState extends ConsumerState<AppLoadingScreen> {
     
     try {
       // Wait for a short delay to ensure the router is ready
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future<void>.delayed(const Duration(milliseconds: 500));
       
       if (!mounted) return;
       

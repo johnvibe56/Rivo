@@ -24,7 +24,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
     _isMounted = true;
     
     // Listen to auth state changes
-    ref.listenManual<AsyncValue>(
+    ref.listenManual<AsyncValue<dynamic>>(
       authStateProvider,
       (previous, next) {
         // When auth state changes and we have a user, load products

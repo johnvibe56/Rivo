@@ -6,21 +6,22 @@ part of 'product_repository_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$productRepositoryHash() => r'd59979da54897aab5b840a1b6a48db66c968f54a';
+String _$productRepositoryRefHash() =>
+    r'dc78e856205d5d714902c6b061cf26ea1aff2de9';
 
-/// See also [productRepository].
-@ProviderFor(productRepository)
-final productRepositoryProvider =
-    AutoDisposeProvider<ProductRepository>.internal(
-  productRepository,
-  name: r'productRepositoryProvider',
+/// See also [ProductRepositoryRef].
+@ProviderFor(ProductRepositoryRef)
+final productRepositoryRefProvider = AutoDisposeNotifierProvider<
+    ProductRepositoryRef, ProductRepository>.internal(
+  ProductRepositoryRef.new,
+  name: r'productRepositoryRefProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
       ? null
-      : _$productRepositoryHash,
+      : _$productRepositoryRefHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
-typedef ProductRepositoryRef = AutoDisposeProviderRef<ProductRepository>;
+typedef _$ProductRepositoryRef = AutoDisposeNotifier<ProductRepository>;
 // ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member
+// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

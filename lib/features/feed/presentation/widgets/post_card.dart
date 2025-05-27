@@ -74,9 +74,9 @@ class _PostCardState extends State<PostCard> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
+    final Size size = MediaQuery.of(context).size;
     
-    Widget content = Stack(
+    final Widget content = Stack(
       fit: StackFit.expand,
       children: [
         // Background with blur effect
@@ -104,12 +104,12 @@ class _PostCardState extends State<PostCard> {
           right: 0,
           child: Container(
             height: size.height * 0.3,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               gradient: LinearGradient(
-                begin: Alignment.bottomCenter,
-                end: Alignment.topCenter,
-                colors: [
-                  const Color(0xCC000000), // Black with 0.8 opacity
+                begin: Alignment(0, 1),  // bottomCenter
+                end: Alignment(0, -1),    // topCenter
+                colors: <Color>[
+                  Color(0xCC000000), // Black with 0.8 opacity
                   Colors.transparent,
                 ],
               ),
@@ -129,9 +129,9 @@ class _PostCardState extends State<PostCard> {
                   // Top bar
                   Container(
                     padding: const EdgeInsets.only(top: 40, left: 16, right: 16, bottom: 8),
-                    child: Row(
+                    child: const Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
+                      children: <Widget>[
                         // For You / Following tabs would go here
                       ],
                     ),

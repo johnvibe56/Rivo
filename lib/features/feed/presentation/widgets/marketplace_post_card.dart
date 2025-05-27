@@ -68,6 +68,13 @@ class MarketplacePostCard extends ConsumerWidget {
 
   // Show confirmation dialog before deleting
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
+    // Check if already deleting
+    final notifier = ref.read(deleteProductNotifierProvider.notifier);
+    if (notifier.isDeleting(product.id)) {
+      debugPrint('⚠️ [MarketplacePostCard] Product ${product.id} is already being deleted');
+      return;
+    }
+
     // Show confirmation dialog
     final confirmed = await showDialog<bool>(
       context: context,
@@ -81,34 +88,32 @@ class MarketplacePostCard extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(
-              foregroundColor: Theme.of(context).colorScheme.error,
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: Colors.red),
             ),
-            child: const Text('Delete'),
           ),
         ],
       ),
     );
 
     if (confirmed != true || !context.mounted) return;
-
+    
     try {
-      // Start the deletion process
-      ref.read(deleteProductNotifierProvider.notifier).startDeleting(product.id);
-      
       // Call the delete product function
-      final success = await ref.read(deleteProductNotifierProvider.notifier)
-          .deleteProduct(product.id);
-
+      final success = await notifier.deleteProduct(product.id);
+      
       if (!context.mounted) return;
-
+      
       if (success) {
-        // Show success message
+        // Only show success message if the widget is still in the tree
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Product deleted successfully'),
+              backgroundColor: Colors.green,
               behavior: SnackBarBehavior.floating,
+              duration: Duration(seconds: 2),
             ),
           );
 
@@ -123,20 +128,25 @@ class MarketplacePostCard extends ConsumerWidget {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(errorMessage ?? 'Failed to delete product'),
+              content: Text(errorMessage ?? 'An unexpected error occurred while deleting the product'),
               backgroundColor: Colors.red,
               behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 4),
             ),
           );
         }
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('❌ [MarketplacePostCard] Error in _confirmDelete: $e');
+      debugPrint('Stack trace: $stackTrace');
+      
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('An error occurred while deleting the product'),
+            content: Text('An unexpected error occurred. Please try again.'),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
+            duration: Duration(seconds: 4),
           ),
         );
       }
@@ -174,17 +184,17 @@ class MarketplacePostCard extends ConsumerWidget {
                   ),
 
                   // Gradient overlay
-                  Positioned.fill(
-                    child: Container(
+                  const Positioned.fill(
+                    child: DecoratedBox(
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.bottomCenter,
                           end: Alignment.topCenter,
                           colors: [
-                            const Color.fromRGBO(0, 0, 0, 0.8),
+                            Color.fromRGBO(0, 0, 0, 0.8),
                             Colors.transparent,
                             Colors.transparent,
-                            const Color.fromRGBO(0, 0, 0, 0.4),
+                            Color.fromRGBO(0, 0, 0, 0.4),
                           ],
                         ),
                       ),
