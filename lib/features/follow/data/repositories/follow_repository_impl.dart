@@ -33,28 +33,26 @@ class FollowRepositoryImpl implements FollowRepository {
       final followingStatus = await isFollowing(sellerId);
       
       return await followingStatus.when(
-        success: (isFollowingStatus) async {
-          if (isFollowingStatus) {
+        success: (isFollowing) async {
+          if (isFollowing) {
             return Result<bool>.success(true); // Already following
           }
           
           // Not following, so follow
-          final response = await supabaseClient.from('followers').insert({
-            'follower_id': currentUserId,
-            'seller_id': sellerId,
-            'created_at': DateTime.now().toIso8601String(),
-          });
-          
-          if (response.error != null) {
-            throw PostgrestException(
-              message: response.error!.message,
-              code: response.error!.code,
-              details: response.error!.details,
-              hint: response.error!.hint,
-            );
+          try {
+            await supabaseClient.from('followers').insert({
+              'follower_id': currentUserId,
+              'seller_id': sellerId,
+              'created_at': DateTime.now().toIso8601String(),
+            }).select();
+            
+            return Result<bool>.success(true);
+          } on PostgrestException catch (e) {
+            if (e.code == '23505') { // Unique violation
+              return Result<bool>.success(true); // Already following
+            }
+            rethrow;
           }
-          
-          return Result<bool>.success(true);
         },
         failure: (error) => Result<bool>.failure(error),
       );
@@ -96,19 +94,14 @@ class FollowRepositoryImpl implements FollowRepository {
           }
           
           // Unfollow
-          final response = await supabaseClient
-              .from('followers')
-              .delete()
-              .eq('follower_id', currentUserId)
-              .eq('seller_id', sellerId);
-              
-          if (response.error != null) {
-            throw PostgrestException(
-              message: response.error!.message,
-              code: response.error!.code,
-              details: response.error!.details,
-              hint: response.error!.hint,
-            );
+          try {
+            await supabaseClient
+                .from('followers')
+                .delete()
+                .eq('follower_id', currentUserId)
+                .eq('seller_id', sellerId);
+          } on PostgrestException {
+            rethrow;
           }
           
           return Result<bool>.success(true);
