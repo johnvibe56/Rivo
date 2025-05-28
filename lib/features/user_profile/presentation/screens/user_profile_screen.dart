@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rivo/core/router/app_router.dart';
 import 'package:rivo/core/utils/logger.dart';
-import 'package:rivo/features/feed/presentation/widgets/marketplace_post_card.dart';
 import 'package:rivo/features/auth/presentation/providers/auth_provider.dart';
+
 import 'package:rivo/features/products/presentation/providers/delete_product_provider.dart';
+import 'package:rivo/features/products/presentation/widgets/product_card.dart';
 import 'package:rivo/features/user_profile/presentation/providers/user_profile_providers.dart';
+import 'package:rivo/features/user_profile/presentation/widgets/profile_header.dart';
 
 class UserProfileScreen extends ConsumerStatefulWidget {
   const UserProfileScreen({super.key});
@@ -125,9 +127,15 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
     final user = authState.value?.user;
+    final currentUserId = user?.id;
     final userProductsAsync = ref.watch(userProductsProvider);
     
-      // Listen for product deletion state changes
+    // Determine if this is the current user's profile
+    final isCurrentUser = currentUserId != null && currentUserId == user?.id;
+    final displayName = user?.userMetadata?['full_name'] as String? ?? user?.email ?? 'User';
+    final userId = user?.id ?? '';
+    
+    // Listen for product deletion state changes
     ref.listen(deleteProductNotifierProvider, (previous, next) {
       if (next.isLoading) return;
       
@@ -187,133 +195,83 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Profile'),
+        title: Text(isCurrentUser ? 'My Profile' : displayName),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: _signOut,
-            tooltip: 'Sign Out',
-          ),
+          if (isCurrentUser) ...[
+            IconButton(
+              icon: const Icon(Icons.logout),
+              onPressed: _signOut,
+              tooltip: 'Sign Out',
+            ),
+          ],
         ],
       ),
       body: RefreshIndicator(
         onRefresh: () => _loadUserProducts(forceRefresh: true),
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // User Info Section
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Welcome',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        user?.email ?? 'User',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          if (context.mounted) {
-                            context.push(AppRouter.getFullPath(AppRoutes.productUpload));
-                          }
-                        },
-                        icon: const Icon(Icons.add),
-                        label: const Text('Upload New Product'),
-                      ),
-                    ],
+        child: userProductsAsync.when(
+          data: (products) {
+            return CustomScrollView(
+              slivers: [
+                // Profile Header
+                SliverToBoxAdapter(
+                  child: ProfileHeader(
+                    userId: userId,
+                    displayName: displayName,
+                    avatarUrl: user?.userMetadata?['avatar_url'] as String?,
+                    productCount: products.length,
+                    followerCount: 0, // TODO: Implement follower count
+                    followingCount: 0, // TODO: Implement following count
+                    isCurrentUser: isCurrentUser,
                   ),
                 ),
-              ),
-              const SizedBox(height: 24),
-              // User's Products Section
-              Text(
-                'My Products',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 16),
-              // Products List
-              userProductsAsync.when(
-                data: (products) {
-                  if (products.isEmpty) {
-                    return const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 32.0),
-                      child: Center(
-                        child: Text('You haven\'t uploaded any products yet.'),
+                
+                // Products Grid
+                if (products.isNotEmpty)
+                  SliverPadding(
+                    padding: const EdgeInsets.all(16.0),
+                    sliver: SliverGrid(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: 0.75,
                       ),
-                    );
-                  }
-                  return ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: products.length,
-                    itemBuilder: (context, index) {
-                      final product = products[index];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 16.0),
-                        child: MarketplacePostCard(
-                          key: ValueKey('product-${product.id}'),
-                          product: product,
-                          userId: user?.id ?? '',
-                          onTap: () {
-                            // Refresh the product list when a product is deleted
-                            _loadUserProducts(forceRefresh: true);
-                          },
-                          onMessage: () {
-                            // Handle message action
-                            if (context.mounted) {
-                              context.push('/chat', extra: {
-                                'product': product,
-                                'sellerId': product.ownerId,
-                              });
-                            }
-                          },
-                          onBuy: () {
-                            // Handle buy action
-                            if (context.mounted) {
-                              context.push('/product/${product.id}');
-                            }
-                          },
-                        ),
-                      );
-                    },
-                  );
-                },
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, stack) {
-                  Logger.e('Error building UI: $error', stack);
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                        const SizedBox(height: 16),
-                        Text('Error: ${error.toString()}'),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: () => _loadUserProducts(forceRefresh: true),
-                          child: const Text('Retry'),
-                        ),
-                      ],
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final product = products[index];
+                          return ProductCard(
+                            product: product,
+                            showUserActions: isCurrentUser,
+                          );
+                        },
+                        childCount: products.length,
+                      ),
                     ),
-                  );
-                },
-              ),
-            ],
+                  )
+                else
+                  const SliverFillRemaining(
+                    child: Center(
+                      child: Text('No products yet'),
+                    ),
+                  ),
+              ],
+            );
+          },
+          loading: () => const Center(
+            child: CircularProgressIndicator(),
+          ),
+          error: (error, stackTrace) => Center(
+            child: Text('Failed to load products: $error'),
           ),
         ),
       ),
+      floatingActionButton: isCurrentUser ? FloatingActionButton(
+        onPressed: () {
+          // Navigate to add product screen
+          context.push('/add-product');
+        },
+        child: const Icon(Icons.add),
+      ) : null,
     );
   }
 }

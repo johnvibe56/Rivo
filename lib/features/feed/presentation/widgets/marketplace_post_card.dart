@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rivo/features/products/domain/models/product_model.dart';
 import 'package:rivo/features/wishlist/presentation/widgets/wishlist_button.dart';
 import 'package:rivo/features/products/presentation/providers/delete_product_provider.dart';
+import 'package:rivo/features/follow/presentation/widgets/follow_button.dart';
 
 /// Provider for checking if a product is being deleted
 final isDeletingProductProvider = Provider.family<bool, String>((ref, productId) {
@@ -312,27 +313,45 @@ class MarketplacePostCard extends ConsumerWidget {
             ),
           ),
 
-          // Owner Info
+          // Owner Info with Follow Button
           Positioned(
             top: 16,
             left: 16,
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 20,
-                  backgroundImage: CachedNetworkImageProvider(
-                    'https://i.pravatar.cc/150?u=${product.ownerId}',
+            right: 16,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.black54,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircleAvatar(
+                    radius: 16,
+                    backgroundImage: CachedNetworkImageProvider(
+                      'https://i.pravatar.cc/150?u=${product.ownerId}',
+                    ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Seller ${product.ownerId.split('_').last}',
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+                  const SizedBox(width: 8),
+                  Text(
+                    'Seller',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 8),
+                  if (product.ownerId != userId) 
+                    FollowButton(
+                      sellerId: product.ownerId,
+                      size: 24,
+                      iconSize: 12,
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      showText: false,
+                    ),
+                ],
+              ),
             ),
           ),
 

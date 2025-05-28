@@ -9,6 +9,7 @@ class Product {
   final List<String> likedBy;
   final List<String> savedBy;
   final String ownerId;
+  final String ownerName;
   final DateTime createdAt;
 
   const Product({
@@ -20,6 +21,7 @@ class Product {
     required this.likedBy,
     required this.savedBy,
     required this.ownerId,
+    this.ownerName = '',
     required this.createdAt,
   });
 
@@ -51,6 +53,7 @@ class Product {
       likedBy: parseStringList(json['liked_by']),
       savedBy: parseStringList(json['saved_by']),
       ownerId: json['owner_id'] as String? ?? '',
+      ownerName: json['owner_name'] as String? ?? '',
       createdAt: json['created_at'] != null 
           ? DateTime.tryParse(json['created_at'].toString()) ?? DateTime.now()
           : DateTime.now(),
@@ -67,6 +70,7 @@ class Product {
       'liked_by': likedBy,
       'saved_by': savedBy,
       'owner_id': ownerId,
+      'owner_name': ownerName,
       'created_at': createdAt.toIso8601String(),
     };
   }
@@ -96,6 +100,7 @@ class Product {
       likedBy: [],
       savedBy: [],
       ownerId: 'user_$random',
+      ownerName: 'User $random',
       createdAt: now.subtract(Duration(days: random)),
     );
   }

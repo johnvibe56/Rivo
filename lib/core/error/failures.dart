@@ -83,3 +83,13 @@ class UnauthorizedFailure extends Failure {
 class ForbiddenFailure extends Failure {
   const ForbiddenFailure([super.message = 'Forbidden', super.stackTrace]);
 }
+
+/// Thrown when there's an application-specific error
+class AppFailure extends Failure {
+  const AppFailure(super.message, [super.stackTrace]);
+}
+
+/// Thrown when the user is not authenticated
+class UnauthenticatedFailure extends Failure {
+  const UnauthenticatedFailure([super.message = 'User is not authenticated', super.stackTrace]);
+}

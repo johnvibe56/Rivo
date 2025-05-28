@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rivo/features/auth/presentation/providers/auth_provider.dart';
+import 'package:rivo/features/follow/presentation/widgets/follow_button.dart';
 import 'package:rivo/features/products/domain/models/product_model.dart';
 import 'package:rivo/features/products/domain/utils/product_utils.dart';
-import 'package:rivo/features/products/presentation/providers/product_providers.dart';
 import 'package:rivo/features/products/presentation/providers/product_repository_provider.dart';
+import 'package:rivo/features/products/presentation/providers/product_providers.dart';
+import 'package:rivo/core/router/app_router.dart';
 
 class ProductCard extends ConsumerWidget {
   final Product product;
@@ -24,6 +26,8 @@ class ProductCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authStateProvider);
     final currentUser = authState.valueOrNull?.user;
+    
+    // Check if current user is the product owner
     final isLiked = ProductUtils.isLikedByUser(product, currentUser?.id);
     final likeCount = ProductUtils.likeCount(product);
     final saveCount = ProductUtils.saveCount(product);
@@ -109,6 +113,56 @@ class ProductCard extends ConsumerWidget {
                             ),
                           ],
                         ),
+                        
+                        // Seller and Follow Button
+                        if (showUserActions) ...[
+                          const SizedBox(height: 4),
+                          SizedBox(
+                            height: 24, // Fixed height for consistent row height
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () => _navigateToSellerProfile(context, product),
+                                    child: Text(
+                                      'Seller: ${product.ownerName.isNotEmpty ? product.ownerName : product.ownerId.substring(0, 8)}',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Theme.of(context).colorScheme.primary,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                                if (currentUser?.id != product.ownerId) ...[
+                                  const SizedBox(width: 8),
+                                  Container(
+color: Colors.red.withAlpha(76), // 0.3 opacity
+                                    child: FollowButton(
+                                      sellerId: product.ownerId,
+                                      size: 24,
+                                      iconSize: 14,
+                                      showText: true, // Show text for debugging
+                                      padding: const EdgeInsets.all(4),
+                                    ),
+                                  ),
+                                ] else ...[
+                                  // Debug info
+                                  Text(
+                                    ' (You)',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ],
                         
                         // Description
                         if (product.description.isNotEmpty) ...[
@@ -217,31 +271,55 @@ class ProductCard extends ConsumerWidget {
     }
   }
 
+  void _navigateToSellerProfile(BuildContext context, Product product) {
+    if (product.ownerId.isNotEmpty) {
+      AppRouter.goToSellerProfile(
+        context,
+        sellerId: product.ownerId,
+        displayName: product.ownerName.isNotEmpty ? product.ownerName : null,
+      );
+    }
+  }
+
   Future<void> _handleSave(
-    BuildContext context,
-    WidgetRef ref,
+    BuildContext context, 
+    WidgetRef ref, 
     String userId,
   ) async {
+    // Add a small delay to allow the UI to update
+    await Future<void>.delayed(const Duration(milliseconds: 100));
     try {
-      final result = await ref.read(productRepositoryRefProvider).toggleSave(product.id, userId);
+      final repository = ref.read(productRepositoryRefProvider);
+      final result = await repository.toggleSave(product.id, userId);
+
       if (!context.mounted) return;
-      
+
       result.fold(
-        (failure) => ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to toggle save: ${failure.message}')),
-        ),
+        (failure) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(failure.message),
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
+            );
+          }
+        },
         (_) {
+          // Invalidate relevant providers to refresh the UI
           ref.invalidate(productListNotifierProvider);
           ref.invalidate(productNotifierProvider(product.id));
           ref.invalidate(userProductsNotifierProvider(product.ownerId));
         },
       );
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('An unexpected error occurred')),
-        );
-      }
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('An error occurred while saving the product'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 }

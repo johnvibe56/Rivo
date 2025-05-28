@@ -11,6 +11,7 @@ import 'package:rivo/features/feed/presentation/screens/feed_screen.dart';
 import 'package:rivo/features/product_feed/presentation/screens/product_detail_screen.dart';
 import 'package:rivo/features/product_feed/presentation/screens/product_feed_screen.dart';
 import 'package:rivo/features/product_upload/presentation/screens/product_upload_screen.dart';
+import 'package:rivo/features/user_profile/presentation/screens/seller_profile_screen.dart';
 import 'package:rivo/features/user_profile/presentation/screens/user_profile_screen.dart';
 import 'package:rivo/features/wishlist/presentation/screens/wishlist_screen.dart';
 
@@ -82,6 +83,7 @@ const _publicRoutes = [
   '/signup',
   '/forgot-password',
   '/onboarding',
+  '/seller/:sellerId',
 ];
 
 /// List of routes that should redirect to home if user is already authenticated
@@ -108,6 +110,7 @@ class AppRoutes {
   static const String profile = 'user_profile'; // Updated to use user_profile
   static const String userProfile = 'user_profile'; // Keeping for backward compatibility
   static const String wishlist = 'wishlist'; // Added wishlist route
+  static const String sellerProfile = 'seller_profile';
   
   // Helper to get the full path for a route
   static String getPath(String routeName, {Map<String, String>? params}) {
@@ -134,6 +137,8 @@ class AppRoutes {
         return '/upload-product';
       case wishlist:
         return '/wishlist';
+      case sellerProfile:
+        return '/seller/${params?['sellerId'] ?? ':sellerId'}';
       default:
         return '/';
     }
@@ -153,6 +158,27 @@ class AppRouter {
     
     // For other routes, use the getPath method
     return AppRoutes.getPath(routeName, params: params);
+  }
+  
+  static void goToProductDetail(BuildContext context, String productId) {
+    context.go(getFullPath(
+      AppRoutes.productDetail,
+      params: {'id': productId},
+    ));
+  }
+  
+  static void goToSellerProfile(BuildContext context, {
+    required String sellerId,
+    String? displayName,
+  }) {
+    final uri = Uri(
+      path: getFullPath(
+        AppRoutes.sellerProfile,
+        params: {'sellerId': sellerId},
+      ),
+      queryParameters: displayName != null ? {'name': displayName} : null,
+    );
+    context.go(uri.toString());
   }
   
   static bool _isAuthPath(String path) {
@@ -212,6 +238,20 @@ class AppRouter {
         path: '/wishlist',
         name: AppRoutes.wishlist,
         builder: (context, state) => const WishlistScreen(),
+      ),
+      
+      // Seller Profile route
+      GoRoute(
+        path: '/seller/:sellerId',
+        name: AppRoutes.sellerProfile,
+        builder: (context, state) {
+          final sellerId = state.pathParameters['sellerId']!;
+          final displayName = state.uri.queryParameters['name'];
+          return SellerProfileScreen(
+            sellerId: sellerId,
+            displayName: displayName,
+          );
+        },
       ),
       
       // Product upload route

@@ -4,27 +4,7 @@ A modern vertical-scroll marketplace app built with Flutter and Supabase. RIVO e
 
 ---
 
-## 🚀 MVP Summary (May 2024 - May 2025)
-
-### 🛠️ Recent Improvements (May 2025)
-
-* 🔍 **Type Safety**
-  - Added explicit type parameters throughout the codebase
-  - Improved type inference with proper generic types
-  - Enhanced null safety with proper null checks
-
-* ⚡ **Performance Optimizations**
-  - Added `const` constructors where applicable
-  - Optimized widget rebuilds with `const` widgets
-  - Improved list handling with proper typing
-
-* 🧹 **Code Quality**
-  - Resolved all linter warnings
-  - Improved code documentation
-  - Standardized code style across the codebase
-  - Fixed potential memory leaks in controllers
-
-### ✅ Core Features Completed
+## 🚀 MVP Summary (May 2024)
 
 ### ✅ Core Features Completed
 
@@ -59,27 +39,8 @@ A modern vertical-scroll marketplace app built with Flutter and Supabase. RIVO e
 | Environment      | Flutter DotEnv               |
 | Animations       | Flutter Animations           |
 | Logging          | Custom Logger                |
-| Code Quality     | Dart Analysis, Linter        |
-| Testing          | Mockito, Flutter Test        |
 
 ---
-
-## 🚦 Code Quality & Best Practices
-
-### 🛡️ Type Safety
-- Strong type system usage throughout the app
-- Proper null safety implementation
-- Explicit type annotations for better code readability
-
-### ⚡ Performance
-- Efficient widget tree with `const` constructors
-- Optimized state management with Riverpod
-- Lazy loading and pagination for better performance
-
-### 🧪 Testing
-- Unit tests for business logic
-- Widget tests for UI components
-- Integration tests for critical user flows
 
 ## 📱 Main Features
 
