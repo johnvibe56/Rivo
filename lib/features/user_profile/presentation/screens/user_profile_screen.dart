@@ -209,54 +209,49 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
       body: RefreshIndicator(
         onRefresh: () => _loadUserProducts(forceRefresh: true),
         child: userProductsAsync.when(
-          data: (products) {
-            return CustomScrollView(
-              slivers: [
-                // Profile Header
-                SliverToBoxAdapter(
-                  child: ProfileHeader(
-                    userId: userId,
-                    displayName: displayName,
-                    avatarUrl: user?.userMetadata?['avatar_url'] as String?,
-                    productCount: products.length,
-                    followerCount: 0, // TODO: Implement follower count
-                    followingCount: 0, // TODO: Implement following count
-                    isCurrentUser: isCurrentUser,
+          data: (products) => CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: ProfileHeader(
+                  userId: userId,
+                  displayName: displayName,
+                  avatarUrl: user?.userMetadata?['avatar_url'] as String?,
+                  productCount: products.length,
+                  followerCount: 0, // TODO: Implement follower count
+                  followingCount: 0, // TODO: Implement following count
+                  isCurrentUser: isCurrentUser,
+                ),
+              ),
+              if (products.isNotEmpty)
+                SliverPadding(
+                  padding: const EdgeInsets.all(16.0),
+                  sliver: SliverGrid(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 0.75,
+                    ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final product = products[index];
+                        return ProductCard(
+                          product: product,
+                          showUserActions: isCurrentUser,
+                        );
+                      },
+                      childCount: products.length,
+                    ),
+                  ),
+                )
+              else
+                const SliverFillRemaining(
+                  child: Center(
+                    child: Text('No products yet'),
                   ),
                 ),
-                
-                // Products Grid
-                if (products.isNotEmpty)
-                  SliverPadding(
-                    padding: const EdgeInsets.all(16.0),
-                    sliver: SliverGrid(
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                        childAspectRatio: 0.75,
-                      ),
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final product = products[index];
-                          return ProductCard(
-                            product: product,
-                            showUserActions: isCurrentUser,
-                          );
-                        },
-                        childCount: products.length,
-                      ),
-                    ),
-                  )
-                else
-                  const SliverFillRemaining(
-                    child: Center(
-                      child: Text('No products yet'),
-                    ),
-                  ),
-              ],
-            );
-          },
+            ],
+          ),
           loading: () => const Center(
             child: CircularProgressIndicator(),
           ),

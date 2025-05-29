@@ -3,13 +3,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rivo/core/constants/app_colors.dart';
 import 'package:rivo/features/auth/presentation/providers/auth_provider.dart';
+import 'dart:async';
+
 import 'package:rivo/features/auth/utils/validators.dart';
+import 'package:rivo/features/user_profile/presentation/providers/user_profile_providers.dart';
 
 // Form field keys
 const _kNameFieldKey = Key('name');
+const _kUsernameFieldKey = Key('username');
 const _kEmailFieldKey = Key('email');
 const _kPasswordFieldKey = Key('password');
 const _kConfirmPasswordFieldKey = Key('confirmPassword');
+
+// Validation patterns
+final _usernameRegex = RegExp(r'^[a-zA-Z0-9_]{3,20}$');
 
 class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});
@@ -21,9 +28,13 @@ class SignupScreen extends ConsumerStatefulWidget {
 class _SignupScreenState extends ConsumerState<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  
+  // Debounce for username availability check
+  Timer? _usernameDebounce;
 
   bool _isLoading = false;
   bool _isGoogleLoading = false;
@@ -34,9 +45,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   @override
   void dispose() {
     _nameController.dispose();
+    _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _usernameDebounce?.cancel();
     super.dispose();
   }
 
@@ -48,6 +61,41 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       return 'Name is too short';
     }
     return null;
+  }
+  
+  String? _validateUsername(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Please choose a username';
+    }
+    
+    if (value.length < 3) {
+      return 'Username must be at least 3 characters';
+    }
+    
+    if (value.length > 20) {
+      return 'Username must be at most 20 characters';
+    }
+    
+    if (!_usernameRegex.hasMatch(value)) {
+      return 'Only letters, numbers, and underscores are allowed';
+    }
+    
+    return null;
+  }
+  
+
+  
+  // Debounced username validation
+  void _onUsernameChanged(String value) {
+    _usernameDebounce?.cancel();
+    _usernameDebounce = Timer(const Duration(milliseconds: 500), () {
+      if (!mounted) return;
+      
+      // Only validate if the form is dirty
+      if (_formKey.currentState?.validate() ?? false) {
+        _formKey.currentState?.validate();
+      }
+    });
   }
 
   String? _validateConfirmPassword(String? value) {
@@ -98,20 +146,35 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       final email = _emailController.text.trim();
       final password = _passwordController.text;
       final name = _nameController.text.trim();
+      final username = _usernameController.text.trim();
+      
+      // Double-check username availability as a final check
+      try {
+        final isAvailable = await ref.read(userProfileRepositoryProvider).isUsernameAvailable(username);
+        if (!mounted) return;
+        
+        if (!isAvailable) {
+          setState(() => _errorMessage = 'This username is already taken');
+          return;
+        }
+      } catch (e) {
+        if (!mounted) return;
+        setState(() => _errorMessage = 'Error checking username availability');
+        return;
+      }
 
-      // Sign up the user with additional user metadata
+      // Sign up the user
       await ref.read(authControllerProvider).signUpWithEmail(
             email: email,
             password: password,
-            data: {
-              'full_name': name,
-              'avatar_url': null,
-            },
+            username: username,
+            fullName: name,
           );
 
       if (mounted) {
         // Clear form fields
         _nameController.clear();
+        _usernameController.clear();
         _emailController.clear();
         _passwordController.clear();
         _confirmPasswordController.clear();
@@ -259,6 +322,60 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   textInputAction: TextInputAction.next,
                   autofillHints: const [AutofillHints.name],
                   validator: _validateName,
+                ),
+                const SizedBox(height: 16),
+
+                // Username field
+                TextFormField(
+                  key: _kUsernameFieldKey,
+                  controller: _usernameController,
+                  decoration: InputDecoration(
+                    labelText: 'Username',
+                    hintText: 'Choose a username',
+                    prefixIcon: const Icon(Icons.alternate_email_rounded),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                    suffixIcon: ValueListenableBuilder<TextEditingValue>(
+                      valueListenable: _usernameController,
+                      builder: (context, value, _) {
+                        if (value.text.isEmpty) return const SizedBox.shrink();
+                        return IconButton(
+                          icon: const Icon(Icons.search),
+                          onPressed: () async {
+                            final scaffoldMessenger = ScaffoldMessenger.of(context);
+                            try {
+                              final isAvailable = await ref.read(userProfileRepositoryProvider).isUsernameAvailable(value.text);
+                              if (!mounted) return;
+                              
+                              scaffoldMessenger.showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    isAvailable 
+                                      ? 'Username is available!'
+                                      : 'This username is already taken',
+                                  ),
+                                  backgroundColor: isAvailable ? AppColors.success : AppColors.error,
+                                ),
+                              );
+                            } catch (e) {
+                              if (!mounted) return;
+                              scaffoldMessenger.showSnackBar(
+                                const SnackBar(
+                                  content: Text('Error checking username availability'),
+                                  backgroundColor: AppColors.error,
+                                ),
+                              );
+                            }
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                  textInputAction: TextInputAction.next,
+                  onChanged: _onUsernameChanged,
+                  validator: _validateUsername,
                 ),
                 const SizedBox(height: 16),
 

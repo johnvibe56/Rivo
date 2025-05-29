@@ -12,6 +12,7 @@ import 'package:rivo/features/product_feed/presentation/screens/product_detail_s
 import 'package:rivo/features/product_feed/presentation/screens/product_feed_screen.dart';
 import 'package:rivo/features/product_upload/presentation/screens/product_upload_screen.dart';
 import 'package:rivo/features/user_profile/presentation/screens/seller_profile_screen.dart';
+import 'package:rivo/features/user_profile/presentation/screens/edit_profile_screen.dart';
 import 'package:rivo/features/user_profile/presentation/screens/user_profile_screen.dart';
 import 'package:rivo/features/wishlist/presentation/screens/wishlist_screen.dart';
 
@@ -102,15 +103,19 @@ class AppRoutes {
   static const String forgotPassword = 'forgot_password';
   static const String onboarding = 'onboarding';
   
+  // User profile routes
+  static const String userProfile = 'user-profile';
+  static const String sellerProfile = 'seller';
+  static const String editProfile = 'edit-profile';
+  
   // Main app routes - protected
   static const String feed = 'feed';
   static const String productFeed = 'product_feed';
   static const String productDetail = 'product_detail';
   static const String productUpload = 'product_upload';
   static const String profile = 'user_profile'; // Updated to use user_profile
-  static const String userProfile = 'user_profile'; // Keeping for backward compatibility
   static const String wishlist = 'wishlist'; // Added wishlist route
-  static const String sellerProfile = 'seller_profile';
+  static const String seller = 'seller_profile';
   
   // Helper to get the full path for a route
   static String getPath(String routeName, {Map<String, String>? params}) {
@@ -139,6 +144,8 @@ class AppRoutes {
         return '/wishlist';
       case sellerProfile:
         return '/seller/${params?['sellerId'] ?? ':sellerId'}';
+      case editProfile:
+        return '/edit-profile';
       default:
         return '/';
     }
@@ -167,6 +174,7 @@ class AppRouter {
     ));
   }
   
+  /// Redirect to the seller profile screen
   static void goToSellerProfile(BuildContext context, {
     required String sellerId,
     String? displayName,
@@ -181,6 +189,11 @@ class AppRouter {
     context.go(uri.toString());
   }
   
+  /// Navigate to the edit profile screen
+  static void goToEditProfile(BuildContext context) {
+    context.go(getFullPath(AppRoutes.editProfile));
+  }
+  
   static bool _isAuthPath(String path) {
     return _authRoutes.any((route) => path == route || path.startsWith('$route/'));
   }
@@ -188,6 +201,11 @@ class AppRouter {
   // Shell route for main navigation
   static final _shellRoute = ShellRoute(
     builder: (context, state, child) {
+      // Don't show bottom navigation for edit profile
+      if (state.uri.path == '/edit-profile') {
+        return child;
+      }
+      
       int currentIndex = 0;
       final location = state.uri.path;
       
@@ -258,6 +276,13 @@ class AppRouter {
       GoRoute(
         path: '/upload-product',
         builder: (context, state) => const ProductUploadScreen(),
+      ),
+      
+      // Edit Profile route
+      GoRoute(
+        path: '/edit-profile',
+        name: AppRoutes.editProfile,
+        builder: (context, state) => const EditProfileScreen(),
       ),
     ],
   );

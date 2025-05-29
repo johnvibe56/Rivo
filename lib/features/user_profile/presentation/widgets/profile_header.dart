@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:rivo/core/constants/app_colors.dart';
+import 'package:rivo/core/router/app_router.dart';
 import 'package:rivo/features/auth/presentation/providers/auth_provider.dart';
 import 'package:rivo/features/follow/presentation/widgets/follow_button.dart';
 
@@ -40,11 +43,28 @@ class ProfileHeader extends ConsumerWidget {
               // User Avatar
               CircleAvatar(
                 radius: 40,
-                backgroundImage: avatarUrl != null
-                    ? NetworkImage(avatarUrl!)
-                    : const AssetImage('assets/images/default_avatar.png')
-                        as ImageProvider,
                 backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                child: avatarUrl != null
+                    ? ClipOval(
+                        child: Image.network(
+                          avatarUrl!,
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Icon(
+                              Icons.person,
+                              size: 40,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            );
+                          },
+                        ),
+                      )
+                    : Icon(
+                        Icons.person,
+                        size: 40,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
               ),
               const SizedBox(width: 24),
               
@@ -66,7 +86,38 @@ class ProfileHeader extends ConsumerWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        if (showFollowButton) ...[
+                        if (isCurrentUser) ...[
+                          const SizedBox(width: 8),
+                          OutlinedButton(
+                            onPressed: () {
+                              context.push(AppRouter.getFullPath(AppRoutes.editProfile));
+                            },
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 6,
+                              ),
+                              side: BorderSide(color: AppColors.primary),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.edit, size: 16),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Edit Profile',
+                                  style: theme.textTheme.labelLarge?.copyWith(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ] else if (showFollowButton) ...[
                           const SizedBox(width: 8),
                           FollowButton(
                             sellerId: userId,
@@ -172,11 +223,28 @@ class CompactProfileHeader extends ConsumerWidget {
           // User Avatar
           CircleAvatar(
             radius: 20,
-            backgroundImage: avatarUrl != null
-                ? NetworkImage(avatarUrl!)
-                : const AssetImage('assets/images/default_avatar.png')
-                    as ImageProvider,
             backgroundColor: theme.colorScheme.surfaceContainerHighest,
+            child: avatarUrl != null
+                ? ClipOval(
+                    child: Image.network(
+                      avatarUrl!,
+                      width: 40,
+                      height: 40,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Icon(
+                          Icons.person,
+                          size: 20,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        );
+                      },
+                    ),
+                  )
+                : Icon(
+                    Icons.person,
+                    size: 20,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
           ),
           const SizedBox(width: 12),
           
