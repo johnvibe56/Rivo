@@ -75,6 +75,20 @@ class UserProfileRemoteDataSourceImpl implements UserProfileRemoteDataSource {
       Logger.d('ℹ️ [getUserProfile] Profile not found, creating default via RPC for user: $userId');
       try {
         final defaultUsername = 'user_${userId.substring(0, 8)}';
+        
+        // First check if a profile was created in the meantime by another request
+        final recheckResponse = await _supabaseClient
+            .from('profiles')
+            .select()
+            .eq('id', userId)
+            .maybeSingle();
+            
+        if (recheckResponse != null) {
+          Logger.d('✅ [getUserProfile] Profile was created by another request');
+          return Profile.fromJson(recheckResponse);
+        }
+        
+        // If still no profile, create one
         final response = await createProfileViaRpc(
           userId: userId,
           username: defaultUsername,
@@ -82,10 +96,19 @@ class UserProfileRemoteDataSourceImpl implements UserProfileRemoteDataSource {
         
         Logger.d('✅ [getUserProfile] Default profile created successfully via RPC');
         return Profile.fromJson(response);
-      } catch (createError, createStack) {
-        final error = 'Failed to create default profile via RPC: $createError';
-        Logger.e('❌ [getUserProfile] $error', createStack);
-        throw ServerException(error, createStack);
+      } on PostgrestException catch (e) {
+        // If we get a unique constraint violation, it means another request created the profile
+        if (e.code == '23505') { // Unique violation error code
+          Logger.d('ℹ️ [getUserProfile] Profile was created by another request (race condition)');
+          // Fetch the newly created profile
+          final response = await _supabaseClient
+              .from('profiles')
+              .select()
+              .eq('id', userId)
+              .single();
+          return Profile.fromJson(response);
+        }
+        rethrow; // Re-throw other Postgrest exceptions
       }
     } on PostgrestException catch (e, stackTrace) {
       final error = 'Database error: ${e.message}';
@@ -286,7 +309,7 @@ class UserProfileRemoteDataSourceImpl implements UserProfileRemoteDataSource {
     try {
       Logger.d('🔄 [createProfileViaRpc] Creating profile via RPC for user: $userId');
       
-      final response = await _supabaseClient.rpc(
+      final response = await _supabaseClient.rpc<Map<String, dynamic>>(
         'handle_new_profile',
         params: {
           'p_user_id': userId,
@@ -295,7 +318,7 @@ class UserProfileRemoteDataSourceImpl implements UserProfileRemoteDataSource {
       );
       
       Logger.d('✅ [createProfileViaRpc] Profile created successfully');
-      return response as Map<String, dynamic>;
+      return response;
     } on PostgrestException catch (e, stackTrace) {
       final error = 'Database error: ${e.message}';
       Logger.e('❌ [createProfileViaRpc] $error', stackTrace);

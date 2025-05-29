@@ -165,30 +165,76 @@ class FollowRepositoryImpl implements FollowRepository {
 
   @override
   Future<Result<List<Follow>>> getFollows() async {
-    if (!await networkInfo.isConnected) {
-      return Result.failure(failures.NoInternetFailure());
-    }
-
     try {
+      if (!await networkInfo.isConnected) {
+        return Result<List<Follow>>.failure(failures.NoInternetFailure());
+      }
+
       final currentUser = supabaseClient.auth.currentUser;
       if (currentUser == null) {
-        return Result.failure(failures.UnauthenticatedFailure());
+        return Result<List<Follow>>.failure(failures.UnauthenticatedFailure());
       }
-      final currentUserId = currentUser.id;
-
+      
       final response = await supabaseClient
           .from('followers')
-          .select('*')
-          .eq('follower_id', currentUserId);
-
-      final follows = (response as List<dynamic>)
-          .map((e) => Follow.fromJson(e as Map<String, dynamic>))
-          .toList();
-      return Result.success(follows);
-    } on PostgrestException catch (_) {
-      return Result.failure(failures.AppFailure('Database error'));
-    } catch (e) {
-      return Result.failure(failures.AppFailure(e.toString()));
+          .select()
+          .eq('follower_id', currentUser.id);
+      
+      final follows = response.map<Follow>((json) => Follow.fromJson(json)).toList();
+      return Result<List<Follow>>.success(follows);
+    } catch (e, stackTrace) {
+      if (kDebugMode) {
+        print('Error in getFollows: $e');
+        print('Stack trace: $stackTrace');
+      }
+      return Result<List<Follow>>.failure(
+          failures.AppFailure('Failed to load follows'));
+    }
+  }
+  
+  @override
+  Future<Result<int>> getFollowerCount(String userId) async {
+    try {
+      if (!await networkInfo.isConnected) {
+        return Result<int>.failure(failures.NoInternetFailure());
+      }
+      
+      final response = await supabaseClient
+          .from('followers')
+          .select()
+          .eq('seller_id', userId);
+          
+      return Result<int>.success(response.length);
+    } catch (e, stackTrace) {
+      if (kDebugMode) {
+        print('Error in getFollowerCount: $e');
+        print('Stack trace: $stackTrace');
+      }
+      return Result<int>.failure(
+          failures.AppFailure('Failed to load follower count'));
+    }
+  }
+  
+  @override
+  Future<Result<int>> getFollowingCount(String userId) async {
+    try {
+      if (!await networkInfo.isConnected) {
+        return Result<int>.failure(failures.NoInternetFailure());
+      }
+      
+      final response = await supabaseClient
+          .from('followers')
+          .select()
+          .eq('follower_id', userId);
+          
+      return Result<int>.success(response.length);
+    } catch (e, stackTrace) {
+      if (kDebugMode) {
+        print('Error in getFollowingCount: $e');
+        print('Stack trace: $stackTrace');
+      }
+      return Result<int>.failure(
+          failures.AppFailure('Failed to load following count'));
     }
   }
 }

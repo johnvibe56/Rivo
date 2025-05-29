@@ -25,6 +25,7 @@ class UserProfileScreen extends ConsumerStatefulWidget {
 class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
   bool _isMounted = false;
   String? _currentUserId;
+  final _scaffoldKey = GlobalKey<ScaffoldMessengerState>();
 
   @override
   void initState() {
@@ -96,26 +97,32 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
 
 
   Future<void> _deleteProduct(BuildContext context, String productId) async {
+    if (!_isMounted) return;
+    
+    // Store the context before async gap
+    final currentContext = context;
+    
     try {
       final success = await ref.read(deleteProductNotifierProvider.notifier).deleteProduct(productId);
       if (!_isMounted) return;
       
       if (success) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
+        // Refresh the products list
+        await _loadUserProducts(_currentUserId!, forceRefresh: true);
+        
+        if (_isMounted && currentContext.mounted) {
+          ScaffoldMessenger.of(currentContext).showSnackBar(
             const SnackBar(content: Text('Product deleted')),
           );
         }
-        // Refresh the products list
-        _loadUserProducts(_currentUserId!, forceRefresh: true);
-      } else if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+      } else if (_isMounted && currentContext.mounted) {
+        ScaffoldMessenger.of(currentContext).showSnackBar(
           const SnackBar(content: Text('Failed to delete product')),
         );
       }
     } catch (e) {
-      if (_isMounted && context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+      if (_isMounted && currentContext.mounted) {
+        ScaffoldMessenger.of(currentContext).showSnackBar(
           const SnackBar(content: Text('An error occurred while deleting the product')),
         );
       }
@@ -123,18 +130,23 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
   }
 
   Future<void> _showDeleteConfirmation(BuildContext context, String productId) async {
+    if (!_isMounted) return;
+    
+    // Store the context before async gap
+    final currentContext = context;
+    
     final shouldDelete = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
+      context: currentContext,
+      builder: (BuildContext dialogContext) => AlertDialog(
         title: const Text('Delete Product'),
         content: const Text('Are you sure you want to delete this product? This action cannot be undone.'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
+            onPressed: () => Navigator.of(dialogContext).pop(false),
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Delete'),
           ),
@@ -143,49 +155,42 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
     );
 
     if (shouldDelete == true && _isMounted) {
-      await _deleteProduct(context, productId);
+      // Use the stored context
+      if (currentContext.mounted) {
+        await _deleteProduct(currentContext, productId);
+      }
     }
   }
 
   Future<void> _navigateToEditProfile(BuildContext context) async {
     if (!_isMounted) return;
     
-    // Use a StatefulBuilder to manage the navigation state
-    await showDialog<void>(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        // Navigate immediately when the dialog is built
-        Future.microtask(() async {
-          final result = await Navigator.of(dialogContext, rootNavigator: true).push<bool>(
-            MaterialPageRoute<bool>(
-              builder: (BuildContext context) => const EditProfileScreen(),
-            ),
-          );
-          
-          // Close the dialog
-          if (dialogContext.mounted) {
-            Navigator.of(dialogContext, rootNavigator: true).pop();
-          }
-          
-          // If we got a result and the widget is still mounted, refresh the data
-          if (_isMounted && result == true) {
-            await _loadData();
-          }
-        });
-        
-        // Show a simple dialog with a loading indicator
-        return AlertDialog(
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: const [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
-              Text('Loading...'),
-            ],
-          ),
+    // Store the context before async gap
+    final currentContext = context;
+    
+    try {
+      // Get the navigator before the async gap
+      final navigator = Navigator.of(currentContext, rootNavigator: true);
+      
+      // Navigate and wait for the result
+      final result = await navigator.push<bool>(
+        MaterialPageRoute<bool>(
+          builder: (BuildContext context) => const EditProfileScreen(),
+        ),
+      );
+      
+      // If we got a result and the widget is still mounted, refresh the data
+      if (_isMounted && result == true) {
+        await _loadData();
+      }
+    } catch (e) {
+      // Use the scaffold key to show the snackbar without context
+      if (_isMounted && _scaffoldKey.currentState != null) {
+        _scaffoldKey.currentState!.showSnackBar(
+          const SnackBar(content: Text('Failed to open edit profile')),
         );
-      },
-    );
+      }
+    }
   }
 
   @override
@@ -228,107 +233,110 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
     });
 
     return profileAsync.when(
-      data: (profile) {
-        return Scaffold(
-          appBar: AppBar(
-            title: Text(isCurrentUser ? 'My Profile' : 'Profile'),
-            actions: [
-              if (isCurrentUser) ...[
-                IconButton(
-                  icon: const Icon(Icons.edit),
-                  onPressed: () => _navigateToEditProfile(context),
-                  tooltip: 'Edit Profile',
-                ),
-                IconButton(
-                  icon: const Icon(Icons.logout),
-                  onPressed: _signOut,
-                  tooltip: 'Sign Out',
-                ),
-              ],
-            ],
-          ),
-          body: RefreshIndicator(
-            onRefresh: _loadData,
-            child: CustomScrollView(
-              slivers: [
-                SliverToBoxAdapter(
-                  child: ProfileHeader(
-                    key: ValueKey('profile-${profile.id}'),
-                    userId: profile.id,
-                    displayName: profile.username,
-                    bio: profile.bio,
-                    avatarUrl: profile.avatarUrl,
-                    productCount: userProductsAsync.valueOrNull?.length ?? 0,
-                    followerCount: 0,
-                    followingCount: 0,
-                    isCurrentUser: isCurrentUser,
-                    showBackButton: !isCurrentUser,
-                  ),
-                ),
-                userProductsAsync.when(
-                  data: (products) => products.isEmpty
-                      ? const SliverFillRemaining(
-                          child: Center(child: Text('No products found')),
-                        )
-                      : SliverPadding(
-                          padding: const EdgeInsets.all(16.0),
-                          sliver: SliverGrid(
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              crossAxisSpacing: 16,
-                              mainAxisSpacing: 16,
-                              childAspectRatio: 0.8,
-                            ),
-                            delegate: SliverChildBuilderDelegate(
-                              (context, index) {
-                                final product = products[index];
-                                return GestureDetector(
-                                  onLongPress: isCurrentUser 
-                                      ? () => _showDeleteConfirmation(context, product.id)
-                                      : null,
-                                  child: ProductCard(
-                                    product: product,
-                                    onTap: () {
-                                      // Navigate to product details
-                                      context.go('/product/${product.id}');
-                                    },
-                                  ),
-                                );
-                              },
-                              childCount: products.length,
-                            ),
-                          ),
-                        ),
-                  loading: () => const SliverFillRemaining(
-                    child: Center(child: CircularProgressIndicator()),
-                  ),
-                  error: (error, _) => SliverFillRemaining(
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text('Failed to load products'),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: () => _loadUserProducts(profileUserId, forceRefresh: true),
-                            child: const Text('Retry'),
-                          ),
-                        ],
+      data: (profile) => ScaffoldMessenger(
+        key: _scaffoldKey,
+        child: Builder(
+          builder: (BuildContext context) {
+            return Scaffold(
+              appBar: AppBar(
+                title: Text(isCurrentUser ? 'My Profile' : 'Profile'),
+                actions: [
+                  if (isCurrentUser) ...[
+                    IconButton(
+                      icon: const Icon(Icons.edit),
+                      onPressed: () => _navigateToEditProfile(context),
+                      tooltip: 'Edit Profile',
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.logout),
+                      onPressed: _signOut,
+                      tooltip: 'Sign Out',
+                    ),
+                  ],
+                ],
+              ),
+              body: RefreshIndicator(
+                onRefresh: _loadData,
+                child: CustomScrollView(
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: ProfileHeader(
+                        key: ValueKey('profile-${profile.id}'),
+                        userId: profile.id,
+                        displayName: profile.username,
+                        bio: profile.bio,
+                        avatarUrl: profile.avatarUrl,
+                        productCount: userProductsAsync.valueOrNull?.length ?? 0,
+                        isCurrentUser: isCurrentUser,
+                        showBackButton: !isCurrentUser,
                       ),
                     ),
-                  ),
+                    userProductsAsync.when(
+                      data: (products) => products.isEmpty
+                          ? const SliverFillRemaining(
+                              child: Center(child: Text('No products found')),
+                            )
+                          : SliverPadding(
+                              padding: const EdgeInsets.all(16.0),
+                              sliver: SliverGrid(
+                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  crossAxisSpacing: 16,
+                                  mainAxisSpacing: 16,
+                                  childAspectRatio: 0.8,
+                                ),
+                                delegate: SliverChildBuilderDelegate(
+                                  (context, index) {
+                                    final product = products[index];
+                                    return GestureDetector(
+                                      onLongPress: isCurrentUser 
+                                          ? () => _showDeleteConfirmation(context, product.id)
+                                          : null,
+                                      child: ProductCard(
+                                        product: product,
+                                        onTap: () {
+                                          // Navigate to product details
+                                          context.go('/product/${product.id}');
+                                        },
+                                      ),
+                                    );
+                                  },
+                                  childCount: products.length,
+                                ),
+                              ),
+                            ),
+                      loading: () => const SliverFillRemaining(
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
+                      error: (error, _) => SliverFillRemaining(
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text('Failed to load products'),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: () => _loadUserProducts(profileUserId, forceRefresh: true),
+                                child: const Text('Retry'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-          floatingActionButton: isCurrentUser
-              ? FloatingActionButton(
-                  onPressed: () => _navigateToEditProfile(context),
-                  child: const Icon(Icons.add),
-                )
-              : null,
-        );
-      },
+              ),
+              floatingActionButton: isCurrentUser
+                  ? FloatingActionButton(
+                      onPressed: () => context.go('/sell'),
+                      child: const Icon(Icons.add),
+                    )
+                  : null,
+            );
+          },
+        ),
+      ),
       loading: () => const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       ),

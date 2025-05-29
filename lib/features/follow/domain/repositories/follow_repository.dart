@@ -16,4 +16,10 @@ abstract class FollowRepository {
   
   // Get all follow relationships for the current user
   Future<Result<List<Follow>>> getFollows();
+  
+  // Get the number of followers for a user
+  Future<Result<int>> getFollowerCount(String userId);
+  
+  // Get the number of users a user is following
+  Future<Result<int>> getFollowingCount(String userId);
 }

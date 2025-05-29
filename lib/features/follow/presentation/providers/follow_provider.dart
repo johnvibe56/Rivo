@@ -94,6 +94,32 @@ final toggleFollowProvider = FutureProvider.family<Result<bool>, String>(
   },
 );
 
+// Provider for getting follower count for a user
+final followerCountProvider = FutureProvider.family<Result<int>, String>((ref, String userId) async {
+  try {
+    final repository = ref.watch(followRepositoryProvider);
+    return await repository.getFollowerCount(userId);
+  } catch (e) {
+    return Result.failure(AppFailure(
+      message: 'Failed to load follower count',
+      error: e,
+    ));
+  }
+});
+
+// Provider for getting following count for a user
+final followingCountProvider = FutureProvider.family<Result<int>, String>((ref, String userId) async {
+  try {
+    final repository = ref.watch(followRepositoryProvider);
+    return await repository.getFollowingCount(userId);
+  } catch (e) {
+    return Result.failure(AppFailure(
+      message: 'Failed to load following count',
+      error: e,
+    ));
+  }
+});
+
 // Provider for checking if current user is following any sellers
 final hasFollowedSellersProvider = FutureProvider<bool>((ref) async {
   final follows = await ref.watch(followsProvider.future);

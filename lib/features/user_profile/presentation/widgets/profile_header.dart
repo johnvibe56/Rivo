@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:rivo/core/error/result.dart';
 import 'package:rivo/core/router/app_router.dart';
 import 'package:rivo/features/auth/presentation/providers/auth_provider.dart';
+import 'package:rivo/features/follow/presentation/providers/follow_provider.dart';
 import 'package:rivo/features/follow/presentation/widgets/follow_button.dart';
 
 class ProfileHeader extends ConsumerWidget {
@@ -10,8 +12,6 @@ class ProfileHeader extends ConsumerWidget {
   final String? displayName;
   final String? bio;
   final String? avatarUrl;
-  final int? followerCount;
-  final int? followingCount;
   final int? productCount;
   final bool isCurrentUser;
   final bool showBackButton;
@@ -22,8 +22,6 @@ class ProfileHeader extends ConsumerWidget {
     this.displayName,
     this.bio,
     this.avatarUrl,
-    this.followerCount = 0,
-    this.followingCount = 0,
     this.productCount = 0,
     this.isCurrentUser = false,
     this.showBackButton = false,
@@ -35,6 +33,10 @@ class ProfileHeader extends ConsumerWidget {
     final currentUser = ref.watch(authStateProvider).valueOrNull?.user;
     final showFollowButton = !isCurrentUser && currentUser?.id != userId;
     
+    // Watch follower and following counts
+    final followerCountAsync = ref.watch(followerCountProvider(userId));
+    final followingCountAsync = ref.watch(followingCountProvider(userId));
+    
     // Handle back navigation
     void handleBack() {
       if (Navigator.canPop(context)) {
@@ -45,6 +47,18 @@ class ProfileHeader extends ConsumerWidget {
     }
 
     final userName = displayName ?? 'User ${userId.substring(0, 8)}';
+    
+    // Helper function to build count text
+    String getCountText(AsyncValue<Result<int>> asyncValue) {
+      return asyncValue.when(
+        data: (result) => result.when(
+          success: (count) => count.toString(),
+          failure: (_) => '0',
+        ),
+        loading: () => '...',
+        error: (_, __) => '0',
+      );
+    }
     
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -107,9 +121,9 @@ class ProfileHeader extends ConsumerWidget {
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        _buildStatColumn('Posts', productCount.toString()),
-                        _buildStatColumn('Followers', followerCount.toString()),
-                        _buildStatColumn('Following', followingCount.toString()),
+                        _buildStatColumn('Posts', productCount?.toString() ?? '0'),
+                        _buildStatColumn('Followers', getCountText(followerCountAsync)),
+                        _buildStatColumn('Following', getCountText(followingCountAsync)),
                       ],
                     ),
                   ],
