@@ -85,6 +85,7 @@ const _publicRoutes = [
   '/forgot-password',
   '/onboarding',
   '/seller/:sellerId',
+  '/user/:userId',
 ];
 
 /// List of routes that should redirect to home if user is already authenticated
@@ -105,6 +106,7 @@ class AppRoutes {
   
   // User profile routes
   static const String userProfile = 'user-profile';
+  static const String userProfileById = 'user-profile-by-id';
   static const String sellerProfile = 'seller';
   static const String editProfile = 'edit-profile';
   
@@ -138,6 +140,8 @@ class AppRoutes {
         return '/product/${params?['id'] ?? ':id'}';
       case profile:
         return '/user_profile';
+      case userProfileById:
+        return '/user/${params?['userId'] ?? ':userId'}';
       case productUpload:
         return '/upload-product';
       case wishlist:
@@ -194,6 +198,14 @@ class AppRouter {
     context.go(getFullPath(AppRoutes.editProfile));
   }
   
+  /// Navigate to a user's profile by ID
+  static void goToUserProfile(BuildContext context, String userId) {
+    context.go(getFullPath(
+      AppRoutes.userProfileById,
+      params: {'userId': userId},
+    ));
+  }
+  
   static bool _isAuthPath(String path) {
     return _authRoutes.any((route) => path == route || path.startsWith('$route/'));
   }
@@ -244,11 +256,21 @@ class AppRouter {
         },
       ),
       
-      // User Profile route
+      // Current User Profile route
       GoRoute(
         path: '/user_profile',
         name: AppRoutes.userProfile,
         builder: (context, state) => const UserProfileScreen(),
+      ),
+      
+      // User Profile by ID route
+      GoRoute(
+        path: '/user/:userId',
+        name: AppRoutes.userProfileById,
+        builder: (context, state) {
+          final userId = state.pathParameters['userId']!;
+          return UserProfileScreen(userId: userId);
+        },
       ),
       
       // Wishlist route

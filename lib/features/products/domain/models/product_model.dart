@@ -44,6 +44,12 @@ class Product {
       return [];
     }
 
+    // Handle profiles join if it exists
+    final profiles = json['profiles'] as Map<String, dynamic>?;
+    final ownerName = profiles?['username'] as String? ?? 
+                     json['owner_name'] as String? ?? 
+                     '';
+
     return Product(
       id: json['id'] as String,
       title: json['title'] as String,
@@ -53,7 +59,7 @@ class Product {
       likedBy: parseStringList(json['liked_by']),
       savedBy: parseStringList(json['saved_by']),
       ownerId: json['owner_id'] as String? ?? '',
-      ownerName: json['owner_name'] as String? ?? '',
+      ownerName: ownerName,
       createdAt: json['created_at'] != null 
           ? DateTime.tryParse(json['created_at'].toString()) ?? DateTime.now()
           : DateTime.now(),
@@ -100,7 +106,7 @@ class Product {
       likedBy: [],
       savedBy: [],
       ownerId: 'user_$random',
-      ownerName: 'User $random',
+      ownerName: 'User $random', // This sets a default owner name
       createdAt: now.subtract(Duration(days: random)),
     );
   }

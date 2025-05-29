@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:rivo/core/constants/app_colors.dart';
 import 'package:rivo/core/router/app_router.dart';
 import 'package:rivo/features/auth/presentation/providers/auth_provider.dart';
 import 'package:rivo/features/follow/presentation/widgets/follow_button.dart';
@@ -9,21 +8,25 @@ import 'package:rivo/features/follow/presentation/widgets/follow_button.dart';
 class ProfileHeader extends ConsumerWidget {
   final String userId;
   final String? displayName;
+  final String? bio;
   final String? avatarUrl;
   final int? followerCount;
   final int? followingCount;
   final int? productCount;
   final bool isCurrentUser;
+  final bool showBackButton;
 
   const ProfileHeader({
     super.key,
     required this.userId,
     this.displayName,
+    this.bio,
     this.avatarUrl,
-    this.followerCount,
-    this.followingCount,
-    this.productCount,
+    this.followerCount = 0,
+    this.followingCount = 0,
+    this.productCount = 0,
     this.isCurrentUser = false,
+    this.showBackButton = false,
   });
 
   @override
@@ -31,7 +34,18 @@ class ProfileHeader extends ConsumerWidget {
     final theme = Theme.of(context);
     final currentUser = ref.watch(authStateProvider).valueOrNull?.user;
     final showFollowButton = !isCurrentUser && currentUser?.id != userId;
+    
+    // Handle back navigation
+    void handleBack() {
+      if (Navigator.canPop(context)) {
+        Navigator.of(context).pop();
+      } else {
+        context.go(AppRouter.getFullPath(AppRoutes.feed));
+      }
+    }
 
+    final userName = displayName ?? 'User ${userId.substring(0, 8)}';
+    
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -40,125 +54,62 @@ class ProfileHeader extends ConsumerWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (showBackButton) ...[
+                IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: handleBack,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+                const SizedBox(width: 8),
+              ],
               // User Avatar
-               Column(
-                 mainAxisSize: MainAxisSize.min,
-                 children: [
-                   CircleAvatar(
-                     radius: 40,
-                     backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                     child: avatarUrl != null
-                         ? ClipOval(
-                             child: Image.network(
-                               avatarUrl! + '?cb=${DateTime.now().millisecondsSinceEpoch}',
-                               width: 80,
-                               height: 80,
-                               fit: BoxFit.cover,
-                               errorBuilder: (context, error, stackTrace) {
-                                 return Icon(
-                                   Icons.person,
-                                   size: 40,
-                                   color: theme.colorScheme.onSurfaceVariant,
-                                 );
-                               },
-                             ),
-                           )
-                         : Icon(
-                             Icons.person,
-                             size: 40,
-                             color: theme.colorScheme.onSurfaceVariant,
-                           ),
-                   ),
-
-                 ],
-               ),
-              const SizedBox(width: 24),
-              
-              // User Stats
+              CircleAvatar(
+                radius: 40,
+                backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                child: avatarUrl != null
+                    ? ClipOval(
+                        child: Image.network(
+                          '$avatarUrl?cb=${DateTime.now().millisecondsSinceEpoch}',
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return _buildDefaultAvatar(theme);
+                          },
+                        ),
+                      )
+                    : _buildDefaultAvatar(theme),
+              ),
+              const SizedBox(width: 16),
+              // User Info
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Display Name and Follow Button
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            displayName ?? 'User ${userId.substring(0, 6)}',
-                            style: theme.textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        if (isCurrentUser) ...[
-                          const SizedBox(width: 8),
-                          OutlinedButton(
-                            onPressed: () {
-                              context.push(AppRouter.getFullPath(AppRoutes.editProfile));
-                            },
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 6,
-                              ),
-                              side: BorderSide(color: AppColors.primary),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.edit, size: 16),
-                                const SizedBox(width: 6),
-                                Text(
-                                  'Edit Profile',
-                                  style: theme.textTheme.labelLarge?.copyWith(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ] else if (showFollowButton) ...[
-                          const SizedBox(width: 8),
-                          FollowButton(
-                            sellerId: userId,
-                            size: 32,
-                            iconSize: 18,
-                            showText: true,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 6,
-                            ),
-                          ),
-                        ],
-                      ],
+                    Text(
+                      userName,
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 16),
-                    
-                    // Stats Row
+                    if (bio != null && bio!.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        bio!,
+                        style: theme.textTheme.bodyMedium,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                    const SizedBox(height: 8),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        _buildStatColumn(
-                          context,
-                          count: productCount ?? 0,
-                          label: 'Products',
-                        ),
-                        _buildStatColumn(
-                          context,
-                          count: followerCount ?? 0,
-                          label: 'Followers',
-                        ),
-                        _buildStatColumn(
-                          context,
-                          count: followingCount ?? 0,
-                          label: 'Following',
-                        ),
+                        _buildStatColumn('Posts', productCount.toString()),
+                        _buildStatColumn('Followers', followerCount.toString()),
+                        _buildStatColumn('Following', followingCount.toString()),
                       ],
                     ),
                   ],
@@ -166,41 +117,51 @@ class ProfileHeader extends ConsumerWidget {
               ),
             ],
           ),
+          if (showFollowButton) ...[
+            const SizedBox(height: 16),
+            FollowButton(
+              sellerId: userId,
+              size: 32,
+              iconSize: 16,
+              showText: true,
+            ),
+          ],
         ],
       ),
     );
   }
 
+  Widget _buildDefaultAvatar(ThemeData theme) {
+    return Icon(
+      Icons.person,
+      size: 40,
+      color: theme.colorScheme.onSurfaceVariant,
+    );
+  }
 
-  Widget _buildStatColumn(
-    BuildContext context, {
-    required int count,
-    required String label,
-  }) {
-    final theme = Theme.of(context);
-    
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          count.toString(),
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: theme.colorScheme.primary,
+  Widget _buildStatColumn(String label, String value) {
+    return Expanded(
+      child: Column(
+        children: [
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          label,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.surfaceContainerHighest,
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              color: Colors.grey,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
-
 // A simplified version of the profile header for use in lists
 class CompactProfileHeader extends ConsumerWidget {
   final String userId;
@@ -236,7 +197,7 @@ class CompactProfileHeader extends ConsumerWidget {
                  child: avatarUrl != null
                      ? ClipOval(
                          child: Image.network(
-                           avatarUrl! + '?cb=${DateTime.now().millisecondsSinceEpoch}',
+                           '$avatarUrl?cb=${DateTime.now().millisecondsSinceEpoch}',
                            width: 40,
                            height: 40,
                            fit: BoxFit.cover,

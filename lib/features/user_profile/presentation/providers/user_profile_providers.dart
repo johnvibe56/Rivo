@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rivo/core/utils/logger.dart';
+import 'package:rivo/features/auth/presentation/providers/auth_provider.dart';
 import 'package:rivo/features/products/domain/models/product_model.dart';
 import 'package:rivo/features/user_profile/data/datasources/user_profile_remote_data_source_impl.dart';
 import 'package:rivo/features/user_profile/data/repositories/user_profile_repository_impl.dart';
@@ -19,61 +20,57 @@ final userProfileRepositoryProvider = Provider<UserProfileRepository>((ref) {
   return UserProfileRepositoryImpl(remoteDataSource: remoteDataSource);
 });
 
-// Notifier
+
+
+/// Provider to fetch any user's profile from the DB (including avatarUrl)
+final userProfileProvider = FutureProvider.family<Profile, String>((ref, userId) async {
+  final repository = ref.watch(userProfileRepositoryProvider);
+  try {
+    if (userId == ref.read(authStateProvider).value?.user?.id) {
+      return repository.getCurrentUserProfile();
+    } else {
+      return repository.getUserProfile(userId);
+    }
+  } catch (e, stackTrace) {
+    Logger.e('Error in userProfileProvider: $e', stackTrace);
+    rethrow;
+  }
+});
+
+/// Alias for backward compatibility
+final currentUserProfileProvider = userProfileProvider;
+
+/// Provider for any user's products
+final userProductsProvider = StateNotifierProvider.family<UserProductsNotifier, AsyncValue<List<Product>>, String>((ref, userId) {
+  final repository = ref.watch(userProfileRepositoryProvider);
+  return UserProductsNotifier(repository, userId);
+});
+
+/// Notifier for managing user products
 class UserProductsNotifier extends StateNotifier<AsyncValue<List<Product>>> {
   final UserProfileRepository _repository;
+  final String _userId;
   bool _isLoading = false;
   
-  UserProductsNotifier(this._repository) : super(const AsyncValue.loading());
+  UserProductsNotifier(this._repository, this._userId) : super(const AsyncValue.loading()) {
+    loadUserProducts();
+  }
 
-  Future<void> loadUserProducts(String userId, {bool forceRefresh = false}) async {
-    Logger.d('loadUserProducts called (forceRefresh: $forceRefresh)');
-    
-    // If we're already loading, skip unless it's a forced refresh
-    if (_isLoading && !forceRefresh) {
-      Logger.d('Already loading, skipping');
-      return;
-    }
-    
-    // If we have data and it's not a forced refresh, skip
-    if (state.hasValue && state.value!.isNotEmpty && !forceRefresh) {
-      Logger.d('Already have products, skipping');
-      return;
-    }
+  Future<void> loadUserProducts({bool forceRefresh = false}) async {
+    if (_isLoading && !forceRefresh) return;
     
     try {
       _isLoading = true;
-      Logger.d('Loading products for user: $userId');
-      
-      // Only show loading state if we don't have data yet
       if (!state.hasValue || state.value!.isEmpty) {
         state = const AsyncValue.loading();
       }
       
-      final products = await _repository.getUserProducts(userId);
-      Logger.d('Successfully loaded ${products.length} products');
+      final products = await _repository.getUserProducts(_userId);
       state = AsyncValue.data(products);
     } catch (e, stackTrace) {
-      Logger.e('Error loading products: $e', stackTrace);
       state = AsyncValue.error(e, stackTrace);
-      rethrow;
     } finally {
       _isLoading = false;
     }
   }
-
-  // No need to override anything here
-  // We'll let the StateNotifier handle the state updates
 }
-
-// Provider
-final userProductsProvider = StateNotifierProvider<UserProductsNotifier, AsyncValue<List<Product>>>((ref) {
-  final repository = ref.watch(userProfileRepositoryProvider);
-  return UserProductsNotifier(repository);
-});
-
-/// Provider to fetch the current user's profile from the DB (including avatarUrl)
-final currentUserProfileProvider = FutureProvider<Profile>((ref) async {
-  final repository = ref.watch(userProfileRepositoryProvider);
-  return repository.getCurrentUserProfile();
-});

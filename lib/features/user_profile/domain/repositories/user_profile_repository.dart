@@ -20,6 +20,9 @@ abstract class UserProfileRepository {
   /// Gets the current user's profile
   Future<Profile> getCurrentUserProfile();
   
+  /// Gets a user's profile by ID
+  Future<Profile> getUserProfile(String userId);
+  
   /// Updates the current user's profile
   Future<void> updateProfile({
     required String username,

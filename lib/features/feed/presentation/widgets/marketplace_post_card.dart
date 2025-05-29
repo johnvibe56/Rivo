@@ -1,10 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:rivo/features/products/domain/models/product_model.dart';
-import 'package:rivo/features/wishlist/presentation/widgets/wishlist_button.dart';
-import 'package:rivo/features/products/presentation/providers/delete_product_provider.dart';
+import 'package:go_router/go_router.dart';
 import 'package:rivo/features/follow/presentation/widgets/follow_button.dart';
+import 'package:rivo/features/products/domain/models/product_model.dart';
+import 'package:rivo/features/products/presentation/providers/delete_product_provider.dart';
+import 'package:rivo/features/wishlist/presentation/widgets/wishlist_button.dart';
 
 /// Provider for checking if a product is being deleted
 final isDeletingProductProvider = Provider.family<bool, String>((ref, productId) {
@@ -29,6 +30,15 @@ class MarketplacePostCard extends ConsumerWidget {
     this.onBuy,
     this.onTap,
   });
+
+  void _navigateToSellerProfile(BuildContext context) {
+    if (product.ownerId.isNotEmpty) {
+      // Navigate to the seller profile using the correct route
+      context.go(
+        '/user/${product.ownerId}',
+      );
+    }
+  }
 
   // Build delete button
   Widget _buildDeleteButton(BuildContext context, WidgetRef ref) {
@@ -334,11 +344,19 @@ class MarketplacePostCard extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    'Seller',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w500,
+                  GestureDetector(
+                    onTap: () => _navigateToSellerProfile(context),
+                    child: Text(
+                      product.ownerName.isNotEmpty 
+                          ? product.ownerName 
+                          : 'User ${product.ownerId.substring(0, 8)}',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                        decoration: TextDecoration.underline,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   const SizedBox(width: 8),

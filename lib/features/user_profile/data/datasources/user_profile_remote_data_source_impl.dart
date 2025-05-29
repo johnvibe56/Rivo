@@ -51,6 +51,55 @@ class UserProfileRemoteDataSourceImpl implements UserProfileRemoteDataSource {
     }
   }
 
+
+
+  @override
+  Future<Profile> getUserProfile(String userId) async {
+    Logger.d('🔍 [getUserProfile] Fetching profile for user: $userId');
+    
+    try {
+      // First try to get the profile
+      final response = await _supabaseClient
+          .from('profiles')
+          .select()
+          .eq('id', userId)
+          .maybeSingle();
+          
+      if (response != null) {
+        Logger.d('✅ [getUserProfile] Profile found for user: $userId');
+        final Map<String, dynamic> profileData = Map<String, dynamic>.from(response);
+        return Profile.fromJson(profileData);
+      }
+      
+      // If we get here, profile doesn't exist - create a default one using RPC
+      Logger.d('ℹ️ [getUserProfile] Profile not found, creating default via RPC for user: $userId');
+      try {
+        final defaultUsername = 'user_${userId.substring(0, 8)}';
+        final response = await createProfileViaRpc(
+          userId: userId,
+          username: defaultUsername,
+        );
+        
+        Logger.d('✅ [getUserProfile] Default profile created successfully via RPC');
+        return Profile.fromJson(response);
+      } catch (createError, createStack) {
+        final error = 'Failed to create default profile via RPC: $createError';
+        Logger.e('❌ [getUserProfile] $error', createStack);
+        throw ServerException(error, createStack);
+      }
+    } on PostgrestException catch (e, stackTrace) {
+      final error = 'Database error: ${e.message}';
+      Logger.e('❌ [getUserProfile] $error', stackTrace);
+      throw ServerException(error, stackTrace);
+    } on ServerException {
+      rethrow; // Re-throw ServerException as is
+    } catch (e, stackTrace) {
+      final error = 'Unexpected error getting user profile: $e';
+      Logger.e('❌ [getUserProfile] $error', stackTrace);
+      throw ServerException(error, stackTrace);
+    }
+  }
+
   @override
   Future<Profile> createProfile({
     required String userId,
@@ -123,59 +172,67 @@ class UserProfileRemoteDataSourceImpl implements UserProfileRemoteDataSource {
 
   @override
   Future<Profile> getCurrentUserProfile() async {
+    Logger.d('🔍 [getCurrentUserProfile] Getting current user from auth...');
+    final user = _supabaseClient.auth.currentUser;
+    
+    if (user == null) {
+      const error = 'No authenticated user found';
+      Logger.e('❌ [getCurrentUserProfile] $error', StackTrace.current);
+      throw ServerException(error, StackTrace.current);
+    }
+    
+    Logger.d('👤 [getCurrentUserProfile] Current auth user ID: ${user.id}');
+    Logger.d('📡 [getCurrentUserProfile] Fetching profile from Supabase...');
+    
     try {
-      Logger.d('🔍 [UserProfileRemoteDataSource] Getting current user from auth...');
-      final user = _supabaseClient.auth.currentUser;
-      
-      if (user == null) {
-        const error = 'No authenticated user found';
-        Logger.e('❌ [UserProfileRemoteDataSource] $error', StackTrace.current);
-        throw ServerException(error, StackTrace.current);
-      }
-      
-      Logger.d('👤 [UserProfileRemoteDataSource] Current auth user ID: ${user.id}');
-      Logger.d('📡 [UserProfileRemoteDataSource] Fetching profile from Supabase...');
-      
+      // First try to get the profile
       final response = await _supabaseClient
           .from('profiles')
           .select()
           .eq('id', user.id)
           .maybeSingle();
       
-      if (response == null) {
-        final error = 'Profile not found for user: ${user.id}. This usually means the user profile was not created during sign-up.';
-        Logger.e('❌ [UserProfileRemoteDataSource] $error', StackTrace.current);
-        throw ServerException(error, StackTrace.current);
+      if (response != null) {
+        Logger.d('✅ [getCurrentUserProfile] Profile found for user: ${user.id}');
+        Logger.d('   - Username: ${response['username']}');
+        Logger.d('   - Bio: ${response['bio'] ?? 'N/A'}');
+        Logger.d('   - Avatar URL: ${response['avatar_url'] ?? 'N/A'}');
+        
+        try {
+          final profile = Profile.fromJson(response);
+          Logger.d('✅ [getCurrentUserProfile] Successfully parsed profile');
+          return profile;
+        } catch (e, stackTrace) {
+          final error = 'Failed to parse profile data: $e';
+          Logger.e('❌ [getCurrentUserProfile] $error', stackTrace);
+          throw ServerException(error, stackTrace);
+        }
       }
       
-      Logger.d('✅ [UserProfileRemoteDataSource] Raw profile data received');
-      Logger.d('   - ID: ${response['id']}');
-      Logger.d('   - Username: ${response['username']}');
-      Logger.d('   - Bio: ${response['bio'] ?? 'N/A'}');
-      Logger.d('   - Avatar URL: ${response['avatar_url'] ?? 'N/A'}');
-      
+      // If we get here, profile doesn't exist - create a default one using RPC
+      Logger.d('ℹ️ [getCurrentUserProfile] Profile not found, creating default via RPC for user: ${user.id}');
       try {
-        final profile = Profile.fromJson(response);
-        Logger.d('✅ [UserProfileRemoteDataSource] Successfully parsed profile: ${profile.id}');
-        return profile;
-      } catch (e, stackTrace) {
-        final error = 'Failed to parse profile data: $e';
-        Logger.e('❌ [UserProfileRemoteDataSource] $error\n   - Raw data: $response', stackTrace);
-        throw ServerException(error, stackTrace);
+        final defaultUsername = 'user_${user.id.substring(0, 8)}';
+        final response = await createProfileViaRpc(
+          userId: user.id,
+          username: defaultUsername,
+        );
+        
+        Logger.d('✅ [getCurrentUserProfile] Default profile created successfully via RPC');
+        return Profile.fromJson(response);
+      } catch (createError, createStack) {
+        final error = 'Failed to create default profile via RPC: $createError';
+        Logger.e('❌ [getCurrentUserProfile] $error', createStack);
+        throw ServerException(error, createStack);
       }
-      
     } on PostgrestException catch (e, stackTrace) {
       final error = 'Database error: ${e.message}';
-      Logger.e('❌ [UserProfileRemoteDataSource] $error\n   - Details: ${e.details}\n   - Hint: ${e.hint}\n   - Code: ${e.code}', stackTrace);
+      Logger.e('❌ [getCurrentUserProfile] $error', stackTrace);
       throw ServerException(error, stackTrace);
-      
-    } on ServerException {
-      rethrow;
-      
     } catch (e, stackTrace) {
-      final error = 'Unexpected error: ${e.toString()}';
-      Logger.e('❌ [UserProfileRemoteDataSource] $error', stackTrace);
-      throw ServerException('Failed to get user profile', StackTrace.current);
+      final error = 'Unexpected error getting current user profile: $e';
+      Logger.e('❌ [getCurrentUserProfile] $error', stackTrace);
+      throw ServerException(error, stackTrace);
     }
   }
 
@@ -222,6 +279,35 @@ class UserProfileRemoteDataSourceImpl implements UserProfileRemoteDataSource {
   }
 
   @override
+  Future<Map<String, dynamic>> createProfileViaRpc({
+    required String userId,
+    required String username,
+  }) async {
+    try {
+      Logger.d('🔄 [createProfileViaRpc] Creating profile via RPC for user: $userId');
+      
+      final response = await _supabaseClient.rpc(
+        'handle_new_profile',
+        params: {
+          'p_user_id': userId,
+          'p_username': username,
+        },
+      );
+      
+      Logger.d('✅ [createProfileViaRpc] Profile created successfully');
+      return response as Map<String, dynamic>;
+    } on PostgrestException catch (e, stackTrace) {
+      final error = 'Database error: ${e.message}';
+      Logger.e('❌ [createProfileViaRpc] $error', stackTrace);
+      throw ServerException(error, stackTrace);
+    } catch (e, stackTrace) {
+      final error = 'Unexpected error creating profile via RPC: $e';
+      Logger.e('❌ [createProfileViaRpc] $error', stackTrace);
+      throw ServerException(error, stackTrace);
+    }
+  }
+
+  @override
   Future<String> uploadProfileImage(File imageFile) async {
     try {
       final userId = _supabaseClient.auth.currentUser?.id;
@@ -236,8 +322,10 @@ class UserProfileRemoteDataSourceImpl implements UserProfileRemoteDataSource {
       final fileName = '${DateTime.now().millisecondsSinceEpoch}.$fileExt';
       final filePath = 'profiles/$userId/$fileName';
       
-      Logger.d('🔄 [UserProfile] Uploading file to path: $filePath');
-      final response = await _supabaseClient.storage.from('avatars').upload(filePath, imageFile);
+      Logger.d('Uploading profile image to path: $filePath');
+ await _supabaseClient.storage
+          .from('avatars')
+          .upload(filePath, imageFile);
       Logger.d('[remoteDataSource.uploadProfileImage] File uploaded. Getting public URL...');
       final publicUrl = _supabaseClient.storage.from('avatars').getPublicUrl(filePath);
       Logger.d('[remoteDataSource.uploadProfileImage] Public URL: $publicUrl');

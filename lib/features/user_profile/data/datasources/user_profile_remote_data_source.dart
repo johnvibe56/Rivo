@@ -20,6 +20,9 @@ abstract class UserProfileRemoteDataSource {
   /// Gets the current user's profile
   Future<Profile> getCurrentUserProfile();
   
+  /// Gets a user's profile by ID
+  Future<Profile> getUserProfile(String userId);
+  
   /// Updates the current user's profile
   Future<void> updateProfile({
     required String username,
@@ -29,4 +32,11 @@ abstract class UserProfileRemoteDataSource {
   
   /// Uploads a profile image and returns the public URL
   Future<String> uploadProfileImage(File imageFile);
+  
+  /// Creates a new profile using the RPC function
+  /// This is used to bypass RLS policies when creating a default profile
+  Future<Map<String, dynamic>> createProfileViaRpc({
+    required String userId,
+    required String username,
+  });
 }

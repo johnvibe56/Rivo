@@ -15,12 +15,8 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
   @override
   Future<List<Product>> getUserProducts(String userId) async {
     try {
-      Logger.d('Getting products for user: $userId');
-      final products = await remoteDataSource.getUserProducts(userId);
-      Logger.d('Successfully retrieved ${products.length} products');
-      return products;
-    } catch (e, stackTrace) {
-      Logger.e('Error getting user products: $e', stackTrace);
+      return await remoteDataSource.getUserProducts(userId);
+    } catch (e) {
       throw ServerFailure(e.toString());
     }
   }
@@ -33,17 +29,13 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
     String? avatarUrl,
   }) async {
     try {
-      Logger.d('Creating profile for user: $userId with username: $username');
-      final profile = await remoteDataSource.createProfile(
+      return await remoteDataSource.createProfile(
         userId: userId,
         username: username,
         bio: bio,
         avatarUrl: avatarUrl,
       );
-      Logger.d('Successfully created profile for user: $userId');
-      return profile;
-    } catch (e, stackTrace) {
-      Logger.e('Error creating user profile: $e', stackTrace);
+    } catch (e) {
       throw ServerFailure('Failed to create user profile: ${e.toString()}');
     }
   }
@@ -51,12 +43,8 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
   @override
   Future<bool> isUsernameAvailable(String username) async {
     try {
-      Logger.d('Checking if username is available: $username');
-      final isAvailable = await remoteDataSource.isUsernameAvailable(username);
-      Logger.d('Username availability for $username: $isAvailable');
-      return isAvailable;
-    } catch (e, stackTrace) {
-      Logger.e('Error checking username availability: $e', stackTrace);
+      return await remoteDataSource.isUsernameAvailable(username);
+    } catch (e) {
       // If there's an error, assume username is not available to be safe
       return false;
     }
@@ -65,13 +53,17 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
   @override
   Future<Profile> getCurrentUserProfile() async {
     try {
-      Logger.d('Getting current user profile');
-      final profile = await remoteDataSource.getCurrentUserProfile();
-      Logger.d('Successfully retrieved current user profile');
-  
-      return profile;
-    } catch (e, stackTrace) {
-      Logger.e('Error getting current user profile: $e', stackTrace);
+      return await remoteDataSource.getCurrentUserProfile();
+    } catch (e) {
+      throw ServerFailure('Failed to get user profile: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<Profile> getUserProfile(String userId) async {
+    try {
+      return await remoteDataSource.getUserProfile(userId);
+    } catch (e) {
       throw ServerFailure('Failed to get user profile: ${e.toString()}');
     }
   }
@@ -82,7 +74,6 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
     String? bio,
     File? imageFile,
   }) async {
-    Logger.d('[updateProfile] Starting update for username: $username');
     try {
       String? imageUrl;
       if (imageFile != null) {

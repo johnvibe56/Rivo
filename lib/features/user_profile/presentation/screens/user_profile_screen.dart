@@ -1,18 +1,22 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:rivo/core/router/app_router.dart';
-import 'package:rivo/core/utils/logger.dart';
 import 'package:rivo/features/auth/presentation/providers/auth_provider.dart';
-
 import 'package:rivo/features/products/presentation/providers/delete_product_provider.dart';
 import 'package:rivo/features/products/presentation/widgets/product_card.dart';
 import 'package:rivo/features/user_profile/presentation/providers/user_profile_providers.dart';
-import 'package:rivo/features/user_profile/presentation/widgets/profile_header.dart';
 import 'package:rivo/features/user_profile/presentation/screens/edit_profile_screen.dart';
+import 'package:rivo/features/user_profile/presentation/widgets/profile_header.dart';
 
 class UserProfileScreen extends ConsumerStatefulWidget {
-  const UserProfileScreen({super.key});
+  final String? userId;
+
+  const UserProfileScreen({
+    super.key,
+    this.userId,
+  });
 
   @override
   ConsumerState<UserProfileScreen> createState() => _UserProfileScreenState();
@@ -20,28 +24,14 @@ class UserProfileScreen extends ConsumerStatefulWidget {
 
 class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
   bool _isMounted = false;
+  String? _currentUserId;
 
   @override
   void initState() {
     super.initState();
     _isMounted = true;
-    
-    // Listen to auth state changes
-    ref.listenManual<AsyncValue<dynamic>>(
-      authStateProvider,
-      (previous, next) {
-        // When auth state changes and we have a user, load products
-        if (next.value?.user != null && mounted) {
-          _loadUserProducts();
-        }
-      },
-    );
-    
-    // Initial load if we already have a user
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && ref.read(authStateProvider).value?.user != null) {
-        _loadUserProducts();
-      }
+      _loadData();
     });
   }
 
@@ -51,240 +41,316 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
     super.dispose();
   }
 
-  Future<void> _loadUserProducts({bool forceRefresh = false}) async {
+  Future<void> _loadData() async {
     if (!_isMounted) return;
-    
-    Logger.d('Starting to load user products (forceRefresh: $forceRefresh)');
-    
+
+    final userId = widget.userId ?? ref.read(authStateProvider).value?.user?.id;
+    if (userId == null || !_isMounted) return;
+
+    _currentUserId = userId;
+    await _loadUserProducts(userId);
+
+    if (!_isMounted) return;
+
+    ref.invalidate(userProfileProvider(userId));
+  }
+
+  Future<void> _loadUserProducts(String userId, {bool forceRefresh = false}) async {
+    if (!_isMounted) return;
+
     try {
-      final userId = ref.read(authStateProvider).value?.user?.id;
-      if (userId == null) {
-        Logger.d('No user ID available');
-        return;
-      }
-      
-      Logger.d('Requesting products for user: $userId');
-      await ref.read(userProductsProvider.notifier).loadUserProducts(
-        userId,
-        forceRefresh: forceRefresh,
-      );
-      Logger.d('Products load request completed');
-    } catch (e, stackTrace) {
-      Logger.e('Error loading products: $e', stackTrace);
-      if (!_isMounted) return;
-      
-      // Store context in a local variable before async gap
-      final context = this.context;
-      if (!context.mounted) return;
-      
-      // Show error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to load your products')),
-      );
+      await ref.read(userProductsProvider(userId).notifier).loadUserProducts(
+            forceRefresh: forceRefresh,
+          );
+    } catch (e) {
+      debugPrint('Error loading user products: $e');
     }
   }
 
   Future<void> _signOut() async {
+    if (!_isMounted) return;
+    final navigatorContext = context;
+    
     try {
-      // Store context in a local variable before async gap
-      final context = this.context;
-      
-      // Get the auth controller
-      final authController = ref.read(authControllerProvider);
-      await authController.signOut();
-      
+      await ref.read(authControllerProvider).signOut();
       if (!_isMounted) return;
-      
-      // Use GoRouter to navigate to login screen
-      if (context.mounted) {
-        context.go(AppRouter.getFullPath(AppRoutes.login));
+      if (navigatorContext.mounted) {
+        navigatorContext.go('/login');
       }
-    } catch (e, stackTrace) {
-      Logger.e(e, stackTrace, tag: 'UserProfileScreen');
-      
-      if (!_isMounted) return;
-      
-      // Store context in a local variable before async gap
-      final context = this.context;
-      if (!context.mounted) return;
-      
-      // Show error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to sign out')),
-      );
+    } catch (e) {
+      debugPrint('Error signing out: $e');
+      if (_isMounted && navigatorContext.mounted) {
+        ScaffoldMessenger.of(navigatorContext).showSnackBar(
+          const SnackBar(content: Text('Error signing out')),
+        );
+      }
     }
   }
 
-  // Handle product deletion
   Future<void> _handleProductDeleted() async {
-    final userId = ref.read(authStateProvider).value?.user?.id;
-    if (userId == null || !mounted) return;
+    if (!_isMounted) return;
+    final userId = _currentUserId;
+    if (userId == null) return;
+    await _loadUserProducts(userId, forceRefresh: true);
+  }
+
+
+  Future<void> _deleteProduct(BuildContext context, String productId) async {
+    try {
+      final success = await ref.read(deleteProductNotifierProvider.notifier).deleteProduct(productId);
+      if (!_isMounted) return;
+      
+      if (success) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Product deleted')),
+          );
+        }
+        // Refresh the products list
+        _loadUserProducts(_currentUserId!, forceRefresh: true);
+      } else if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to delete product')),
+        );
+      }
+    } catch (e) {
+      if (_isMounted && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('An error occurred while deleting the product')),
+        );
+      }
+    }
+  }
+
+  Future<void> _showDeleteConfirmation(BuildContext context, String productId) async {
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Product'),
+        content: const Text('Are you sure you want to delete this product? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldDelete == true && _isMounted) {
+      await _deleteProduct(context, productId);
+    }
+  }
+
+  Future<void> _navigateToEditProfile(BuildContext context) async {
+    if (!_isMounted) return;
     
-    // Refresh the product list
-    await _loadUserProducts(forceRefresh: true);
+    // Use a StatefulBuilder to manage the navigation state
+    await showDialog<void>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        // Navigate immediately when the dialog is built
+        Future.microtask(() async {
+          final result = await Navigator.of(dialogContext, rootNavigator: true).push<bool>(
+            MaterialPageRoute<bool>(
+              builder: (BuildContext context) => const EditProfileScreen(),
+            ),
+          );
+          
+          // Close the dialog
+          if (dialogContext.mounted) {
+            Navigator.of(dialogContext, rootNavigator: true).pop();
+          }
+          
+          // If we got a result and the widget is still mounted, refresh the data
+          if (_isMounted && result == true) {
+            await _loadData();
+          }
+        });
+        
+        // Show a simple dialog with a loading indicator
+        return AlertDialog(
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Loading...'),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
-    final user = authState.value?.user;
-    final currentUserId = user?.id;
-    final userProductsAsync = ref.watch(userProductsProvider);
-    
-    // Determine if this is the current user's profile
-    final isCurrentUser = currentUserId != null && currentUserId == user?.id;
-    final displayName = user?.userMetadata?['full_name'] as String? ?? user?.email ?? 'User';
-    final userId = user?.id ?? '';
-    
-    // Listen for product deletion state changes
+    final currentUserId = authState.value?.user?.id;
+    final profileUserId = widget.userId ?? currentUserId;
+    final isCurrentUser = currentUserId != null && currentUserId == profileUserId;
+
+    if (profileUserId == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final userProductsAsync = ref.watch(userProductsProvider(profileUserId));
+    final profileAsync = ref.watch(userProfileProvider(profileUserId));
+
     ref.listen(deleteProductNotifierProvider, (previous, next) {
       if (next.isLoading) return;
       
       if (next.errorMessage != null) {
-        Logger.e('Error deleting product: ${next.errorMessage}', StackTrace.current);
-        if (mounted) {
+        debugPrint('Error deleting product: ${next.errorMessage}');
+        if (_isMounted && context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(next.errorMessage ?? 'Failed to delete product'),
               backgroundColor: Colors.red,
-              behavior: SnackBarBehavior.floating,
             ),
           );
-          
-          // Reset the delete state after showing the error
-          if (next.productId != null) {
-            ref.read(deleteProductNotifierProvider.notifier).reset();
-          }
         }
       } else if (next.successMessage != null) {
-        // Only handle success if we're still mounted
-        if (mounted) {
+        if (_isMounted && context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(next.successMessage!),
-              behavior: SnackBarBehavior.floating,
-            ),
+            SnackBar(content: Text(next.successMessage!)),
           );
-          
-          // Reset the delete state after showing the success message
-          if (next.productId != null) {
-            ref.read(deleteProductNotifierProvider.notifier).reset();
-          }
-          
           _handleProductDeleted();
         }
       }
     });
-    
-    // Debug log the current state
-    userProductsAsync.when(
-      data: (products) => Logger.d('UI: Loaded ${products.length} products'),
-      loading: () => Logger.d('UI: Loading products...'),
-      error: (error, stackTrace) {
-        Logger.e('UI: Error loading products: $error', stackTrace);
-      },
-    );
-    
-    // Show loading indicator if we're still waiting for auth or products
-    if (authState.isLoading || (user == null && !authState.hasError)) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
-    
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(isCurrentUser ? 'My Profile' : displayName),
-        actions: [
-          if (isCurrentUser) ...[
-            IconButton(
-              icon: const Icon(Icons.logout),
-              onPressed: _signOut,
-              tooltip: 'Sign Out',
-            ),
-          ],
-        ],
-      ),
-      body: RefreshIndicator(
-        onRefresh: () => _loadUserProducts(forceRefresh: true),
-        child: userProductsAsync.when(
-          data: (products) => CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: Consumer(
-                  builder: (context, ref, _) {
-                    final profileAsync = ref.watch(currentUserProfileProvider);
-                    return profileAsync.when(
-                      data: (profile) => profile == null
-                          ? const Center(child: Text('Profile not found'))
-                          : ProfileHeader(
-                              userId: profile.id,
-                              displayName: profile.username,
-                              avatarUrl: profile.avatarUrl,
-                              productCount: products.length,
-                              followerCount: 0, // TODO: Implement follower count
-                              followingCount: 0, // TODO: Implement following count
-                              isCurrentUser: isCurrentUser,
-                            ),
-                      loading: () => const Center(child: CircularProgressIndicator()),
-                      error: (error, stack) => Center(child: Text('Failed to load profile: $error')),
-                    );
-                  },
+
+    return profileAsync.when(
+      data: (profile) {
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(isCurrentUser ? 'My Profile' : 'Profile'),
+            actions: [
+              if (isCurrentUser) ...[
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () => _navigateToEditProfile(context),
+                  tooltip: 'Edit Profile',
                 ),
-              ),
-              if (products.isNotEmpty)
-                SliverPadding(
-                  padding: const EdgeInsets.all(16.0),
-                  sliver: SliverGrid(
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                      childAspectRatio: 0.75,
-                    ),
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final product = products[index];
-                        return ProductCard(
-                          product: product,
-                          showUserActions: isCurrentUser,
-                        );
-                      },
-                      childCount: products.length,
-                    ),
-                  ),
-                )
-              else
-                const SliverFillRemaining(
-                  child: Center(
-                    child: Text('No products yet'),
-                  ),
+                IconButton(
+                  icon: const Icon(Icons.logout),
+                  onPressed: _signOut,
+                  tooltip: 'Sign Out',
                 ),
+              ],
             ],
           ),
-          loading: () => const Center(
-            child: CircularProgressIndicator(),
+          body: RefreshIndicator(
+            onRefresh: _loadData,
+            child: CustomScrollView(
+              slivers: [
+                SliverToBoxAdapter(
+                  child: ProfileHeader(
+                    key: ValueKey('profile-${profile.id}'),
+                    userId: profile.id,
+                    displayName: profile.username,
+                    bio: profile.bio,
+                    avatarUrl: profile.avatarUrl,
+                    productCount: userProductsAsync.valueOrNull?.length ?? 0,
+                    followerCount: 0,
+                    followingCount: 0,
+                    isCurrentUser: isCurrentUser,
+                    showBackButton: !isCurrentUser,
+                  ),
+                ),
+                userProductsAsync.when(
+                  data: (products) => products.isEmpty
+                      ? const SliverFillRemaining(
+                          child: Center(child: Text('No products found')),
+                        )
+                      : SliverPadding(
+                          padding: const EdgeInsets.all(16.0),
+                          sliver: SliverGrid(
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 16,
+                              childAspectRatio: 0.8,
+                            ),
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                                final product = products[index];
+                                return GestureDetector(
+                                  onLongPress: isCurrentUser 
+                                      ? () => _showDeleteConfirmation(context, product.id)
+                                      : null,
+                                  child: ProductCard(
+                                    product: product,
+                                    onTap: () {
+                                      // Navigate to product details
+                                      context.go('/product/${product.id}');
+                                    },
+                                  ),
+                                );
+                              },
+                              childCount: products.length,
+                            ),
+                          ),
+                        ),
+                  loading: () => const SliverFillRemaining(
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                  error: (error, _) => SliverFillRemaining(
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text('Failed to load products'),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: () => _loadUserProducts(profileUserId, forceRefresh: true),
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-          error: (error, stackTrace) => Center(
-            child: Text('Failed to load products: $error'),
-          ),
-        ),
+          floatingActionButton: isCurrentUser
+              ? FloatingActionButton(
+                  onPressed: () => _navigateToEditProfile(context),
+                  child: const Icon(Icons.add),
+                )
+              : null,
+        );
+      },
+      loading: () => const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
       ),
-      floatingActionButton: isCurrentUser ? FloatingActionButton(
-        onPressed: () async {
-          // Navigate to edit profile and reload profile after update
-          final updated = await Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => EditProfileScreen()),
-          );
-          if (updated == true) {
-          // Invalidate the profile provider so the new avatar is fetched from DB
-          ref.invalidate(currentUserProfileProvider);
-        }  
-        },
-        child: const Icon(Icons.edit),
-      ) : null,
+      error: (error, stackTrace) {
+        debugPrint('Error loading profile: $error');
+        return Scaffold(
+          appBar: AppBar(),
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('Failed to load profile'),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _loadData,
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

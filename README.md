@@ -75,13 +75,25 @@ A modern vertical-scroll marketplace app built with Flutter and Supabase. RIVO e
 * 🔒 Data scoped to current user
 * 👤 Includes `owner_id` from Supabase Auth
 
-### 👤 User Profile
+### 👤 User Profile Management
 
-* 🧾 See user’s uploaded items
-* 🔁 Pull-to-refresh supported
-* 🧭 Navigation to Upload screen
+* 🧾 View and edit user profile information
+* 🖼️ Upload and update profile pictures
+* 🔄 Automatic profile creation for new users
+* 🔒 Secure profile updates with Row-Level Security (RLS)
+* 🧭 Navigation to edit profile screen
 * 📧 Show user email from auth
+* 🧾 See user's uploaded items
+* 🔁 Pull-to-refresh supported
 * 🗑️ Product deletion with confirmation
+
+### 🔄 Automatic Profile Creation
+
+* ✨ New users automatically get a default profile
+* 🔄 Handles username conflicts by appending numbers
+* 🔒 Secure RPC function for profile creation
+* 📊 Default username format: `user_<user-id-prefix>`
+* ⚡ Optimistic UI updates during profile operations
 
 ### 🧩 UI/UX & Design
 
