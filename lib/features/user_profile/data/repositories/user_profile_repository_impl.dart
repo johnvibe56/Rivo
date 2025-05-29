@@ -68,6 +68,7 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
       Logger.d('Getting current user profile');
       final profile = await remoteDataSource.getCurrentUserProfile();
       Logger.d('Successfully retrieved current user profile');
+  
       return profile;
     } catch (e, stackTrace) {
       Logger.e('Error getting current user profile: $e', stackTrace);
@@ -81,37 +82,37 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
     String? bio,
     File? imageFile,
   }) async {
+    Logger.d('[updateProfile] Starting update for username: $username');
     try {
-      Logger.d('Updating profile with username: $username');
       String? imageUrl;
-      
       if (imageFile != null) {
+        Logger.d('[updateProfile] Uploading profile image...');
         imageUrl = await uploadProfileImage(imageFile);
+        Logger.d('[updateProfile] Image uploaded.');
       }
-      
+      Logger.d('[updateProfile] Calling remoteDataSource.updateProfile...');
       await remoteDataSource.updateProfile(
         username: username,
         bio: bio,
         avatarUrl: imageUrl,
       );
-      
-      Logger.d('Successfully updated profile');
+      Logger.d('[updateProfile] Profile updated successfully.');
     } catch (e, stackTrace) {
-      Logger.e('Error updating profile: $e', stackTrace);
-      throw ServerFailure('Failed to update profile: ${e.toString()}');
+      Logger.e('[updateProfile] Error: $e', stackTrace);
+      rethrow;
     }
   }
 
   @override
   Future<String> uploadProfileImage(File imageFile) async {
+    Logger.d('[uploadProfileImage] Starting upload for file: ${imageFile.path}');
     try {
-      Logger.d('Uploading profile image');
       final imageUrl = await remoteDataSource.uploadProfileImage(imageFile);
-      Logger.d('Successfully uploaded profile image');
+      Logger.d('[uploadProfileImage] Successfully uploaded profile image.');
       return imageUrl;
     } catch (e, stackTrace) {
-      Logger.e('Error uploading profile image: $e', stackTrace);
-      throw ServerFailure('Failed to upload profile image: ${e.toString()}');
+      Logger.e('[uploadProfileImage] Error: $e', stackTrace);
+      rethrow;
     }
   }
 }

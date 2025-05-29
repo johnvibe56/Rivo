@@ -1,128 +1,111 @@
 import 'package:flutter/foundation.dart';
 import 'package:rivo/core/error/exceptions.dart';
-import 'package:rivo/core/network/network_info.dart';
 import 'package:rivo/features/products/domain/models/product_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProductRemoteDataSource {
   final SupabaseClient _supabaseClient;
-  final NetworkInfo _networkInfo;
-  static const String _tag = 'ProductRemoteDataSource';
+  final String _table = 'products';
+  final String _tag = 'ProductRemoteDataSource';
 
-  ProductRemoteDataSource({required NetworkInfo networkInfo})
-      : _networkInfo = networkInfo,
-        _supabaseClient = Supabase.instance.client;
+  ProductRemoteDataSource() : _supabaseClient = Supabase.instance.client;
 
-  static const String _table = 'products';
-
-  Future<List<Map<String, dynamic>>> getProducts({int page = 1, int limit = 10}) async {
+  Future<List<Product>> getProducts({int page = 1, int limit = 10}) async {
     try {
-      debugPrint('[$_tag] Fetching products from Supabase (page: $page, limit: $limit)...');
+      debugPrint('[$_tag] Fetching products (page: $page, limit: $limit)');
       
-      final stopwatch = Stopwatch()..start();
-      
-      // Calculate range for pagination
-      final from = (page - 1) * limit;
-      final to = from + limit - 1;
-      
-      final response = await _supabaseClient
-          .from(_table)
-          .select('*')
-          .order('created_at', ascending: false)
-          .range(from, to);
-          
-      stopwatch.stop();
-      debugPrint('[$_tag] Supabase query took ${stopwatch.elapsedMilliseconds}ms');
-      
-      final products = List<Map<String, dynamic>>.from(response);
-      debugPrint('[$_tag] Successfully fetched ${products.length} products for page $page');
-      
-      if (products.isNotEmpty && page == 1) {
-        // Only log first page products to avoid too much output
-        for (var i = 0; i < (products.length > 3 ? 3 : products.length); i++) {
-          final p = products[i];
-          debugPrint('[$_tag] Product ${i + 1} - ID: ${p['id']}, Title: ${p['title']}');
-        }
-      } else if (products.isEmpty) {
-        debugPrint('[$_tag] No more products found in the database');
+      // First, try to get products with user_profiles join
+      try {
+        final response = await _supabaseClient
+            .from(_table)
+            .select('*, user_profiles!left(*)')
+            .order('created_at', ascending: false)
+            .range((page - 1) * limit, page * limit - 1);
+
+        debugPrint('✅ [$_tag] Successfully fetched ${response.length} products with user profiles');
+        return response.map((json) => Product.fromJson(json)).toList();
+      } on PostgrestException catch (e) {
+        debugPrint('⚠️ [$_tag] Could not fetch with user_profiles join, trying without: ${e.message}');
+        
+        // If join fails, try without the join
+        final response = await _supabaseClient
+            .from(_table)
+            .select('*')
+            .order('created_at', ascending: false)
+            .range((page - 1) * limit, page * limit - 1);
+
+        debugPrint('✅ [$_tag] Successfully fetched ${response.length} products without user profiles');
+        return response.map((json) => Product.fromJson(json)).toList();
       }
-      
-      return products;
     } on PostgrestException catch (e) {
-      debugPrint('❌ [$_tag] Supabase error: ${e.message}');
-      debugPrint('❌ [$_tag] Stack trace: ${StackTrace.current}');
+      debugPrint('❌ [$_tag] Failed to fetch products: ${e.message}');
       throw ServerException(e.message, StackTrace.current);
     } catch (e, stackTrace) {
-      debugPrint('❌ [$_tag] Failed to fetch products: $e');
-      debugPrint('❌ [$_tag] Stack trace: $stackTrace');
-      throw ServerException('Failed to load products', stackTrace);
+      debugPrint('❌ [$_tag] Unexpected error fetching products: $e');
+      throw ServerException('Failed to fetch products', stackTrace);
     }
   }
 
   Future<Map<String, dynamic>> getProductById(String id) async {
     try {
       debugPrint('[$_tag] Fetching product by ID: $id');
-      final response = await _supabaseClient
-          .from(_table)
-          .select()
-          .eq('id', id)
-          .maybeSingle();
       
-      if (response == null) {
-        debugPrint('❌ [$_tag] Product not found with ID: $id');
-        throw NotFoundException('Product not found', StackTrace.current);
+      // First try with user_profiles join
+      try {
+        final response = await _supabaseClient
+            .from(_table)
+            .select('*, user_profiles!left(*)')
+            .eq('id', id)
+            .single();
+
+        debugPrint('✅ [$_tag] Successfully fetched product with user profile: $id');
+        return response;
+      } on PostgrestException catch (e) {
+        debugPrint('⚠️ [$_tag] Could not fetch with user_profiles join, trying without: ${e.message}');
+        
+        // If join fails, try without it
+        final response = await _supabaseClient
+            .from(_table)
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        debugPrint('✅ [$_tag] Successfully fetched product without user profile: $id');
+        return response;
       }
-      
-      debugPrint('✅ [$_tag] Successfully fetched product: $id');
-      return response;
     } on PostgrestException catch (e) {
-      debugPrint('❌ [$_tag] Database error fetching product: ${e.message}');
-      if (e.code == 'PGRST116' || e.message.contains('No rows returned')) {
-        throw NotFoundException('Product not found', StackTrace.current);
-      }
-      rethrow;
-    } catch (e) {
-      debugPrint('❌ [$_tag] Error fetching product: $e');
-      rethrow;
+      debugPrint('❌ [$_tag] Failed to fetch product: ${e.message}');
+      throw ServerException(e.message, StackTrace.current);
+    } catch (e, stackTrace) {
+      debugPrint('❌ [$_tag] Unexpected error fetching product: $e');
+      throw ServerException('Failed to fetch product', stackTrace);
     }
   }
 
   Future<Map<String, dynamic>> createProduct(Product product) async {
     try {
-      debugPrint('[$_tag] Creating product: ${product.title}');
-      
-      // Get current user ID
-      final currentUser = _supabaseClient.auth.currentUser;
-      if (currentUser == null) {
-        debugPrint('❌ [$_tag] No authenticated user found');
-        debugPrint('❌ [$_tag] Stack trace: ${StackTrace.current}');
-        throw ServerException('User not authenticated', StackTrace.current);
-      }
-      
-      final productData = product.toJson()..['owner_id'] = currentUser.id;
+      debugPrint('[$_tag] Creating product: ${product.id}');
       
       final response = await _supabaseClient
           .from(_table)
-          .insert(productData)
+          .insert(product.toJson())
           .select()
           .single();
-          
-      debugPrint('✅ [$_tag] Successfully created product with ID: ${response['id']}');
+
+      debugPrint('✅ [$_tag] Successfully created product: ${product.id}');
       return response;
     } on PostgrestException catch (e) {
       debugPrint('❌ [$_tag] Failed to create product: ${e.message}');
-      debugPrint('❌ [$_tag] Stack trace: ${StackTrace.current}');
       throw ServerException(e.message, StackTrace.current);
     } catch (e, stackTrace) {
       debugPrint('❌ [$_tag] Unexpected error creating product: $e');
-      debugPrint('❌ [$_tag] Stack trace: $stackTrace');
       throw ServerException('Failed to create product', stackTrace);
     }
   }
 
   Future<Map<String, dynamic>> updateProduct(Product product) async {
     try {
-      debugPrint('[$_tag] Updating product ID: ${product.id}');
+      debugPrint('[$_tag] Updating product: ${product.id}');
       
       final response = await _supabaseClient
           .from(_table)
@@ -130,173 +113,57 @@ class ProductRemoteDataSource {
           .eq('id', product.id)
           .select()
           .single();
-      
-      debugPrint('✅ [$_tag] Successfully updated product ID: ${product.id}');
+
+      debugPrint('✅ [$_tag] Successfully updated product: ${product.id}');
       return response;
     } on PostgrestException catch (e) {
       debugPrint('❌ [$_tag] Failed to update product: ${e.message}');
-      debugPrint('❌ [$_tag] Stack trace: ${StackTrace.current}');
       throw ServerException(e.message, StackTrace.current);
     } catch (e, stackTrace) {
       debugPrint('❌ [$_tag] Unexpected error updating product: $e');
-      debugPrint('❌ [$_tag] Stack trace: $stackTrace');
       throw ServerException('Failed to update product', stackTrace);
     }
   }
 
   Future<void> deleteProduct(String id) async {
-    debugPrint('🚀 [ProductRemoteDataSource] Starting product deletion for ID: $id');
-    final operationStartTime = DateTime.now();
-    
     try {
-      // 1. Check network connection
-      debugPrint('🔌 [1/6] Checking network connection...');
-      if (!await _networkInfo.isConnected) {
-        const error = 'No internet connection';
-        debugPrint('❌ [ProductRemoteDataSource] $error');
-        throw ServerException(error, StackTrace.current);
-      }
-      debugPrint('✅ [1/6] Network connection verified');
-
-      // 2. Check if the product exists
-      debugPrint('🔍 [2/6] Fetching product details for ID: $id');
-      final productFetchStartTime = DateTime.now();
-      final productResponse = await _supabaseClient
+      debugPrint('[$_tag] Deleting product: $id');
+      
+      await _supabaseClient
           .from(_table)
-          .select('id, image_url, owner_id, title')
-          .eq('id', id)
-          .maybeSingle();
-          
-      final fetchDuration = DateTime.now().difference(productFetchStartTime);
-      debugPrint('📥 [2/6] Product check completed in ${fetchDuration.inMilliseconds}ms');
-      
-      if (productResponse == null) {
-        final message = 'Product with ID $id not found, considering delete successful';
-        debugPrint('ℹ️ [ProductRemoteDataSource] $message');
-        return;
-      }
+          .delete()
+          .eq('id', id);
 
-      // Log product details for debugging
-      final productTitle = productResponse['title'] ?? 'Untitled';
-      debugPrint('📋 [ProductRemoteDataSource] Deleting product: $productTitle (ID: $id)');
-
-      // 3. Verify authentication
-      debugPrint('🔑 [3/6] Verifying authentication...');
-      final userId = _supabaseClient.auth.currentUser?.id;
-      if (userId == null) {
-        const error = 'User not authenticated';
-        debugPrint('❌ [ProductRemoteDataSource] $error');
-        throw ServerException(error, StackTrace.current);
-      }
-      debugPrint('✅ [3/6] User authenticated: $userId');
-
-      // 4. Verify ownership
-      debugPrint('🔒 [4/6] Verifying product ownership...');
-      final ownerId = productResponse['owner_id'] as String?;
-      if (ownerId != userId) {
-        final error = 'User $userId is not the owner of product $id (owner: $ownerId)';
-        debugPrint('❌ [ProductRemoteDataSource] $error');
-        throw ServerException('You do not have permission to delete this product', StackTrace.current);
-      }
-      debugPrint('✅ [4/6] Ownership verified');
-
-      // 5. Delete the product from the database
-      debugPrint('🗑️ [5/6] Starting database deletion for product: $id');
-      final deleteStartTime = DateTime.now();
-      
-      try {
-        // Execute the delete operation
-        await _supabaseClient
-            .from(_table)
-            .delete()
-            .eq('id', id);
-            
-        final deleteDuration = DateTime.now().difference(deleteStartTime);
-        debugPrint('✅ [5/6] Successfully deleted product from database in ${deleteDuration.inMilliseconds}ms');
-      } on PostgrestException catch (e) {
-        debugPrint('❌ [ProductRemoteDataSource] Database error during deletion: ${e.message}');
-        debugPrint('❌ [ProductRemoteDataSource] Details: ${e.details}');
-        debugPrint('❌ [ProductRemoteDataSource] Hint: ${e.hint}');
-        debugPrint('❌ [ProductRemoteDataSource] Code: ${e.code}');
-        throw ServerException('Failed to delete product from database: ${e.message}', StackTrace.current);
-      } catch (e, stackTrace) {
-        debugPrint('❌ [ProductRemoteDataSource] Unexpected error during product deletion: $e');
-        debugPrint('❌ [ProductRemoteDataSource] Stack trace: $stackTrace');
-        throw ServerException('An unexpected error occurred while deleting the product', stackTrace);
-      }
-      
-      // 6. Delete the associated image if it exists
-      debugPrint('🖼️ [6/6] Checking for associated images to delete');
-      final imageUrl = productResponse['image_url'] as String?;
-      if (imageUrl != null && imageUrl.isNotEmpty) {
-        try {
-          debugPrint('   📂 Attempting to delete image: $imageUrl');
-          final imageDeletionStartTime = DateTime.now();
-          
-          // Extract the file path from the URL
-          final uri = Uri.parse(imageUrl);
-          final pathSegments = uri.pathSegments;
-          
-          // The first segment is the bucket name, the rest is the file path
-          if (pathSegments.length > 1) {
-            final bucket = pathSegments[0];
-            final filePath = pathSegments.sublist(1).join('/');
-            
-            debugPrint('   📁 Deleting file from bucket: $bucket, path: $filePath');
-            try {
-              await _supabaseClient.storage.from(bucket).remove([filePath]);
-              final imageDeleteDuration = DateTime.now().difference(imageDeletionStartTime);
-              debugPrint('   ✅ Successfully deleted image in ${imageDeleteDuration.inMilliseconds}ms');
-            } catch (e) {
-              debugPrint('⚠️ [ProductRemoteDataSource] Failed to delete image: $e');
-            }
-          } else {
-            debugPrint('⚠️ [ProductRemoteDataSource] Could not parse image URL for deletion: $imageUrl');
-          }
-        } catch (e) {
-          debugPrint('⚠️ [ProductRemoteDataSource] Failed to delete image: $e');
-          // Don't rethrow - we still want to complete the product deletion even if image deletion fails
-        }
-      } else {
-        debugPrint('ℹ️ [ProductRemoteDataSource] No image to delete for product: $id');
-      }
-      
-      final endTime = DateTime.now();
-      final duration = endTime.difference(operationStartTime);
-      debugPrint('⏱️ [ProductRemoteDataSource] Product deletion completed in ${duration.inMilliseconds}ms');
+      debugPrint('✅ [$_tag] Successfully deleted product: $id');
     } on PostgrestException catch (e) {
-      debugPrint('❌ [ProductRemoteDataSource] Database error: ${e.message}');
-      debugPrint('❌ [ProductRemoteDataSource] Error details: ${e.details}');
-      debugPrint('❌ [ProductRemoteDataSource] Error hint: ${e.hint}');
-      debugPrint('❌ [ProductRemoteDataSource] Error code: ${e.code}');
-      rethrow;
+      debugPrint('❌ [$_tag] Failed to delete product: ${e.message}');
+      throw ServerException(e.message, StackTrace.current);
     } catch (e, stackTrace) {
-      debugPrint('❌ [ProductRemoteDataSource] Unexpected error: $e');
-      debugPrint('❌ [ProductRemoteDataSource] Stack trace: $stackTrace');
-      rethrow;
+      debugPrint('❌ [$_tag] Unexpected error deleting product: $e');
+      throw ServerException('Failed to delete product', stackTrace);
     }
   }
 
-  Future<List<Map<String, dynamic>>> getProductsByUser(String userId) async {
+  Future<List<Product>> getProductsByUser(String userId) async {
     try {
       debugPrint('[$_tag] Fetching products for user ID: $userId');
       
       final response = await _supabaseClient
           .from(_table)
-          .select()
-          .eq('owner_id', userId)
+          .select('*, user_profiles!inner(*)')
+          .eq('user_id', userId)
           .order('created_at', ascending: false);
-      
-      debugPrint('✅ [$_tag] Found ${response.length} products for user ID: $userId');
-      return response;
+
+      debugPrint('✅ [$_tag] Successfully fetched ${response.length} products for user ID: $userId');
+      return response.map((json) => Product.fromJson(json)).toList();
     } on PostgrestException catch (e) {
       debugPrint('❌ [$_tag] Failed to fetch user products: ${e.message}');
       debugPrint('❌ [$_tag] Stack trace: ${StackTrace.current}');
-      throw ServerException(e.message);
+      throw ServerException(e.message, StackTrace.current);
     } catch (e, stackTrace) {
       debugPrint('❌ [$_tag] Unexpected error fetching user products: $e');
       debugPrint('❌ [$_tag] Stack trace: $stackTrace');
-      throw const ServerException('Failed to fetch user products');
+      throw ServerException('Failed to fetch user products', stackTrace);
     }
   }
 
@@ -315,11 +182,11 @@ class ProductRemoteDataSource {
     } on PostgrestException catch (e) {
       debugPrint('❌ [$_tag] Failed to toggle like: ${e.message}');
       debugPrint('❌ [$_tag] Stack trace: ${StackTrace.current}');
-      throw ServerException(e.message);
+      throw ServerException(e.message, StackTrace.current);
     } catch (e, stackTrace) {
       debugPrint('❌ [$_tag] Unexpected error toggling like: $e');
       debugPrint('❌ [$_tag] Stack trace: $stackTrace');
-      throw const ServerException('Failed to toggle like');
+      throw ServerException('Failed to toggle like', stackTrace);
     }
   }
 
@@ -338,11 +205,11 @@ class ProductRemoteDataSource {
     } on PostgrestException catch (e) {
       debugPrint('❌ [$_tag] Failed to toggle save: ${e.message}');
       debugPrint('❌ [$_tag] Stack trace: ${StackTrace.current}');
-      throw ServerException(e.message);
+      throw ServerException(e.message, StackTrace.current);
     } catch (e, stackTrace) {
       debugPrint('❌ [$_tag] Unexpected error toggling save: $e');
       debugPrint('❌ [$_tag] Stack trace: $stackTrace');
-      throw const ServerException('Failed to toggle save');
+      throw ServerException('Failed to toggle save', stackTrace);
     }
   }
 }

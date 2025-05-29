@@ -3,6 +3,7 @@ import 'package:rivo/core/utils/logger.dart';
 import 'package:rivo/features/products/domain/models/product_model.dart';
 import 'package:rivo/features/user_profile/data/datasources/user_profile_remote_data_source_impl.dart';
 import 'package:rivo/features/user_profile/data/repositories/user_profile_repository_impl.dart';
+import 'package:rivo/features/user_profile/domain/models/profile_model.dart';
 import 'package:rivo/features/user_profile/domain/repositories/user_profile_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -69,4 +70,10 @@ class UserProductsNotifier extends StateNotifier<AsyncValue<List<Product>>> {
 final userProductsProvider = StateNotifierProvider<UserProductsNotifier, AsyncValue<List<Product>>>((ref) {
   final repository = ref.watch(userProfileRepositoryProvider);
   return UserProductsNotifier(repository);
+});
+
+/// Provider to fetch the current user's profile from the DB (including avatarUrl)
+final currentUserProfileProvider = FutureProvider<Profile>((ref) async {
+  final repository = ref.watch(userProfileRepositoryProvider);
+  return repository.getCurrentUserProfile();
 });

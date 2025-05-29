@@ -28,33 +28,23 @@ class ProductRepositoryImpl implements ProductRepository {
       if (page == 1) {
         debugPrint('[$_tag] Raw products data from remote source (first 2):');
         for (var product in products.take(2)) {
-          debugPrint('[$_tag] - ${product['id']}: ${product['title']}');
+          debugPrint('[$_tag] - ${product.id}: ${product.title}');
         }
       }
       
       try {
-        // Convert each product JSON to Product model
-        final productList = products.map((e) {
-          try {
-            return Product.fromJson(e);
-          } catch (e, stackTrace) {
-            debugPrint('❌ [$_tag] Failed to parse product: $e');
-            debugPrint('❌ [$_tag] Stack trace: $stackTrace');
-            rethrow;
-          }
-        }).toList();
-        
-        debugPrint('✅ [$_tag] Successfully parsed ${productList.length} products for page $page');
-        return Right(productList);
+        // Products are already converted to Product model in the data source
+        debugPrint('✅ [$_tag] Successfully fetched ${products.length} products for page $page');
+        return Right(products);
       } catch (e, stackTrace) {
-        debugPrint('❌ [$_tag] Failed to parse products: $e');
+        debugPrint('❌ [$_tag] Failed to process products: $e');
         debugPrint('❌ [$_tag] Stack trace: $stackTrace');
         return const Left(ServerFailure('Failed to parse products data'));
       }
     } on ServerException catch (e, stackTrace) {
       debugPrint('❌ [$_tag] ServerException in getProducts: ${e.message}');
       debugPrint('❌ [$_tag] Stack trace: $stackTrace');
-      return Left(ServerFailure(e.message));
+      return Left(ServerFailure(e.message, stackTrace));
     } catch (e, stackTrace) {
       debugPrint('❌ [$_tag] Unexpected error in getProducts: $e');
       debugPrint('❌ [$_tag] Stack trace: $stackTrace');
@@ -66,20 +56,20 @@ class ProductRepositoryImpl implements ProductRepository {
   Future<Either<Failure, Product?>> getProductById(String id) async {
     try {
       debugPrint('[$_tag] Fetching product by ID: $id');
-      final product = await remoteDataSource.getProductById(id);
-      debugPrint('✅ [$_tag] Successfully fetched product: ${product['id']}');
-      return Right(Product.fromJson(product));
+      final productData = await remoteDataSource.getProductById(id);
+      final product = Product.fromJson(productData);
+      debugPrint('✅ [$_tag] Successfully fetched product: ${product.id}');
+      return Right(product);
     } on ServerException catch (e, stackTrace) {
       debugPrint('❌ [$_tag] ServerException in getProductById: ${e.message}');
       debugPrint('❌ [$_tag] Stack trace: $stackTrace');
       
       // Handle case when product is not found
-      if (e.message.contains('no rows returned') || e.message.contains('not found')) {
-        debugPrint('ℹ️ [$_tag] Product not found with ID: $id');
+      if (e.message.contains('not found') || e.message.contains('no rows returned')) {
+        debugPrint('ℹ️ [$_tag] Product not found: $id');
         return const Right(null);
       }
-      
-      return Left(ServerFailure(e.message));
+      return Left(ServerFailure(e.message, stackTrace));
     } on PostgrestException catch (e) {
       // Handle PostgREST specific errors
       if (e.code == 'PGRST116' || e.message.contains('no rows returned')) {
@@ -98,14 +88,15 @@ class ProductRepositoryImpl implements ProductRepository {
   @override
   Future<Either<Failure, Product>> createProduct(Product product) async {
     try {
-      debugPrint('[$_tag] Creating new product: ${product.title}');
-      final createdProduct = await remoteDataSource.createProduct(product);
-      debugPrint('✅ [$_tag] Successfully created product: ${createdProduct['id']}');
-      return Right(Product.fromJson(createdProduct));
+      debugPrint('[$_tag] Creating product: ${product.id}');
+      final createdProductData = await remoteDataSource.createProduct(product);
+      final createdProduct = Product.fromJson(createdProductData);
+      debugPrint('✅ [$_tag] Successfully created product: ${createdProduct.id}');
+      return Right(createdProduct);
     } on ServerException catch (e, stackTrace) {
       debugPrint('❌ [$_tag] ServerException in createProduct: ${e.message}');
       debugPrint('❌ [$_tag] Stack trace: $stackTrace');
-      return Left(ServerFailure(e.message));
+      return Left(ServerFailure(e.message, stackTrace));
     } catch (e, stackTrace) {
       debugPrint('❌ [$_tag] Unexpected error in createProduct: $e');
       debugPrint('❌ [$_tag] Stack trace: $stackTrace');
@@ -116,14 +107,15 @@ class ProductRepositoryImpl implements ProductRepository {
   @override
   Future<Either<Failure, Product>> updateProduct(Product product) async {
     try {
-      debugPrint('[$_tag] Updating product ID: ${product.id}');
-      final updatedProduct = await remoteDataSource.updateProduct(product);
+      debugPrint('[$_tag] Updating product: ${product.id}');
+      final updatedProductData = await remoteDataSource.updateProduct(product);
+      final updatedProduct = Product.fromJson(updatedProductData);
       debugPrint('✅ [$_tag] Successfully updated product: ${product.id}');
-      return Right(Product.fromJson(updatedProduct));
+      return Right(updatedProduct);
     } on ServerException catch (e, stackTrace) {
       debugPrint('❌ [$_tag] ServerException in updateProduct: ${e.message}');
       debugPrint('❌ [$_tag] Stack trace: $stackTrace');
-      return Left(ServerFailure(e.message));
+      return Left(ServerFailure(e.message, stackTrace));
     } catch (e, stackTrace) {
       debugPrint('❌ [$_tag] Unexpected error in updateProduct: $e');
       debugPrint('❌ [$_tag] Stack trace: $stackTrace');
@@ -146,40 +138,48 @@ class ProductRepositoryImpl implements ProductRepository {
       }
       debugPrint('✅ [ProductRepository] Product ID is valid');
 
-      // 2. Remove product from all wishlists first
-      debugPrint('🔄 [ProductRepository] Removing product from all wishlists');
-      try {
-        final wishlistResult = await removeProductFromAllWishlists(id);
-        wishlistResult.fold(
-          (failure) => debugPrint('⚠️ [ProductRepository] Warning: ${failure.message}'),
-          (_) => debugPrint('✅ [ProductRepository] Successfully removed product from all wishlists'),
-        );
-      } catch (e, stackTrace) {
-        debugPrint('⚠️ [ProductRepository] Non-critical error removing from wishlists: $e');
-        debugPrint('Stack trace: $stackTrace');
-        // Continue with deletion even if wishlist removal fails
-      }
+      // 2. Check if product exists
+      debugPrint('🔍 [ProductRepository] Checking if product exists');
+      final productResult = await getProductById(id);
+      
+      return productResult.fold(
+        (failure) {
+          debugPrint('❌ [ProductRepository] Failed to verify product existence: $failure');
+          return Left(failure);
+        },
+        (product) async {
+          if (product == null) {
+            debugPrint('❌ [ProductRepository] Product not found with ID: $id');
+            return const Left(ServerFailure('Product not found'));
+          }
+          
+          // 3. Remove product from all wishlists first
+          debugPrint('🔄 [ProductRepository] Removing product from all wishlists');
+          try {
+            final wishlistResult = await removeProductFromAllWishlists(id);
+            wishlistResult.fold(
+              (failure) => debugPrint('⚠️ [ProductRepository] Warning: ${failure.message}'),
+              (_) => debugPrint('✅ [ProductRepository] Successfully removed product from all wishlists'),
+            );
+          } catch (e, stackTrace) {
+            debugPrint('⚠️ [ProductRepository] Non-critical error removing from wishlists: $e');
+            debugPrint('Stack trace: $stackTrace');
+            // Continue with deletion even if wishlist removal fails
+          }
 
-      // 3. Call remote data source to delete the product
-      debugPrint('📡 [ProductRepository] Proceeding with product deletion');
-      try {
-        await remoteDataSource.deleteProduct(id);
-        final duration = stopwatch.elapsedMilliseconds;
-        debugPrint('✅ [ProductRepository] Successfully deleted product: $id in ${duration}ms');
-        return const Right(null);
-      } on ServerException catch (e) {
-        debugPrint('❌ [ProductRepository] Failed to delete product: ${e.message}');
-        return Left(ServerFailure(e.message));
-      } catch (e, stackTrace) {
-        debugPrint('❌ [ProductRepository] Unexpected error in remote data source: $e');
-        debugPrint('Stack trace: $stackTrace');
-        return Left(ServerFailure('Failed to delete product: $e'));
-      }
+          // 4. Delete the product
+          debugPrint('🗑️ [ProductRepository] Deleting product ID: $id');
+          await remoteDataSource.deleteProduct(id);
+          debugPrint('✅ [ProductRepository] Successfully deleted product ID: $id');
+          
+          return const Right(null);
+        },
+      );
     } on ServerException catch (e, stackTrace) {
       final error = 'Server error: ${e.message}';
-      debugPrint('❌ [ProductRepository] $error');
-      debugPrint('❌ [ProductRepository] Stack trace: $stackTrace');
-      return Left(ServerFailure(e.message));
+      debugPrint('🌐 [ProductRepository] $error');
+      debugPrint('🌐 [ProductRepository] Stack trace: $stackTrace');
+      return Left(ServerFailure(e.message, stackTrace));
     } on NetworkException catch (e, stackTrace) {
       final error = 'Network error: ${e.message}';
       debugPrint('🌐 [ProductRepository] $error');
@@ -201,15 +201,15 @@ class ProductRepositoryImpl implements ProductRepository {
     try {
       debugPrint('[$_tag] Fetching products for user ID: $userId');
       final products = await remoteDataSource.getProductsByUser(userId);
-      final productList = products.map((e) => Product.fromJson(e)).toList();
-      debugPrint('[$_tag] Found ${productList.length} products for user: $userId');
-      return Right(productList);
-    } on ServerException catch (e, _) {
-      debugPrint('[$_tag] ServerException in getProductsByUser: ${e.message}');
-      return Left(ServerFailure(e.message));
+      debugPrint('✅ [$_tag] Found ${products.length} products for user: $userId');
+      return Right(products);
+    } on ServerException catch (e, stackTrace) {
+      debugPrint('❌ [$_tag] ServerException in getProductsByUser: ${e.message}');
+      debugPrint('❌ [$_tag] Stack trace: $stackTrace');
+      return Left(ServerFailure(e.message, stackTrace));
     } catch (e, stackTrace) {
-      debugPrint('[$_tag] Unexpected error in getProductsByUser: $e');
-      debugPrint('[$_tag] Stack trace: $stackTrace');
+      debugPrint('❌ [$_tag] Unexpected error in getProductsByUser: $e');
+      debugPrint('❌ [$_tag] Stack trace: $stackTrace');
       return Left(ServerFailure('Failed to load user products: ${e.toString()}'));
     }
   }

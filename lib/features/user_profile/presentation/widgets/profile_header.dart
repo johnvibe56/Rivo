@@ -41,31 +41,37 @@ class ProfileHeader extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // User Avatar
-              CircleAvatar(
-                radius: 40,
-                backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                child: avatarUrl != null
-                    ? ClipOval(
-                        child: Image.network(
-                          avatarUrl!,
-                          width: 80,
-                          height: 80,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Icon(
-                              Icons.person,
-                              size: 40,
-                              color: theme.colorScheme.onSurfaceVariant,
-                            );
-                          },
-                        ),
-                      )
-                    : Icon(
-                        Icons.person,
-                        size: 40,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-              ),
+               Column(
+                 mainAxisSize: MainAxisSize.min,
+                 children: [
+                   CircleAvatar(
+                     radius: 40,
+                     backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                     child: avatarUrl != null
+                         ? ClipOval(
+                             child: Image.network(
+                               avatarUrl! + '?cb=${DateTime.now().millisecondsSinceEpoch}',
+                               width: 80,
+                               height: 80,
+                               fit: BoxFit.cover,
+                               errorBuilder: (context, error, stackTrace) {
+                                 return Icon(
+                                   Icons.person,
+                                   size: 40,
+                                   color: theme.colorScheme.onSurfaceVariant,
+                                 );
+                               },
+                             ),
+                           )
+                         : Icon(
+                             Icons.person,
+                             size: 40,
+                             color: theme.colorScheme.onSurfaceVariant,
+                           ),
+                   ),
+
+                 ],
+               ),
               const SizedBox(width: 24),
               
               // User Stats
@@ -221,31 +227,37 @@ class CompactProfileHeader extends ConsumerWidget {
       child: Row(
         children: [
           // User Avatar
-          CircleAvatar(
-            radius: 20,
-            backgroundColor: theme.colorScheme.surfaceContainerHighest,
-            child: avatarUrl != null
-                ? ClipOval(
-                    child: Image.network(
-                      avatarUrl!,
-                      width: 40,
-                      height: 40,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Icon(
-                          Icons.person,
-                          size: 20,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        );
-                      },
-                    ),
-                  )
-                : Icon(
-                    Icons.person,
-                    size: 20,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-          ),
+           Column(
+             mainAxisSize: MainAxisSize.min,
+             children: [
+               CircleAvatar(
+                 radius: 20,
+                 backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                 child: avatarUrl != null
+                     ? ClipOval(
+                         child: Image.network(
+                           avatarUrl! + '?cb=${DateTime.now().millisecondsSinceEpoch}',
+                           width: 40,
+                           height: 40,
+                           fit: BoxFit.cover,
+                           errorBuilder: (context, error, stackTrace) {
+                             return Icon(
+                               Icons.person,
+                               size: 20,
+                               color: theme.colorScheme.onSurfaceVariant,
+                             );
+                           },
+                         ),
+                       )
+                     : Icon(
+                         Icons.person,
+                         size: 20,
+                         color: theme.colorScheme.onSurfaceVariant,
+                       ),
+               ),
+
+             ],
+           ),
           const SizedBox(width: 12),
           
           // Display Name

@@ -9,6 +9,7 @@ import 'package:rivo/features/products/presentation/providers/delete_product_pro
 import 'package:rivo/features/products/presentation/widgets/product_card.dart';
 import 'package:rivo/features/user_profile/presentation/providers/user_profile_providers.dart';
 import 'package:rivo/features/user_profile/presentation/widgets/profile_header.dart';
+import 'package:rivo/features/user_profile/presentation/screens/edit_profile_screen.dart';
 
 class UserProfileScreen extends ConsumerStatefulWidget {
   const UserProfileScreen({super.key});
@@ -212,14 +213,25 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
           data: (products) => CustomScrollView(
             slivers: [
               SliverToBoxAdapter(
-                child: ProfileHeader(
-                  userId: userId,
-                  displayName: displayName,
-                  avatarUrl: user?.userMetadata?['avatar_url'] as String?,
-                  productCount: products.length,
-                  followerCount: 0, // TODO: Implement follower count
-                  followingCount: 0, // TODO: Implement following count
-                  isCurrentUser: isCurrentUser,
+                child: Consumer(
+                  builder: (context, ref, _) {
+                    final profileAsync = ref.watch(currentUserProfileProvider);
+                    return profileAsync.when(
+                      data: (profile) => profile == null
+                          ? const Center(child: Text('Profile not found'))
+                          : ProfileHeader(
+                              userId: profile.id,
+                              displayName: profile.username,
+                              avatarUrl: profile.avatarUrl,
+                              productCount: products.length,
+                              followerCount: 0, // TODO: Implement follower count
+                              followingCount: 0, // TODO: Implement following count
+                              isCurrentUser: isCurrentUser,
+                            ),
+                      loading: () => const Center(child: CircularProgressIndicator()),
+                      error: (error, stack) => Center(child: Text('Failed to load profile: $error')),
+                    );
+                  },
                 ),
               ),
               if (products.isNotEmpty)
@@ -261,11 +273,17 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
         ),
       ),
       floatingActionButton: isCurrentUser ? FloatingActionButton(
-        onPressed: () {
-          // Navigate to add product screen
-          context.push('/add-product');
+        onPressed: () async {
+          // Navigate to edit profile and reload profile after update
+          final updated = await Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => EditProfileScreen()),
+          );
+          if (updated == true) {
+          // Invalidate the profile provider so the new avatar is fetched from DB
+          ref.invalidate(currentUserProfileProvider);
+        }  
         },
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.edit),
       ) : null,
     );
   }

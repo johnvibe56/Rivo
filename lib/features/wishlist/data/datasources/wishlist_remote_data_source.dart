@@ -41,7 +41,7 @@ class WishlistRemoteDataSource {
       }
     } catch (e, stackTrace) {
       Logger.e('Error in toggleWishlistItem: $e', stackTrace, tag: _tag);
-      throw ServerException(e.toString());
+      throw ServerException(e.toString(), stackTrace);
     }
   }
 
@@ -59,7 +59,7 @@ class WishlistRemoteDataSource {
       return isInWishlist;
     } catch (e, stackTrace) {
       Logger.e('Error in isProductInWishlist: $e', stackTrace, tag: _tag);
-      throw ServerException(e.toString());
+      throw ServerException(e.toString(), stackTrace);
     }
   }
 
@@ -76,7 +76,7 @@ class WishlistRemoteDataSource {
       return productIds;
     } catch (e, stackTrace) {
       Logger.e('Error in getWishlistedProductIds: $e', stackTrace, tag: _tag);
-      throw ServerException(e.toString());
+      throw ServerException(e.toString(), stackTrace);
     }
   }
 }

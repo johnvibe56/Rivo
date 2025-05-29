@@ -6,7 +6,9 @@ import 'package:rivo/core/utils/logger.dart';
 import 'package:rivo/features/products/domain/models/product_model.dart';
 import 'package:rivo/features/user_profile/data/datasources/user_profile_remote_data_source.dart';
 import 'package:rivo/features/user_profile/domain/models/profile_model.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show 
+    PostgrestException, 
+    SupabaseClient;
 
 class UserProfileRemoteDataSourceImpl implements UserProfileRemoteDataSource {
   final SupabaseClient _supabaseClient;
@@ -42,10 +44,10 @@ class UserProfileRemoteDataSourceImpl implements UserProfileRemoteDataSource {
       return products;
     } on PostgrestException catch (e) {
       Logger.e('Postgrest error fetching user products: ${e.message}', StackTrace.current);
-      throw ServerException(e.message);
+      throw ServerException(e.message, StackTrace.current);
     } catch (e, stackTrace) {
       Logger.e('Error fetching user products: $e', stackTrace);
-      throw ServerException(e.toString());
+      throw ServerException(e.toString(), StackTrace.current);
     }
   }
 
@@ -62,7 +64,7 @@ class UserProfileRemoteDataSourceImpl implements UserProfileRemoteDataSource {
       // First check if username is available
       final isAvailable = await isUsernameAvailable(username);
       if (!isAvailable) {
-        throw const ServerException('Username is already taken');
+        throw const ServerException('Username is already taken', StackTrace.empty);
       }
       
       final now = DateTime.now().toIso8601String();
@@ -82,11 +84,13 @@ class UserProfileRemoteDataSourceImpl implements UserProfileRemoteDataSource {
       Logger.d('Profile created successfully');
       return Profile.fromJson(response);
     } on PostgrestException catch (e, stackTrace) {
-      Logger.e(e, stackTrace);
-      throw ServerException(e.message);
+      final error = 'Database error: ${e.message}';
+      Logger.e(error, stackTrace);
+      throw ServerException(error, stackTrace);
     } on Exception catch (e, stackTrace) {
-      Logger.e(e, stackTrace);
-      throw ServerException('Failed to create profile');
+      final error = 'Failed to create profile: $e';
+      Logger.e(error, stackTrace);
+      throw ServerException(error, stackTrace);
     }
   }
 
@@ -107,11 +111,13 @@ class UserProfileRemoteDataSourceImpl implements UserProfileRemoteDataSource {
       Logger.d('Username $username available: $isAvailable');
       return isAvailable;
     } on PostgrestException catch (e, stackTrace) {
-      Logger.e(e, stackTrace);
-      throw ServerException(e.message);
+      final error = 'Database error: ${e.message}';
+      Logger.e(error, stackTrace);
+      throw ServerException(error, stackTrace);
     } on Exception catch (e, stackTrace) {
-      Logger.e(e, stackTrace);
-      throw ServerException('Failed to check username availability');
+      final error = 'Failed to check username availability: $e';
+      Logger.e(error, stackTrace);
+      throw ServerException(error, stackTrace);
     }
   }
 
@@ -122,9 +128,9 @@ class UserProfileRemoteDataSourceImpl implements UserProfileRemoteDataSource {
       final user = _supabaseClient.auth.currentUser;
       
       if (user == null) {
-        final error = 'No authenticated user found';
+        const error = 'No authenticated user found';
         Logger.e('❌ [UserProfileRemoteDataSource] $error', StackTrace.current);
-        throw ServerException(error);
+        throw ServerException(error, StackTrace.current);
       }
       
       Logger.d('👤 [UserProfileRemoteDataSource] Current auth user ID: ${user.id}');
@@ -139,7 +145,7 @@ class UserProfileRemoteDataSourceImpl implements UserProfileRemoteDataSource {
       if (response == null) {
         final error = 'Profile not found for user: ${user.id}. This usually means the user profile was not created during sign-up.';
         Logger.e('❌ [UserProfileRemoteDataSource] $error', StackTrace.current);
-        throw ServerException(error);
+        throw ServerException(error, StackTrace.current);
       }
       
       Logger.d('✅ [UserProfileRemoteDataSource] Raw profile data received');
@@ -154,18 +160,14 @@ class UserProfileRemoteDataSourceImpl implements UserProfileRemoteDataSource {
         return profile;
       } catch (e, stackTrace) {
         final error = 'Failed to parse profile data: $e';
-        Logger.e('❌ [UserProfileRemoteDataSource] $error', stackTrace);
-        Logger.e('   - Raw data: $response');
-        throw ServerException(error);
+        Logger.e('❌ [UserProfileRemoteDataSource] $error\n   - Raw data: $response', stackTrace);
+        throw ServerException(error, stackTrace);
       }
       
     } on PostgrestException catch (e, stackTrace) {
       final error = 'Database error: ${e.message}';
-      Logger.e('❌ [UserProfileRemoteDataSource] $error', stackTrace);
-      Logger.e('   - Details: ${e.details}');
-      Logger.e('   - Hint: ${e.hint}');
-      Logger.e('   - Code: ${e.code}');
-      throw ServerException(error);
+      Logger.e('❌ [UserProfileRemoteDataSource] $error\n   - Details: ${e.details}\n   - Hint: ${e.hint}\n   - Code: ${e.code}', stackTrace);
+      throw ServerException(error, stackTrace);
       
     } on ServerException {
       rethrow;
@@ -173,7 +175,7 @@ class UserProfileRemoteDataSourceImpl implements UserProfileRemoteDataSource {
     } catch (e, stackTrace) {
       final error = 'Unexpected error: ${e.toString()}';
       Logger.e('❌ [UserProfileRemoteDataSource] $error', stackTrace);
-      throw ServerException('Failed to get user profile');
+      throw ServerException('Failed to get user profile', StackTrace.current);
     }
   }
 
@@ -183,39 +185,39 @@ class UserProfileRemoteDataSourceImpl implements UserProfileRemoteDataSource {
     String? bio,
     String? avatarUrl,
   }) async {
+    Logger.d('[remoteDataSource.updateProfile] Called with username: $username, avatarUrl: $avatarUrl');
     try {
       final userId = _supabaseClient.auth.currentUser?.id;
       if (userId == null) {
-        throw const ServerException('User not authenticated');
+        Logger.e('[remoteDataSource.updateProfile] User not authenticated', StackTrace.current);
+        throw const ServerException('User not authenticated', StackTrace.empty);
       }
 
-      Logger.d('Updating profile for user: $userId');
-      
+      Logger.d('[remoteDataSource.updateProfile] Updating profile for user: $userId');
       final data = {
         'username': username,
         'updated_at': DateTime.now().toIso8601String(),
       };
-      
       if (bio != null) {
         data['bio'] = bio;
       }
-      
       if (avatarUrl != null) {
         data['avatar_url'] = avatarUrl;
       }
-      
+      Logger.d('[remoteDataSource.updateProfile] Data to update: $data');
       await _supabaseClient
           .from('profiles')
           .update(data)
           .eq('id', userId);
-      
-      Logger.d('Successfully updated profile');
+      Logger.d('[remoteDataSource.updateProfile] Successfully updated profile');
     } on PostgrestException catch (e, stackTrace) {
-      Logger.e(e, stackTrace);
-      throw ServerException(e.message);
+      final error = '[remoteDataSource.updateProfile] Database error: ${e.message}';
+      Logger.e(error, stackTrace);
+      throw ServerException(error, stackTrace);
     } on Exception catch (e, stackTrace) {
-      Logger.e(e, stackTrace);
-      throw ServerException('Failed to update profile');
+      final error = '[remoteDataSource.updateProfile] Failed to update profile: $e';
+      Logger.e(error, stackTrace);
+      throw ServerException(error, stackTrace);
     }
   }
 
@@ -224,38 +226,30 @@ class UserProfileRemoteDataSourceImpl implements UserProfileRemoteDataSource {
     try {
       final userId = _supabaseClient.auth.currentUser?.id;
       if (userId == null) {
-        throw const ServerException('User not authenticated');
+        throw ServerException('User not authenticated', StackTrace.current);
       }
 
-      Logger.d('Uploading profile image for user: $userId');
+      Logger.d('📤 [UserProfile] Starting profile image upload for user: $userId');
       
       // Generate a unique filename for the image
       final fileExt = imageFile.path.split('.').last;
       final fileName = '${DateTime.now().millisecondsSinceEpoch}.$fileExt';
       final filePath = 'profiles/$userId/$fileName';
       
-      // Upload the file to Supabase Storage
-      await _supabaseClient.storage
-          .from('avatars')
-          .upload(filePath, imageFile, fileOptions: const FileOptions(
-            cacheControl: '3600',
-            upsert: true,
-          ));
-      
-      // Get the public URL
-      final response = _supabaseClient
-          .storage
-          .from('avatars')
-          .getPublicUrl(filePath);
-      
-      Logger.d('Successfully uploaded profile image');
-      return response;
+      Logger.d('🔄 [UserProfile] Uploading file to path: $filePath');
+      final response = await _supabaseClient.storage.from('avatars').upload(filePath, imageFile);
+      Logger.d('[remoteDataSource.uploadProfileImage] File uploaded. Getting public URL...');
+      final publicUrl = _supabaseClient.storage.from('avatars').getPublicUrl(filePath);
+      Logger.d('[remoteDataSource.uploadProfileImage] Public URL: $publicUrl');
+      return publicUrl;
     } on PostgrestException catch (e, stackTrace) {
-      Logger.e(e, stackTrace);
-      throw ServerException(e.message);
+      final error = '[remoteDataSource.uploadProfileImage] Database error: ${e.message}';
+      Logger.e(error, stackTrace);
+      throw ServerException(error, stackTrace);
     } on Exception catch (e, stackTrace) {
-      Logger.e(e, stackTrace);
-      throw ServerException('Failed to upload profile image');
+      final error = '[remoteDataSource.uploadProfileImage] Failed to upload profile image: $e';
+      Logger.e(error, stackTrace);
+      throw ServerException(error, stackTrace);
     }
   }
 }
