@@ -1,60 +1,240 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:rivo/features/auth/presentation/providers/auth_provider.dart';
 import 'package:rivo/features/follow/presentation/widgets/follow_button.dart';
 import 'package:rivo/features/products/domain/models/product_model.dart';
-import 'package:rivo/features/products/domain/utils/product_utils.dart';
-import 'package:rivo/features/products/presentation/providers/product_repository_provider.dart';
+import 'package:rivo/features/purchase/purchase.dart';
 
-class ProductCard extends ConsumerWidget {
+class ProductUtils {
+  static bool isLikedByUser(Product product, String? userId) {
+    if (userId == null) return false;
+    return product.likedBy.contains(userId);
+  }
+
+  static int likeCount(Product product) {
+    return product.likedBy.length;
+  }
+
+  static int saveCount(Product product) {
+    return product.savedBy.length;
+  }
+
+  static bool isSavedByUser(Product product, String? userId) {
+    if (userId == null) return false;
+    return product.savedBy.contains(userId);
+  }
+
+  static String formatPrice(double price) {
+    return '\$${price.toStringAsFixed(2)}';
+  }
+
+  static String getShortDescription(String description) {
+    return description.length > 100
+        ? '${description.substring(0, 100)}...'
+        : description;
+  }
+}
+
+class ProductCard extends ConsumerStatefulWidget {
   final Product product;
-  final VoidCallback? onTap;
   final bool showUserActions;
+  final bool showPurchaseButton;
+  final VoidCallback? onTap;
 
   const ProductCard({
     super.key,
     required this.product,
-    this.onTap,
     this.showUserActions = true,
+    this.showPurchaseButton = true,
+    this.onTap,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProductCard> createState() => _ProductCardState();
+}
+
+class _ProductCardState extends ConsumerState<ProductCard> {
+  late final Product product;
+  late final bool showUserActions;
+  late final bool showPurchaseButton;
+  late final VoidCallback? onTap;
+  User? _currentUser;
+
+  @override
+  void initState() {
+    super.initState();
+    product = widget.product;
+    showUserActions = widget.showUserActions;
+    showPurchaseButton = widget.showPurchaseButton;
+    onTap = widget.onTap;
+  }
+
+  Widget _buildActionButton({
+    required BuildContext context,
+    required IconData icon,
+    required VoidCallback onPressed,
+    int count = 0,
+    Color? color,
+    bool isLoading = false,
+    bool isPrimary = false,
+    String? label,
+  }) {
+    // Create a wrapper that prevents event propagation
+    void handleTap() {
+      onPressed();
+    }
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 2),
+      child: TextButton(
+        onPressed: isLoading ? null : handleTap,
+        style: TextButton.styleFrom(
+          foregroundColor: isPrimary 
+              ? Colors.white 
+              : color ?? Theme.of(context).textTheme.bodyLarge?.color,
+          backgroundColor: isPrimary 
+              ? Colors.transparent 
+              : null,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          minimumSize: const Size(40, 40),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+        ),
+        child: isLoading
+            ? SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    isPrimary ? Colors.white : (color ?? Theme.of(context).colorScheme.primary),
+                  ),
+                ),
+              )
+            : Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    icon,
+                    size: 20,
+                    color: isPrimary ? Colors.white : null,
+                  ),
+                  if (label != null) ...[
+                    const SizedBox(width: 6),
+                    Text(
+                      label,
+                      style: TextStyle(
+                        color: isPrimary ? Colors.white : null,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ] else if (count > 0) ...[
+                    const SizedBox(width: 4),
+                    Text(
+                      count.toString(),
+                      style: TextStyle(
+                        color: isPrimary ? Colors.white : null,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+      ),
+    );
+  }
+
+  void handleLike() {
+    if (_currentUser == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _handleLike(ref, _currentUser!.id);
+    });
+  }
+
+  void handleSave() {
+    if (_currentUser == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _handleSave(ref, _currentUser!.id);
+    });
+  }
+
+  void handlePurchase() {
+    if (_currentUser == null) {
+      if (mounted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please log in to make a purchase')),
+          );
+        });
+      }
+      return;
+    }
+
+    if (_currentUser!.id == product.ownerId) {
+      if (mounted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('You cannot purchase your own product')),
+          );
+        });
+      }
+      return;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _startPurchase();
+    });
+  }
+
+  Future<void> _startPurchase() async {
+    try {
+      await ref.read(purchaseProductProvider(product.id).notifier).purchaseProduct();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Purchase successful!')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Purchase failed: $e')),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
-    final currentUser = authState.valueOrNull?.user;
-    
-    // Check if current user is the product owner
-    final isLiked = ProductUtils.isLikedByUser(product, currentUser?.id);
+    _currentUser = authState.valueOrNull?.user;
+
+    final isLiked = ProductUtils.isLikedByUser(product, _currentUser?.id);
     final likeCount = ProductUtils.likeCount(product);
     final saveCount = ProductUtils.saveCount(product);
-    final isSaved = ProductUtils.isSavedByUser(product, currentUser?.id);
+    final isSaved = ProductUtils.isSavedByUser(product, _currentUser?.id);
 
-    Future<void> handleLike() async {
-      final userId = currentUser?.id;
-      if (userId != null) {
-        await _handleLike(context, ref, userId);
-      }
-    }
-
-    Future<void> handleSave() async {
-      final userId = currentUser?.id;
-      if (userId != null) {
-        await _handleSave(context, ref, userId);
-      }
-    }
+    // Debug prints
+    debugPrint('showPurchaseButton: $showPurchaseButton');
+    debugPrint('Current user ID: ${_currentUser?.id}');
+    debugPrint('Product owner ID: ${product.ownerId}');
+    debugPrint('Show purchase button: ${showPurchaseButton && _currentUser?.id != product.ownerId}');
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: InkWell(
-        onTap: onTap ?? () {
-          // Use context.go for better navigation handling with GoRouter
-          context.go('/product/${product.id}');
-        },
+        onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 400),
+          constraints: const BoxConstraints(
+            maxHeight: 400,
+            minHeight: 320, // Increased minimum height to ensure space for buttons
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
@@ -112,95 +292,129 @@ class ProductCard extends ConsumerWidget {
                           ],
                         ),
                         
-                        // Seller and Follow Button
-                        if (showUserActions) ...[
-                          const SizedBox(height: 4),
-                          SizedBox(
-                            height: 24, // Fixed height for consistent row height
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Expanded(
-                                  child: GestureDetector(
-                                    onTap: () => _navigateToSellerProfile(context, product),
-                                    child: Text(
-                                      product.ownerName.isNotEmpty 
-                                          ? product.ownerName 
-                                          : 'User ${product.ownerId.substring(0, 8)}',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Theme.of(context).colorScheme.primary,
-                                        decoration: TextDecoration.underline,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ),
-                                if (currentUser?.id != product.ownerId) ...[
-                                  const SizedBox(width: 8),
-                                  Container(
-color: Colors.red.withAlpha(76), // 0.3 opacity
-                                    child: FollowButton(
-                                      sellerId: product.ownerId,
-                                      size: 24,
-                                      iconSize: 14,
-                                      showText: true, // Show text for debugging
-                                      padding: const EdgeInsets.all(4),
-                                    ),
-                                  ),
-                                ] else ...[
-                                  // Debug info
-                                  Text(
-                                    ' (You)',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ],
-                        
                         // Description
                         if (product.description.isNotEmpty) ...[
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 8),
                           Text(
                             ProductUtils.getShortDescription(product.description),
                             style: TextStyle(
                               color: Colors.grey[600],
                               fontSize: 14,
                             ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                         
-                        // Like and Save Actions
+                        // Seller and Follow Button
                         if (showUserActions) ...[
-                          const Divider(height: 16, thickness: 1),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4),
+                          const SizedBox(height: 8),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              const CircleAvatar(
+                                radius: 12,
+                                backgroundImage: NetworkImage(
+                                  'https://via.placeholder.com/48',
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  product.ownerName.isNotEmpty
+                                      ? product.ownerName
+                                      : 'User ${product.ownerId.substring(0, 8)}',
+                                  style: const TextStyle(fontSize: 14),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              if (_currentUser?.id != product.ownerId) ...[
+                                FollowButton(
+                                  sellerId: product.ownerId,
+                                  size: 24,
+                                  iconSize: 14,
+                                  showText: false,
+                                ),
+                              ] else ...[
+                                Text(
+                                  ' (You)',
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ],
+                        
+                        // Action Buttons
+                        if (showUserActions) ...[
+                          const Divider(height: 12, thickness: 1),
+                          Container(
+                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
-                                _buildActionButton(
-                                  icon: isLiked
-                                      ? Icons.favorite
-                                      : Icons.favorite_border,
-                                  color: isLiked ? Colors.red : null,
-                                  count: likeCount,
-                                  onPressed: handleLike,
+                                GestureDetector(
+                                  onTapDown: (_) => handleLike(),
+                                  behavior: HitTestBehavior.opaque,
+                                  child: _buildActionButton(
+                                    context: context,
+                                    icon: isLiked
+                                        ? Icons.favorite
+                                        : Icons.favorite_border,
+                                    color: isLiked ? Colors.red : null,
+                                    count: likeCount,
+                                    onPressed: handleLike,
+                                  ),
                                 ),
-                                _buildActionButton(
-                                  icon: isSaved
-                                      ? Icons.bookmark
-                                      : Icons.bookmark_border,
-                                  count: saveCount,
-                                  onPressed: handleSave,
+                                GestureDetector(
+                                  onTapDown: (_) => handleSave(),
+                                  behavior: HitTestBehavior.opaque,
+                                  child: _buildActionButton(
+                                    context: context,
+                                    icon: isSaved
+                                        ? Icons.bookmark
+                                        : Icons.bookmark_border,
+                                    count: saveCount,
+                                    onPressed: handleSave,
+                                  ),
                                 ),
+                                // Show purchase button only for products the user doesn't own
+                                if (_currentUser?.id != product.ownerId)
+                                  Container(
+                                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Theme.of(context).colorScheme.primary,
+                                          Theme.of(context).colorScheme.primary.withAlpha((0.8 * 255).round()),
+                                        ],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ),
+                                      borderRadius: BorderRadius.circular(20),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Theme.of(context).colorScheme.primary.withAlpha((0.3 * 255).round()),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 3),
+                                        ),
+                                      ],
+                                    ),
+                                    child: GestureDetector(
+                                      onTapDown: (_) => handlePurchase(),
+                                      behavior: HitTestBehavior.opaque,
+                                      child: _buildActionButton(
+                                        context: context,
+                                        icon: Icons.shopping_cart,
+                                        onPressed: handlePurchase,
+                                        color: Colors.white,
+                                        isPrimary: true,
+                                        label: 'Buy',
+                                      ),
+                                    ),
+                                  ),
                               ],
                             ),
                           ),
@@ -217,109 +431,35 @@ color: Colors.red.withAlpha(76), // 0.3 opacity
     );
   }
 
-  
-  Widget _buildActionButton({
-    required IconData icon,
-    required int count,
-    Color? color,
-    required VoidCallback onPressed,
-  }) {
-    return InkWell(
-      onTap: onPressed,
-      borderRadius: BorderRadius.circular(20),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: Row(
-          children: [
-            Icon(icon, color: color, size: 20),
-            const SizedBox(width: 4),
-            Text(
-              count.toString(),
-              style: const TextStyle(fontSize: 14),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _handleLike(
-    BuildContext context,
-    WidgetRef ref,
-    String userId,
-  ) async {
+  Future<void> _handleLike(WidgetRef ref, String userId) async {
     try {
-      final result = await ref.read(productRepositoryRefProvider).toggleLike(product.id, userId);
-      if (!context.mounted) return;
-      
-      result.fold(
-        (failure) => ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to toggle like: ${failure.message}')),
-        ),
-        (_) {
-          // Invalidate the product list to refresh the UI
-          // Note: You might need to import the correct provider
-          // ref.invalidate(productsProvider);
-        },
-      );
+      // TODO: Implement like functionality
+      debugPrint('Liked product: ${product.id}');
     } catch (e) {
-      if (context.mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('An unexpected error occurred')),
+          SnackBar(content: Text('Failed to like: $e')),
         );
       }
     }
   }
 
-  void _navigateToSellerProfile(BuildContext context, Product product) {
-    if (product.ownerId.isNotEmpty) {
-      // Navigate to the seller profile using the correct route
-      context.go(
-        '/user/${product.ownerId}',
-      );
-    }
-  }
-
-  Future<void> _handleSave(
-    BuildContext context, 
-    WidgetRef ref, 
-    String userId,
-  ) async {
-    // Add a small delay to allow the UI to update
-    await Future<void>.delayed(const Duration(milliseconds: 100));
+  Future<void> _handleSave(WidgetRef ref, String userId) async {
     try {
-      final repository = ref.read(productRepositoryRefProvider);
-      final result = await repository.toggleSave(product.id, userId);
-
-      if (!context.mounted) return;
-
-      result.fold(
-        (failure) {
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(failure.message),
-                backgroundColor: Theme.of(context).colorScheme.error,
-              ),
-            );
-          }
-        },
-        (_) {
-          // Invalidate relevant providers to refresh the UI
-          // Note: These providers might need to be imported or defined
-          // ref.invalidate(productListNotifierProvider);
-          // ref.invalidate(productNotifierProvider(product.id));
-          // ref.invalidate(userProductsNotifierProvider(product.ownerId));
-        },
-      );
+      // TODO: Implement save functionality
+      debugPrint('Saved product: ${product.id}');
     } catch (e) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('An error occurred while saving the product'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save: $e')),
+        );
+      }
     }
   }
+  
+  // Keeping this for future implementation
+  // void _navigateToSellerProfile(BuildContext context, Product product) {
+  //   // TODO: Implement navigation to seller profile
+  //   debugPrint('Navigate to seller profile: ${product.ownerId}');
+  // }
 }

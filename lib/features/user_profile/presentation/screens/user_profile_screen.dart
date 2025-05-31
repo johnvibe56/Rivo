@@ -294,6 +294,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                                           : null,
                                       child: ProductCard(
                                         product: product,
+                                        showPurchaseButton: !isCurrentUser, // Only show purchase button if not the owner
                                         onTap: () {
                                           // Navigate to product details
                                           context.go('/product/${product.id}');

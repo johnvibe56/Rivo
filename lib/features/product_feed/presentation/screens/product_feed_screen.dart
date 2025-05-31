@@ -122,16 +122,20 @@ class _ProductFeedScreenState extends ConsumerState<ProductFeedScreen> {
         padding: const EdgeInsets.all(8.0),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          childAspectRatio: 0.7,
+          childAspectRatio: 0.9, // Increased to give more vertical space
           crossAxisSpacing: 8,
           mainAxisSpacing: 8,
+          mainAxisExtent: 280, // Fixed height for each item
         ),
         itemCount: state.products.length + (state.hasReachedEnd ? 0 : 1),
         itemBuilder: (context, index) {
           if (index >= state.products.length) {
             return _buildLoadingIndicator();
           }
-          return ProductCard(product: state.products[index]);
+          return ProductCard(
+            product: state.products[index],
+            showPurchaseButton: true, // Explicitly enable purchase button
+          );
         },
       ),
     );

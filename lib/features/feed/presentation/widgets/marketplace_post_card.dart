@@ -1,10 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rivo/features/follow/presentation/widgets/follow_button.dart';
+import 'package:rivo/features/purchase/presentation/providers/purchase_provider.dart';
 import 'package:rivo/features/products/domain/models/product_model.dart';
+// Removed unused import
 import 'package:rivo/features/products/presentation/providers/delete_product_provider.dart';
+import 'package:rivo/features/products/presentation/providers/product_providers.dart';
 import 'package:rivo/features/wishlist/presentation/widgets/wishlist_button.dart';
 
 /// Provider for checking if a product is being deleted
@@ -14,6 +18,24 @@ final isDeletingProductProvider = Provider.family<bool, String>((ref, productId)
 });
 
 class MarketplacePostCard extends ConsumerWidget {
+  // Helper method to check if product is sold (case-insensitive)
+  bool _isProductSold(Product product) {
+    final status = product.status?.toLowerCase().trim() ?? '';
+    final isSold = status == 'sold' || status == 'purchased' || status == 'sold out';
+    
+    if (kDebugMode) {
+      debugPrint('\n=== Product Status Check ===');
+      debugPrint('Product ID: ${product.id}');
+      debugPrint('Title: ${product.title}');
+      debugPrint('Raw status: ${product.status}');
+      debugPrint('Normalized status: $status');
+      debugPrint('Is sold: $isSold');
+      debugPrint('==========================\n');
+    }
+    
+    return isSold;
+  }
+
   final Product product;
   final String userId;
   final bool showWishlistButton;
@@ -172,6 +194,25 @@ class MarketplacePostCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    
+    // Calculate button visibility
+    final bool isOwner = userId == product.ownerId;
+    final bool isSold = _isProductSold(product);
+    final bool showButton = !isOwner && !isSold;
+    
+    // Debug log the product status
+    if (kDebugMode) {
+      debugPrint('\n=== MarketplacePostCard Debug Info ===');
+      debugPrint('Product ID: ${product.id}');
+      debugPrint('Title: ${product.title}');
+      debugPrint('Status: ${product.status}');
+      debugPrint('Is sold: $isSold');
+      debugPrint('User ID: $userId');
+      debugPrint('Owner ID: ${product.ownerId}');
+      debugPrint('Is owner: $isOwner');
+      debugPrint('Show button: $showButton');
+      debugPrint('======================================\n');
+    }
 
     return SizedBox(
       height: 500, // Fixed height for the card
@@ -186,11 +227,42 @@ class MarketplacePostCard extends ConsumerWidget {
                 children: [
                   // Product Image
                   Positioned.fill(
-                    child: CachedNetworkImage(
-                      imageUrl: product.imageUrl,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-                      errorWidget: (context, url, error) => const Icon(Icons.error),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        CachedNetworkImage(
+                          imageUrl: product.imageUrl,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                          errorWidget: (context, url, error) => const Icon(Icons.error),
+                        ),
+                        // SOLD overlay
+                        if (_isProductSold(product))
+                          Container(
+                            color: Colors.black54,
+                            child: Center(
+                              child: Transform.rotate(
+                                angle: -0.1, // Slight angle for visual appeal
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: Colors.white, width: 3),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Text(
+                                    'SOLD',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 2.0,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
 
@@ -302,20 +374,143 @@ class MarketplacePostCard extends ConsumerWidget {
 
                       const Spacer(),
 
-                      // Buy Button
-                      ElevatedButton.icon(
-                        onPressed: onBuy,
-                        icon: const Icon(Icons.shopping_bag_outlined),
-                        label: const Text('Buy Now'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: theme.colorScheme.primary,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
+                      // Show Buy Button if user doesn't own the product and it's not sold
+                      if (showButton)
+                        Consumer(
+                          builder: (context, ref, _) {
+                            return StatefulBuilder(
+                              builder: (context, setState) {
+                                bool isLoading = false;
+
+                                Future<void> handlePurchase() async {
+                                  if (isLoading) return;
+                                  
+                                  if (userId.isEmpty) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Please log in to make a purchase')),
+                                      );
+                                    }
+                                    return;
+                                  }
+
+                                  setState(() => isLoading = true);
+
+                                  try {
+                                    final provider = ref.read(purchaseProductProvider(product.id).notifier);
+                                    final result = await provider.purchaseProduct();
+                                    
+                                    if (context.mounted) {
+                                      result.when(
+                                        data: (purchaseResult) async {
+                                          if (purchaseResult.isSuccess) {
+                                            // Show appropriate message based on whether this is a new purchase or existing one
+                                            if (context.mounted) {
+                                              final message = purchaseResult.isAlreadyPurchased
+                                                  ? 'You have already purchased this item!'
+                                                  : 'Purchase successful!';
+                                              
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(message),
+                                                  backgroundColor: purchaseResult.isAlreadyPurchased 
+                                                      ? Colors.orange[800] 
+                                                      : Colors.green,
+                                                ),
+                                              );
+                                            }
+                                            
+                                            // Force a rebuild of this widget
+                                            if (context.mounted) {
+                                              setState(() {});
+                                            }
+                                            
+                                            // Refresh the product list and product data in the background
+                                            try {
+                                              // Invalidate the product list provider to force a refresh
+                                              ref.invalidate(productListNotifierProvider);
+                                              
+                                              // Refresh the current product
+                                              final notifier = ref.read(productNotifierProvider(product.id).notifier);
+                                              await notifier.getProduct(product.id);
+                                              
+                                              if (kDebugMode) {
+                                                debugPrint('Product data refreshed after purchase');
+                                              }
+                                            } catch (e) {
+                                              if (kDebugMode) {
+                                                debugPrint('Error refreshing product data: $e');
+                                              }
+                                            }
+                                          } else {
+                                            // Handle failure case
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: Text('Purchase failed: ${purchaseResult.error ?? 'Unknown error'}'),
+                                                backgroundColor: Colors.red,
+                                              ),
+                                            );
+                                          }
+                                        },
+                                        loading: () {
+                                          // This shouldn't happen here as we're after the operation
+                                        },
+                                        error: (error, stack) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text('Error: ${error.toString()}'),
+                                              backgroundColor: Colors.red,
+                                            ),
+                                          );
+                                        },
+                                      );
+                                    }
+                                  } catch (e, stackTrace) {
+                                    debugPrint('Purchase error: $e');
+                                    debugPrint('Stack trace: $stackTrace');
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('An unexpected error occurred: ${e.toString()}'),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                    }
+                                  } finally {
+                                    if (context.mounted) {
+                                      setState(() => isLoading = false);
+                                    }
+                                  }
+                                }
+
+                                return ElevatedButton.icon(
+                                  onPressed: handlePurchase,
+                                  icon: isLoading
+                                      ? const SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                          ),
+                                        )
+                                      : const Icon(Icons.shopping_bag_outlined),
+                                  label: isLoading 
+                                      ? const Text('Processing...') 
+                                      : const Text('Buy Now'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: theme.colorScheme.primary,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
                         ),
-                      ),
                     ],
                   ),
                 ],
@@ -373,34 +568,7 @@ class MarketplacePostCard extends ConsumerWidget {
             ),
           ),
 
-          // Message and Buy buttons
-          if (onMessage != null || onBuy != null)
-            Positioned(
-              bottom: 16,
-              right: 16,
-              child: Row(
-                children: [
-                  // Message button
-                  if (onMessage != null)
-                    FloatingActionButton.small(
-                      heroTag: 'message_${product.id}',
-                      onPressed: onMessage,
-                      backgroundColor: Colors.white,
-                      child: const Icon(Icons.message, color: Colors.black),
-                    ),
-                  if (onMessage != null && onBuy != null)
-                    const SizedBox(width: 12),
-                  // Buy button
-                  if (onBuy != null)
-                    FloatingActionButton(
-                      heroTag: 'buy_${product.id}',
-                      onPressed: onBuy,
-                      backgroundColor: theme.colorScheme.primary,
-                      child: const Icon(Icons.shopping_bag, color: Colors.white),
-                    ),
-                ],
-              ),
-            ),
+          // Removed duplicate buy button - using the one in the action buttons row instead
         ],
       ),
     );

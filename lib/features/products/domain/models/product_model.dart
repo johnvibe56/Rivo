@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 
 class Product {
   final String id;
@@ -10,6 +11,7 @@ class Product {
   final List<String> savedBy;
   final String ownerId;
   final String ownerName;
+  final String? status;
   final DateTime createdAt;
 
   const Product({
@@ -22,10 +24,15 @@ class Product {
     required this.savedBy,
     required this.ownerId,
     this.ownerName = '',
+    this.status = 'available',
     required this.createdAt,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
+    if (kDebugMode) {
+      print('Product.fromJson - Raw JSON: $json');
+      print('Product.fromJson - Status field: ${json['status']} (type: ${json['status']?.runtimeType})');
+    }
     // Helper function to parse liked_by/saved_by fields which might be String or List
     List<String> parseStringList(dynamic value) {
       if (value == null) return [];
@@ -60,6 +67,7 @@ class Product {
       savedBy: parseStringList(json['saved_by']),
       ownerId: json['owner_id'] as String? ?? '',
       ownerName: ownerName,
+      status: json['status'] as String? ?? 'available',
       createdAt: json['created_at'] != null 
           ? DateTime.tryParse(json['created_at'].toString()) ?? DateTime.now()
           : DateTime.now(),
@@ -77,6 +85,7 @@ class Product {
       'saved_by': savedBy,
       'owner_id': ownerId,
       'owner_name': ownerName,
+      'status': status,
       'created_at': createdAt.toIso8601String(),
     };
   }

@@ -50,3 +50,11 @@ class NotFoundException extends AppException {
   @override
   String toString() => 'NotFoundException: $message';
 }
+
+/// Thrown when there's an error during a purchase operation
+class PurchaseException extends AppException {
+  const PurchaseException(super.message, [super.stackTrace]);
+
+  @override
+  String toString() => 'PurchaseException: $message';
+}
