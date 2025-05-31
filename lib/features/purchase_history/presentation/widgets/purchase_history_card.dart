@@ -6,10 +6,10 @@ class PurchaseHistoryCard extends StatelessWidget {
   final VoidCallback? onTap;
 
   const PurchaseHistoryCard({
-    Key? key,
+    super.key,
     required this.purchase,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

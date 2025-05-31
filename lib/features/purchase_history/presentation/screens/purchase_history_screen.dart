@@ -4,10 +4,9 @@ import 'package:rivo/core/error/failures.dart';
 import 'package:rivo/features/purchase_history/application/purchase_history_notifier.dart';
 import 'package:rivo/features/purchase_history/presentation/widgets/purchase_history_card.dart';
 import 'package:rivo/features/purchase_history/domain/models/purchase_with_product_model.dart';
-import 'package:go_router/go_router.dart';
 
 class PurchaseHistoryScreen extends ConsumerStatefulWidget {
-  const PurchaseHistoryScreen({Key? key}) : super(key: key);
+  const PurchaseHistoryScreen({super.key});
 
   @override
   ConsumerState<PurchaseHistoryScreen> createState() => _PurchaseHistoryScreenState();
@@ -88,7 +87,7 @@ class _PurchaseHistoryScreenState extends ConsumerState<PurchaseHistoryScreen> {
             Icon(
               icon,
               size: 64,
-              color: theme.colorScheme.error.withOpacity(0.7),
+              color: theme.colorScheme.error.withAlpha((0.7 * 255).round()),
             ),
             const SizedBox(height: 16),
             Text(
@@ -145,7 +144,7 @@ class _PurchaseHistoryScreenState extends ConsumerState<PurchaseHistoryScreen> {
             Icon(
               Icons.warning_amber_rounded,
               size: 64,
-              color: theme.colorScheme.error.withOpacity(0.7),
+              color: theme.colorScheme.error.withAlpha((0.7 * 255).round()),
             ),
             const SizedBox(height: 16),
             Text(

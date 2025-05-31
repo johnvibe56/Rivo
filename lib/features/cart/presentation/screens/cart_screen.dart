@@ -46,7 +46,7 @@ class CartScreen extends ConsumerWidget {
         color: Theme.of(context).cardColor,
         boxShadow: [
           BoxShadow(
-            color: Theme.of(context).colorScheme.surfaceVariant.withAlpha(128),
+            color: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(128),
             spreadRadius: 1,
             blurRadius: 5,
             offset: const Offset(0, -2),

@@ -30,17 +30,17 @@ class PurchaseHistoryRepositoryImpl implements PurchaseHistoryRepository {
 
       try {
         // Use the database function to get purchases with product details
-        final response = await supabaseClient.rpc(
+        final response = await supabaseClient.rpc<List<dynamic>>(
           'get_purchase_history',
           params: {'p_user_id': userId},
         );
 
-        if (response is! List) {
-          return Left(ServerFailure('Invalid response format from server'));
+        if (response.isEmpty) {
+          return const Right(<PurchaseWithProduct>[]);
         }
 
-        final purchases = (response as List)
-            .map((json) => PurchaseWithProduct.fromJson(json as Map<String, dynamic>))
+        final purchases = response
+            .map<PurchaseWithProduct>((json) => PurchaseWithProduct.fromJson(json as Map<String, dynamic>))
             .toList();
             
         return Right(purchases);

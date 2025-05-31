@@ -313,11 +313,11 @@ class _ProductCardState extends ConsumerState<ProductCard> {
                             children: [
                               CircleAvatar(
                                 radius: 12,
-                                backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                                backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                                 child: Icon(
                                   Icons.person,
                                   size: 16,
-                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  color: Theme.of(context).colorScheme.onSurface.withAlpha((0.7 * 255).round()),
                                 ),
                               ),
                               const SizedBox(width: 8),

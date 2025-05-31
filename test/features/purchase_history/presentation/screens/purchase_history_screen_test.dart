@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -22,24 +21,10 @@ class TestPurchaseHistoryNotifier extends PurchaseHistoryNotifier {
 }
 
 void main() {
-  late MockPurchaseHistoryRepository mockRepository;
   final testDate = DateTime(2023, 1, 1);
   
-  final mockPurchases = [
-    PurchaseWithProduct(
-      id: '1',
-      createdAt: testDate,
-      product: const ProductDetails(
-        id: 'p1',
-        name: 'Test Product',
-        imageUrl: 'https://example.com/image.jpg',
-        price: 19.99,
-      ),
-    ),
-  ];
-
   setUp(() {
-    mockRepository = MockPurchaseHistoryRepository();
+    // Setup code if needed
   });
 
   testWidgets('shows loading indicator when loading', (tester) async {    
