@@ -15,6 +15,7 @@ import 'package:rivo/features/user_profile/presentation/screens/seller_profile_s
 import 'package:rivo/features/user_profile/presentation/screens/edit_profile_screen.dart';
 import 'package:rivo/features/user_profile/presentation/screens/user_profile_screen.dart';
 import 'package:rivo/features/wishlist/presentation/screens/wishlist_screen.dart';
+import 'package:rivo/features/purchase_history/presentation/screens/purchase_history_screen.dart';
 
 class MainScaffold extends ConsumerStatefulWidget {
   final Widget child;
@@ -116,7 +117,8 @@ class AppRoutes {
   static const String productDetail = 'product_detail';
   static const String productUpload = 'product_upload';
   static const String profile = 'user_profile'; // Updated to use user_profile
-  static const String wishlist = 'wishlist'; // Added wishlist route
+  static const String wishlist = 'wishlist';
+  static const String purchaseHistory = 'purchase_history';
   static const String seller = 'seller_profile';
   
   // Helper to get the full path for a route
@@ -150,6 +152,8 @@ class AppRoutes {
         return '/seller/${params?['sellerId'] ?? ':sellerId'}';
       case editProfile:
         return '/edit-profile';
+      case purchaseHistory:
+        return '/purchases';
       default:
         return '/';
     }
@@ -278,6 +282,13 @@ class AppRouter {
         path: '/wishlist',
         name: AppRoutes.wishlist,
         builder: (context, state) => const WishlistScreen(),
+      ),
+      
+      // Purchase History route
+      GoRoute(
+        path: '/purchases',
+        name: AppRoutes.purchaseHistory,
+        builder: (context, state) => const PurchaseHistoryScreen(),
       ),
       
       // Seller Profile route

@@ -50,7 +50,14 @@ class ValidationFailure extends Failure {
 
 /// Thrown when there's no internet connection
 class NoInternetFailure extends Failure {
-  const NoInternetFailure([super.message = 'No internet connection', super.stackTrace]);
+  const NoInternetFailure([String message = 'No internet connection'])
+      : super(message);
+}
+
+/// Thrown when there's an error parsing data
+class DataParsingFailure extends Failure {
+  const DataParsingFailure([String message = 'Failed to parse data'])
+      : super(message);
 }
 
 /// Thrown when the request times out

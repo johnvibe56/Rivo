@@ -310,10 +310,13 @@ class _ProductCardState extends ConsumerState<ProductCard> {
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              const CircleAvatar(
+                              CircleAvatar(
                                 radius: 12,
-                                backgroundImage: NetworkImage(
-                                  'https://via.placeholder.com/48',
+                                backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                                child: Icon(
+                                  Icons.person,
+                                  size: 16,
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                                 ),
                               ),
                               const SizedBox(width: 8),

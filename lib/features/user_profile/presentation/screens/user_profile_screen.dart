@@ -243,6 +243,14 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                 actions: [
                   if (isCurrentUser) ...[
                     IconButton(
+                      icon: const Icon(Icons.shopping_bag_outlined),
+                      onPressed: () {
+                        // Navigate to purchase history screen
+                        context.go('/purchases');
+                      },
+                      tooltip: 'My Purchases',
+                    ),
+                    IconButton(
                       icon: const Icon(Icons.edit),
                       onPressed: () => _navigateToEditProfile(context),
                       tooltip: 'Edit Profile',
