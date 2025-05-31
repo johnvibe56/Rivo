@@ -16,6 +16,8 @@ import 'package:rivo/features/user_profile/presentation/screens/edit_profile_scr
 import 'package:rivo/features/user_profile/presentation/screens/user_profile_screen.dart';
 import 'package:rivo/features/wishlist/presentation/screens/wishlist_screen.dart';
 import 'package:rivo/features/purchase_history/presentation/screens/purchase_history_screen.dart';
+import 'package:rivo/features/cart/presentation/screens/cart_screen.dart';
+import 'package:rivo/features/cart/presentation/widgets/cart_icon_button.dart';
 
 class MainScaffold extends ConsumerStatefulWidget {
   final Widget child;
@@ -35,6 +37,16 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('RIVO'),
+        centerTitle: true,
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 16.0),
+            child: CartIconButton(),
+          ),
+        ],
+      ),
       body: widget.child,
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: widget.currentIndex,
@@ -50,6 +62,9 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
               context.go(AppRouter.getFullPath(AppRoutes.wishlist));
               break;
             case 3:
+              context.go(AppRouter.getFullPath(AppRoutes.cart));
+              break;
+            case 4:
               context.go(AppRouter.getFullPath(AppRoutes.userProfile));
               break;
           }
@@ -66,6 +81,10 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
           BottomNavigationBarItem(
             icon: Icon(Icons.favorite_border),
             label: 'Wishlist',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_cart),
+            label: 'Cart',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
@@ -118,6 +137,7 @@ class AppRoutes {
   static const String productUpload = 'product_upload';
   static const String profile = 'user_profile'; // Updated to use user_profile
   static const String wishlist = 'wishlist';
+  static const String cart = 'cart';
   static const String purchaseHistory = 'purchase_history';
   static const String seller = 'seller_profile';
   
@@ -148,6 +168,8 @@ class AppRoutes {
         return '/upload-product';
       case wishlist:
         return '/wishlist';
+      case cart:
+        return '/cart';
       case sellerProfile:
         return '/seller/${params?['sellerId'] ?? ':sellerId'}';
       case editProfile:
@@ -229,8 +251,10 @@ class AppRouter {
         currentIndex = 1;
       } else if (location.startsWith('/wishlist')) {
         currentIndex = 2;
-      } else if (location.startsWith('/user_profile') || location.startsWith('/profile')) {
+      } else if (location.startsWith('/cart')) {
         currentIndex = 3;
+      } else if (location.startsWith('/user_profile') || location.startsWith('/profile')) {
+        currentIndex = 4;
       }
       
       return MainScaffold(
@@ -282,6 +306,13 @@ class AppRouter {
         path: '/wishlist',
         name: AppRoutes.wishlist,
         builder: (context, state) => const WishlistScreen(),
+      ),
+      
+      // Cart route
+      GoRoute(
+        path: '/cart',
+        name: AppRoutes.cart,
+        builder: (context, state) => const CartScreen(),
       ),
       
       // Purchase History route

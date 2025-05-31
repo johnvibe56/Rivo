@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:rivo/features/auth/presentation/providers/auth_provider.dart';
+import 'package:rivo/features/cart/presentation/widgets/add_to_cart_button.dart';
 import 'package:rivo/features/follow/presentation/widgets/follow_button.dart';
 import 'package:rivo/features/products/domain/models/product_model.dart';
 import 'package:rivo/features/purchase/purchase.dart';
@@ -356,7 +357,7 @@ class _ProductCardState extends ConsumerState<ProductCard> {
                           Container(
                             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
                             child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 GestureDetector(
                                   onTapDown: (_) => handleLike(),
@@ -383,40 +384,55 @@ class _ProductCardState extends ConsumerState<ProductCard> {
                                     onPressed: handleSave,
                                   ),
                                 ),
-                                // Show purchase button only for products the user doesn't own
+                                // Show action buttons only for products the user doesn't own
                                 if (_currentUser?.id != product.ownerId)
-                                  Container(
-                                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          Theme.of(context).colorScheme.primary,
-                                          Theme.of(context).colorScheme.primary.withAlpha((0.8 * 255).round()),
-                                        ],
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                      ),
-                                      borderRadius: BorderRadius.circular(20),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Theme.of(context).colorScheme.primary.withAlpha((0.3 * 255).round()),
-                                          blurRadius: 8,
-                                          offset: const Offset(0, 3),
+                                  Row(
+                                    children: [
+                                      // Add to Cart Button
+                                      Padding(
+                                        padding: const EdgeInsets.only(right: 4.0),
+                                        child: AddToCartButton(
+                                          productId: product.id,
+                                          productName: product.title,
+                                          productImage: product.imageUrl,
+                                          productPrice: product.price,
                                         ),
-                                      ],
-                                    ),
-                                    child: GestureDetector(
-                                      onTapDown: (_) => handlePurchase(),
-                                      behavior: HitTestBehavior.opaque,
-                                      child: _buildActionButton(
-                                        context: context,
-                                        icon: Icons.shopping_cart,
-                                        onPressed: handlePurchase,
-                                        color: Colors.white,
-                                        isPrimary: true,
-                                        label: 'Buy',
                                       ),
-                                    ),
+                                      // Purchase Button
+                                      Container(
+                                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              Theme.of(context).colorScheme.primary,
+                                              Theme.of(context).colorScheme.primary.withAlpha((0.8 * 255).round()),
+                                            ],
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                          ),
+                                          borderRadius: BorderRadius.circular(20),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Theme.of(context).colorScheme.primary.withAlpha((0.3 * 255).round()),
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 3),
+                                            ),
+                                          ],
+                                        ),
+                                        child: GestureDetector(
+                                          onTapDown: (_) => handlePurchase(),
+                                          behavior: HitTestBehavior.opaque,
+                                          child: _buildActionButton(
+                                            context: context,
+                                            icon: Icons.shopping_bag,
+                                            onPressed: handlePurchase,
+                                            color: Colors.white,
+                                            isPrimary: true,
+                                            label: 'Buy',
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                               ],
                             ),

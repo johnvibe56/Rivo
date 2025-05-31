@@ -10,6 +10,7 @@ import 'package:rivo/features/products/domain/models/product_model.dart';
 import 'package:rivo/features/products/presentation/providers/delete_product_provider.dart';
 import 'package:rivo/features/products/presentation/providers/product_providers.dart';
 import 'package:rivo/features/wishlist/presentation/widgets/wishlist_button.dart';
+import 'package:rivo/features/cart/presentation/widgets/add_to_cart_button.dart';
 
 /// Provider for checking if a product is being deleted
 final isDeletingProductProvider = Provider.family<bool, String>((ref, productId) {
@@ -355,15 +356,39 @@ class MarketplacePostCard extends ConsumerWidget {
                     children: [
                       // Wishlist button (only show if enabled and user is logged in)
                       if (showWishlistButton && userId.isNotEmpty)
-                        WishlistButton(
-                          productId: product.id,
-                          userId: userId,
-                          size: 32,
-                          selectedColor: Colors.red,
-                          color: Colors.white,
+                        Row(
+                          children: [
+                            WishlistButton(
+                              productId: product.id,
+                              userId: userId,
+                              size: 32,
+                              selectedColor: Colors.red,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(width: 8),
+                            // Add to Cart button
+                            AddToCartButton(
+                              productId: product.id,
+                              productName: product.title,
+                              productImage: product.imageUrl,
+                              productPrice: product.price,
+                              isSold: _isProductSold(product),
+                              isOwner: isOwner,
+                            ),
+                          ],
                         ),
 
-                      const SizedBox(width: 12),
+                      if (!showWishlistButton || userId.isEmpty)
+                        AddToCartButton(
+                          productId: product.id,
+                          productName: product.title,
+                          productImage: product.imageUrl,
+                          productPrice: product.price,
+                          isSold: _isProductSold(product),
+                          isOwner: isOwner,
+                        ),
+
+                      const SizedBox(width: 8),
 
                       // Message Button
                       if (onMessage != null)
