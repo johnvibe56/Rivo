@@ -7,7 +7,7 @@ part 'purchase_with_product_model.g.dart';
 class PurchaseWithProduct with _$PurchaseWithProduct {
   const factory PurchaseWithProduct({
     required String id,
-    @JsonKey(name: 'created_at') required DateTime createdAt,
+    required DateTime createdAt,
     required ProductDetails? product,
   }) = _PurchaseWithProduct;
 
@@ -20,7 +20,7 @@ class ProductDetails with _$ProductDetails {
   const factory ProductDetails({
     required String id,
     String? name,
-    @JsonKey(name: 'image_url') String? imageUrl,
+    String? imageUrl,
     double? price,
   }) = _ProductDetails;
 

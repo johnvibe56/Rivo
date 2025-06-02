@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:rivo/core/utils/logger.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:rivo/core/router/app_router.dart';
+import 'package:rivo/core/navigation/app_navigation.dart';
 import 'package:rivo/features/feed/presentation/widgets/marketplace_post_card.dart';
 import 'package:rivo/features/wishlist/presentation/providers/wishlist_providers.dart';
 import 'package:rivo/features/products/presentation/providers/product_providers.dart';
@@ -175,7 +175,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          context.go(AppRouter.getFullPath(AppRoutes.productUpload));
+          AppNavigation.goToProductUpload(context);
         },
         child: const Icon(Icons.add),
       ),
@@ -209,7 +209,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                   const Text('No products found', style: TextStyle(fontSize: 18)),
                   const SizedBox(height: 8),
                   TextButton.icon(
-                    onPressed: () => context.go(AppRouter.getFullPath(AppRoutes.productUpload)),
+                    onPressed: () => AppNavigation.goToProductUpload(context),
                     icon: const Icon(Icons.add),
                     label: const Text('Add your first product'),
                   ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:rivo/core/router/app_router.dart';
+import 'package:rivo/core/navigation/app_navigation.dart';
 
 /// A screen that redirects to the user's profile screen.
 /// This is kept for backward compatibility with existing routes.
@@ -19,9 +19,9 @@ class SellerProfileScreen extends ConsumerWidget {
     // Redirect to the new user profile screen
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // Use a slight delay to avoid any potential navigation conflicts
-      Future.delayed(Duration.zero, () {
+      Future.delayed(const Duration(milliseconds: 100), () {
         if (context.mounted) {
-          AppRouter.goToUserProfile(context, sellerId);
+          AppNavigation.goToUserProfile(context, sellerId);
         }
       });
     });

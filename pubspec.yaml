@@ -30,10 +30,19 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
     
   # UI Components
   cupertino_icons: ^1.0.8
   flutter_svg: ^2.0.10+1
+  google_fonts: ^6.1.0
+  flutter_screenutil: ^5.9.3
+  cached_network_image: ^3.3.1
+  shimmer: ^3.0.0
+  percent_indicator: ^4.2.3
+  flutter_rating_bar: ^4.0.1
+  intl: ^0.20.2
   
   # State Management
   flutter_riverpod: ^2.4.11
@@ -76,20 +85,16 @@ dependencies:
   # Functional Programming
   dartz: ^0.10.1
   
-  # Image Caching
-  cached_network_image: ^3.4.1
-  
   # Form Validation
   formz: ^0.7.0
-  google_fonts: ^6.2.1
   uuid: ^4.5.1
   video_player: ^2.9.5
   
   # Image Cropping
   image_cropper: ^5.0.0
   
-  # File Picker
-  file_picker: ^6.1.6
+  # File Picker (temporarily disabled for debugging)
+  # file_picker: ^5.3.1
   
   # Async Utilities
   async: ^2.11.0
@@ -115,18 +120,18 @@ dev_dependencies:
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
-# The following section is specific to Flutter packages.
+# The following section is specific to Flutter.
 flutter:
-
+  generate: true  # Enables code generation for localizations
   uses-material-design: true
   
-
-  # Assets
+  # Assets configuration
   assets:
-    - .env
-    - assets/images/
-    - assets/icons/
-    - assets/animations/
+    - lib/l10n/  # Localization files
+    - .env  # Environment variables
+    - assets/images/  # Image assets
+    - assets/icons/  # Icon assets
+    - assets/animations/  # Animation assets
 
   # To add assets to your application, add an assets section, like this:
   # assets:

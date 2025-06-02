@@ -1,9 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:rivo/core/router/app_router.dart';
+import 'package:rivo/core/navigation/app_navigation.dart';
 import 'package:rivo/features/product_upload/presentation/providers/product_upload_provider.dart';
 import 'package:rivo/features/product_upload/presentation/widgets/image_picker_widget.dart';
 
@@ -65,7 +64,7 @@ class _ProductUploadScreenState extends ConsumerState<ProductUploadScreen> {
       _formKey.currentState!.reset();
       setState(() => _imageFile = null);
       if (mounted) {
-        context.go(AppRouter.getFullPath(AppRoutes.feed));
+        AppNavigation.goToFeed(context);
       }
     }
   }
@@ -224,8 +223,3 @@ class _ProductUploadScreenState extends ConsumerState<ProductUploadScreen> {
 
 }
 
-// Add this to your app_router.dart file if not already present
-// GoRoute(
-//   path: '/upload-product',
-//   builder: (context, state) => const ProductUploadScreen(),
-// ),

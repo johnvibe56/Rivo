@@ -1,0 +1,43 @@
+{
+  "@@locale": "en",
+  "appTitle": "RIVO",
+  "@appTitle": {
+    "description": "The title of the application"
+  },
+  "login": "Login",
+  "@login": {
+    "description": "Login button text"
+  },
+  "signUp": "Sign Up",
+  "@signUp": {
+    "description": "Sign up button text"
+  },
+  "welcome": "Welcome to RIVO",
+  "@welcome": {
+    "description": "Welcome message"
+  },
+  "products": "Products",
+  "@products": {
+    "description": "Products section title"
+  },
+  "profile": "Profile",
+  "@profile": {
+    "description": "Profile section title"
+  },
+  "settings": "Settings",
+  "@settings": {
+    "description": "Settings section title"
+  },
+  "language": "Language",
+  "@language": {
+    "description": "Language selection label"
+  },
+  "english": "English",
+  "@english": {
+    "description": "English language option"
+  },
+  "hebrew": "עברית",
+  "@hebrew": {
+    "description": "Hebrew language option"
+  }
+}

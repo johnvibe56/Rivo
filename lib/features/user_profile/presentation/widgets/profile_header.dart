@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:rivo/core/error/result.dart';
-import 'package:rivo/core/router/app_router.dart';
+import 'package:rivo/core/navigation/app_navigation.dart';
 import 'package:rivo/features/auth/presentation/providers/auth_provider.dart';
 import 'package:rivo/features/follow/presentation/providers/follow_provider.dart';
 import 'package:rivo/features/follow/presentation/widgets/follow_button.dart';
@@ -42,7 +41,7 @@ class ProfileHeader extends ConsumerWidget {
       if (Navigator.canPop(context)) {
         Navigator.of(context).pop();
       } else {
-        context.go(AppRouter.getFullPath(AppRoutes.feed));
+        AppNavigation.goToFeed(context);
       }
     }
 
@@ -101,13 +100,18 @@ class ProfileHeader extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      userName,
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
+                    GestureDetector(
+                      onTap: () {
+                        AppNavigation.goToEditProfile(context);
+                      },
+                      child: Text(
+                        userName,
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                     if (bio != null && bio!.isNotEmpty) ...[
                       const SizedBox(height: 4),
