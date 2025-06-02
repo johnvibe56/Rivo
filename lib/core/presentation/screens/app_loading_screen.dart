@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:rivo/core/router/app_router.dart';
+import 'package:rivo/core/navigation/app_navigation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 class AppLoadingScreen extends ConsumerStatefulWidget {
@@ -40,25 +39,25 @@ class _AppLoadingScreenState extends ConsumerState<AppLoadingScreen> {
         if (!isEmailVerified && !user.isAnonymous) {
           // Email not verified, redirect to login
           if (mounted) {
-            context.go(AppRoutes.login);
+            AppNavigation.goToLogin(context);
           }
           return;
         }
         
         // User is authenticated and email is verified, go to feed
         if (mounted) {
-          context.go(AppRoutes.feed);
+          AppNavigation.goToFeed(context);
         }
       } else {
         // User is not authenticated, go to login
         if (mounted) {
-          context.go(AppRoutes.login);
+          AppNavigation.goToLogin(context);
         }
       }
     } catch (e) {
       // If there's an error, still try to navigate to login
       if (mounted) {
-        context.go(AppRoutes.login);
+        AppNavigation.goToLogin(context);
       }
     } finally {
       if (mounted) {

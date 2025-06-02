@@ -21,7 +21,6 @@ PurchaseWithProduct _$PurchaseWithProductFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$PurchaseWithProduct {
   String get id => throw _privateConstructorUsedError;
-  @JsonKey(name: 'created_at')
   DateTime get createdAt => throw _privateConstructorUsedError;
   ProductDetails? get product => throw _privateConstructorUsedError;
 
@@ -41,10 +40,7 @@ abstract class $PurchaseWithProductCopyWith<$Res> {
           PurchaseWithProduct value, $Res Function(PurchaseWithProduct) then) =
       _$PurchaseWithProductCopyWithImpl<$Res, PurchaseWithProduct>;
   @useResult
-  $Res call(
-      {String id,
-      @JsonKey(name: 'created_at') DateTime createdAt,
-      ProductDetails? product});
+  $Res call({String id, DateTime createdAt, ProductDetails? product});
 
   $ProductDetailsCopyWith<$Res>? get product;
 }
@@ -107,10 +103,7 @@ abstract class _$$PurchaseWithProductImplCopyWith<$Res>
       __$$PurchaseWithProductImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {String id,
-      @JsonKey(name: 'created_at') DateTime createdAt,
-      ProductDetails? product});
+  $Res call({String id, DateTime createdAt, ProductDetails? product});
 
   @override
   $ProductDetailsCopyWith<$Res>? get product;
@@ -154,9 +147,7 @@ class __$$PurchaseWithProductImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$PurchaseWithProductImpl implements _PurchaseWithProduct {
   const _$PurchaseWithProductImpl(
-      {required this.id,
-      @JsonKey(name: 'created_at') required this.createdAt,
-      required this.product});
+      {required this.id, required this.createdAt, required this.product});
 
   factory _$PurchaseWithProductImpl.fromJson(Map<String, dynamic> json) =>
       _$$PurchaseWithProductImplFromJson(json);
@@ -164,7 +155,6 @@ class _$PurchaseWithProductImpl implements _PurchaseWithProduct {
   @override
   final String id;
   @override
-  @JsonKey(name: 'created_at')
   final DateTime createdAt;
   @override
   final ProductDetails? product;
@@ -209,7 +199,7 @@ class _$PurchaseWithProductImpl implements _PurchaseWithProduct {
 abstract class _PurchaseWithProduct implements PurchaseWithProduct {
   const factory _PurchaseWithProduct(
       {required final String id,
-      @JsonKey(name: 'created_at') required final DateTime createdAt,
+      required final DateTime createdAt,
       required final ProductDetails? product}) = _$PurchaseWithProductImpl;
 
   factory _PurchaseWithProduct.fromJson(Map<String, dynamic> json) =
@@ -218,7 +208,6 @@ abstract class _PurchaseWithProduct implements PurchaseWithProduct {
   @override
   String get id;
   @override
-  @JsonKey(name: 'created_at')
   DateTime get createdAt;
   @override
   ProductDetails? get product;
@@ -239,7 +228,6 @@ ProductDetails _$ProductDetailsFromJson(Map<String, dynamic> json) {
 mixin _$ProductDetails {
   String get id => throw _privateConstructorUsedError;
   String? get name => throw _privateConstructorUsedError;
-  @JsonKey(name: 'image_url')
   String? get imageUrl => throw _privateConstructorUsedError;
   double? get price => throw _privateConstructorUsedError;
 
@@ -259,11 +247,7 @@ abstract class $ProductDetailsCopyWith<$Res> {
           ProductDetails value, $Res Function(ProductDetails) then) =
       _$ProductDetailsCopyWithImpl<$Res, ProductDetails>;
   @useResult
-  $Res call(
-      {String id,
-      String? name,
-      @JsonKey(name: 'image_url') String? imageUrl,
-      double? price});
+  $Res call({String id, String? name, String? imageUrl, double? price});
 }
 
 /// @nodoc
@@ -315,11 +299,7 @@ abstract class _$$ProductDetailsImplCopyWith<$Res>
       __$$ProductDetailsImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {String id,
-      String? name,
-      @JsonKey(name: 'image_url') String? imageUrl,
-      double? price});
+  $Res call({String id, String? name, String? imageUrl, double? price});
 }
 
 /// @nodoc
@@ -365,10 +345,7 @@ class __$$ProductDetailsImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$ProductDetailsImpl implements _ProductDetails {
   const _$ProductDetailsImpl(
-      {required this.id,
-      this.name,
-      @JsonKey(name: 'image_url') this.imageUrl,
-      this.price});
+      {required this.id, this.name, this.imageUrl, this.price});
 
   factory _$ProductDetailsImpl.fromJson(Map<String, dynamic> json) =>
       _$$ProductDetailsImplFromJson(json);
@@ -378,7 +355,6 @@ class _$ProductDetailsImpl implements _ProductDetails {
   @override
   final String? name;
   @override
-  @JsonKey(name: 'image_url')
   final String? imageUrl;
   @override
   final double? price;
@@ -425,7 +401,7 @@ abstract class _ProductDetails implements ProductDetails {
   const factory _ProductDetails(
       {required final String id,
       final String? name,
-      @JsonKey(name: 'image_url') final String? imageUrl,
+      final String? imageUrl,
       final double? price}) = _$ProductDetailsImpl;
 
   factory _ProductDetails.fromJson(Map<String, dynamic> json) =
@@ -436,7 +412,6 @@ abstract class _ProductDetails implements ProductDetails {
   @override
   String? get name;
   @override
-  @JsonKey(name: 'image_url')
   String? get imageUrl;
   @override
   double? get price;

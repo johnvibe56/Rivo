@@ -4,12 +4,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:rivo/core/router/app_router.dart';
+import 'package:rivo/core/navigation/app_navigation.dart';
 import 'package:rivo/features/auth/presentation/providers/auth_provider.dart';
 import 'package:rivo/features/user_profile/presentation/providers/user_profile_providers.dart';
 import 'package:rivo/features/user_profile/presentation/widgets/profile_avatar.dart';
-
-
 
 class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
@@ -27,7 +25,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   bool _isUsernameAvailable = true;
   Timer? _debounce;
   bool _isInitialized = false;
-  // Removed unused retry variables
 
   @override
   void initState() {
@@ -67,7 +64,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         if (mounted) {
           setState(() => _isLoading = false);
           if (context.mounted) {
-            Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+            AppNavigation.goToLogin(context);
           }
         }
         return;
@@ -95,8 +92,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       if (!mounted) return;
 
       setState(() {
-        _usernameController.text = profile.username; // username is non-nullable
-        _bioController.text = profile.bio ?? ''; // bio is nullable, provide default empty string
+        _usernameController.text = profile.username;
+        _bioController.text = profile.bio ?? '';
         _isLoading = false;
       });
     } catch (e) {
@@ -177,7 +174,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         if (mounted) {
           setState(() => _isLoading = false);
           if (context.mounted) {
-            Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+            AppNavigation.goToLogin(context);
           }
         }
         return;
@@ -209,10 +206,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           );
         }
       }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
     }
   }
 
@@ -226,15 +219,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             onPressed: _isLoading ? null : _saveProfile,
             child: _isLoading
                 ? const SizedBox(
-                    width: 20,
-                    height: 20,
+                    width: 24,
+                    height: 24,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Text('Save'),
           ),
         ],
       ),
-      body: _isLoading
+      body: _isLoading && _usernameController.text.isEmpty
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
@@ -243,7 +236,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 16),
                     Center(
                       child: GestureDetector(
                         onTap: _pickImage,
@@ -252,19 +244,20 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                             ProfileAvatar(
                               imageUrl: _pickedImage?.path,
                               radius: 50,
+                              onTap: _pickImage,
                             ),
                             Positioned(
                               bottom: 0,
                               right: 0,
                               child: Container(
                                 padding: const EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context).colorScheme.primary,
+                                decoration: const BoxDecoration(
+                                  color: Colors.blue,
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Icon(
                                   Icons.edit,
-                                  size: 20,
+                                  size: 16,
                                   color: Colors.white,
                                 ),
                               ),
@@ -276,15 +269,21 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     const SizedBox(height: 24),
                     TextFormField(
                       controller: _usernameController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Username',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.person_outline),
+                        hintText: 'Enter your username',
+                        errorText: _isUsernameAvailable ? null : 'Username is already taken',
+                        suffixIcon: _isUsernameAvailable
+                            ? null
+                            : const Icon(Icons.error, color: Colors.red),
                       ),
                       onChanged: _onUsernameChanged,
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
+                        if (value == null || value.trim().isEmpty) {
                           return 'Please enter a username';
+                        }
+                        if (value.trim().length < 3) {
+                          return 'Username must be at least 3 characters long';
                         }
                         if (!_isUsernameAvailable) {
                           return 'Username is already taken';
@@ -296,20 +295,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     TextFormField(
                       controller: _bioController,
                       decoration: const InputDecoration(
-                        labelText: 'Bio (Optional)',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.info_outline),
+                        labelText: 'Bio',
+                        hintText: 'Tell us about yourself',
                       ),
                       maxLines: 3,
+                      maxLength: 200,
                     ),
-                    const SizedBox(height: 24),
-                    if (_pickedImage != null)
-                      Image.file(
-                        _pickedImage!,
-                        height: 200,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                      ),
                   ],
                 ),
               ),

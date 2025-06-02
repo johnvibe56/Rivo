@@ -13,7 +13,7 @@ AS $$
     p.created_at,
     jsonb_build_object(
       'id', pr.id,
-      'name', pr.name,
+      'name', pr.title,
       'image_url', pr.image_url,
       'price', pr.price
     ) as product

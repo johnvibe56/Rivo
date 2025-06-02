@@ -1,44 +1,49 @@
 # RIVO - Vintage Marketplace App
 
-A modern vertical-scroll marketplace app built with Flutter and Supabase. RIVO enables users to discover, wishlist, and upload vintage and secondhand items, with smooth navigation, real-time updates, and clean architecture.
+A modern vertical-scroll marketplace app built with Flutter and Supabase. RIVO enables users to discover, wishlist, and purchase vintage and secondhand items with smooth navigation, real-time updates, and clean architecture.
 
 ---
 
-## 🚀 MVP Summary (May 2024)
+## 🚀 Project Status (June 2024)
 
-### ✅ Core Features Completed
+### ✅ Core Features
 
 * **Authentication** with email/password
 * **Infinite Scroll Product Feed** with like/wishlist support
 * **Product Upload** with Supabase Storage
-* **Wishlist System** with Supabase-backed syncing and UI integration
-* **User Profile** displaying uploaded items
-* **Product Detail View** with dynamic routing
-* **Bottom Navigation** connecting main app areas
+* **Wishlist System** with real-time syncing
+* **User Profiles** with upload history
+* **Product Detail View** with image gallery
+* **Cart & Checkout** system
+* **Order Management** for buyers and sellers
+* **Search & Filters** for product discovery
+* **Responsive Design** for all screen sizes
 
-### 🔜 In Progress
+### 🚧 In Development
 
-* Advanced Search & Filters
 * Real-time Chat between buyers and sellers
-* Seller Dashboard
-* Order & Purchase Flow
+* Advanced seller analytics dashboard
+* Push notifications for order updates
+* Enhanced search with AI recommendations
 
 ---
 
 ## 🔧 Tech Stack
 
-| Layer            | Technology                   |
-| ---------------- | ---------------------------- |
-| UI               | Flutter 3.x, Material 3      |
-| State Management | Riverpod 2.x                 |
-| Navigation       | Go Router 10.x               |
-| Backend          | Supabase (Auth, DB, Storage) |
-| Networking       | Dio                          |
-| Forms            | Formz                        |
-| Local Storage    | Shared Preferences           |
-| Environment      | Flutter DotEnv               |
-| Animations       | Flutter Animations           |
-| Logging          | Custom Logger                |
+| Layer               | Technology                           |
+| ------------------- | ------------------------------------ |
+| **Frontend**        | Flutter 3.19, Material 3            |
+| **State Management**| Riverpod 2.4                        |
+| **Navigation**      | Go Router 10.1                      |
+| **Backend**         | Supabase (Auth, PostgreSQL, Storage) |
+| **Database**        | PostgreSQL with Row-Level Security   |
+| **Networking**      | Dio 5.4                             |
+| **Forms**           | Formz 0.4.1                         |
+| **Local Storage**   | Shared Preferences 2.2.2            |
+| **Environment**     | Flutter DotEnv 5.1.0                |
+| **Animations**      | Custom Scroll & Page Transitions     |
+| **Image Loading**   | Cached Network Image 3.3.1          |
+| **Logging**         | Logger 2.0.2                        |
 
 ---
 
@@ -95,9 +100,17 @@ A modern vertical-scroll marketplace app built with Flutter and Supabase. RIVO e
 * 📊 Default username format: `user_<user-id-prefix>`
 * ⚡ Optimistic UI updates during profile operations
 
+### 🎬 Scroll Animations
+
+* 🎯 Smooth scroll-based animations for product cards
+* 🚀 Optimized performance with efficient widget rebuilding
+* 🔄 Customizable animation parameters (fade, slide, scale, rotate)
+* 🎨 Configurable animation curves and durations
+* 📱 Responsive animations that adapt to different screen sizes
+
 ### 🧩 UI/UX & Design
 
-* ☀️🌙 Light/Dark theme support
+* ☀️ Light theme optimized for better performance
 * 📱 Responsive layout (small and large screens)
 * 🚦 Loading indicators & error messages
 * 🧭 Bottom navigation between Feed, Wishlist, Profile
@@ -108,7 +121,14 @@ A modern vertical-scroll marketplace app built with Flutter and Supabase. RIVO e
 
 ```txt
 lib/
-├── core/                # App-wide utilities (router, theme, services)
+├── core/                # App-wide utilities
+│   ├── animations/       # Custom scroll and page animations
+│   │   ├── app_animations.dart
+│   │   ├── fade_animation.dart
+│   │   ├── page_transitions.dart
+│   │   └── scroll_animations.dart
+│   ├── theme/           # App theming
+│   └── utils/           # Utility functions
 ├── features/
 │   ├── auth/            # Sign-in, sign-up
 │   ├── product_feed/    # Marketplace product browsing
@@ -133,30 +153,62 @@ flutter pub run build_runner build --delete-conflicting-outputs  # Generate prov
 
 ### Prerequisites
 
-* Flutter SDK (>= 3.16)
-* Dart SDK (>= 3.2)
-* Supabase Project (Auth + DB)
-* iOS: CocoaPods + Xcode
-* Android: Android Studio or CLI tools
+- Flutter SDK (>= 3.16.0)
+- Dart SDK (>= 3.2.0)
+- Node.js (>= 16.0.0)
+- Supabase Project (Auth + Database + Storage)
+- iOS: Xcode 14.0+ with CocoaPods
+- Android: Android Studio (latest) or Android SDK 33+
 
-### Installation
+### Quick Start
 
-```bash
-git clone https://github.com/yourusername/rivo.git
-cd rivo
-flutter pub get
-cd ios && pod install && cd ..
-cp .env.example .env  # Insert your Supabase credentials
-flutter run
-```
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/rivo.git
+   cd rivo
+   ```
+
+2. **Install dependencies**
+   ```bash
+   flutter pub get
+   ```
+
+3. **Set up environment variables**
+   ```bash
+   cp .env.example .env
+   # Update .env with your Supabase credentials
+   ```
+
+4. **Run the app**
+   ```bash
+   # For iOS
+   cd ios && pod install && cd ..
+   flutter run -d ios
+
+   # For Android
+   flutter run -d android
+   ```
+
+### Supabase Setup
+
+1. Create a new project at [Supabase](https://supabase.com/)
+2. Enable Email/Password authentication
+3. Set up the database schema by running the SQL from `supabase/migrations/`
+4. Configure Storage buckets and Row-Level Security (RLS) policies
+5. Update the `.env` file with your Supabase URL and anon key
 
 ---
 
-## 📷 Screenshots (Coming Soon)
+## 📱 Screenshots
 
-| Feed | Product Detail | Profile | Wishlist |
-| ---- | -------------- | ------- | -------- |
-| 🖼️  | 🖼️            | 🖼️     | 🖼️      |
+<div align="center">
+  <img src="screenshots/feed.png" width="200" alt="Product Feed">
+  <img src="screenshots/product_detail.png" width="200" alt="Product Detail">
+  <img src="screenshots/profile.png" width="200" alt="User Profile">
+  <img src="screenshots/cart.png" width="200" alt="Shopping Cart">
+</div>
+
+*Screenshots from the latest version of the app*
 
 ---
 
@@ -175,23 +227,40 @@ For development:
 
 ---
 
-## 📬 Feedback & Contributions
+## 🤝 Contributing
 
-Found a bug or have an idea?
+We welcome contributions from the community! Here's how you can help:
 
-* [Open an issue](https://github.com/yourusername/rivo/issues)
-* Pull Requests are welcome!
+1. **Report bugs** - [Open an issue](https://github.com/yourusername/rivo/issues) with detailed steps to reproduce
+2. **Suggest features** - Share your ideas for new features or improvements
+3. **Submit PRs** - Follow our contribution guidelines below
 
-### Contribution Flow
+### Development Workflow
 
-```bash
-git checkout -b feature/myFeature
-flutter test
-# Make changes
-git commit -m "feat: add my feature"
-git push origin feature/myFeature
-# Open a PR
-```
+1. Fork the repository
+2. Create a feature branch:
+   ```bash
+   git checkout -b feature/amazing-feature
+   ```
+3. Make your changes
+4. Run tests and ensure they pass:
+   ```bash
+   flutter test
+   flutter analyze
+   ```
+5. Commit your changes with a descriptive message:
+   ```bash
+   git commit -m "feat: add amazing feature"
+   ```
+6. Push to your fork and open a Pull Request
+
+### Code Style
+
+- Follow the [Dart Style Guide](https://dart.dev/guides/language/effective-dart/style)
+- Use meaningful variable and function names
+- Add comments for complex logic
+- Keep functions small and focused
+- Write tests for new features
 
 ---
 
