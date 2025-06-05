@@ -9,6 +9,8 @@ import 'package:rivo/features/feed/presentation/widgets/marketplace_post_card.da
 import 'package:rivo/features/wishlist/presentation/providers/wishlist_providers.dart';
 import 'package:rivo/features/products/presentation/providers/product_providers.dart';
 import 'package:rivo/features/auth/presentation/providers/auth_provider.dart';
+import 'package:rivo/core/presentation/widgets/app_button.dart';
+import 'package:rivo/l10n/app_localizations.dart';
 
 class FeedScreen extends ConsumerStatefulWidget {
   const FeedScreen({super.key});
@@ -189,9 +191,11 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
               const SizedBox(height: 16),
               Text('Error: $error', textAlign: TextAlign.center),
               const SizedBox(height: 16),
-              ElevatedButton(
+              const SizedBox(height: 16),
+              AppButton.primary(
                 onPressed: _loadInitialProducts,
-                child: const Text('Retry'),
+                label: AppLocalizations.of(context)!.retry,
+                fullWidth: false,
               ),
             ],
           ),
@@ -206,12 +210,16 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                 children: [
                   const Icon(Icons.inventory_2_outlined, size: 64, color: Colors.grey),
                   const SizedBox(height: 16),
-                  const Text('No products found', style: TextStyle(fontSize: 18)),
-                  const SizedBox(height: 8),
-                  TextButton.icon(
+                  Text(
+                    AppLocalizations.of(context)!.noProductsFound,
+                    style: const TextStyle(fontSize: 18),
+                  ),
+                  const SizedBox(height: 16),
+                  AppButton.secondary(
                     onPressed: () => AppNavigation.goToProductUpload(context),
-                    icon: const Icon(Icons.add),
-                    label: const Text('Add your first product'),
+                    label: AppLocalizations.of(context)!.addYourFirstProduct,
+                    icon: Icons.add,
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
                   ),
                 ],
               ),
@@ -228,9 +236,9 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                   backgroundColor: Colors.transparent,
                   elevation: 0,
                   floating: true,
-                  title: const Text(
-                    'Marketplace',
-                    style: TextStyle(
+                  title: Text(
+                    AppLocalizations.of(context)!.marketplace,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -238,24 +246,30 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                   ),
                   actions: [
                     IconButton(
-                      icon: const Icon(Icons.refresh, color: Colors.white, size: 28),
                       onPressed: _loadInitialProducts,
+                      icon: const Icon(Icons.refresh, color: Colors.white, size: 28),
+                      padding: const EdgeInsets.all(8),
+                      constraints: const BoxConstraints(),
                     ),
                     IconButton(
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(AppLocalizations.of(context)!.searchComingSoon)),
+                        );
+                      },
                       icon: const Icon(Icons.search, color: Colors.white, size: 28),
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Search functionality coming soon!')),
-                        );
-                      },
+                      padding: const EdgeInsets.all(8),
+                      constraints: const BoxConstraints(),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 28),
                       onPressed: () {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Cart is empty')),
+                          SnackBar(content: Text(AppLocalizations.of(context)!.cartIsEmpty)),
                         );
                       },
+                      icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 28),
+                      padding: const EdgeInsets.all(8),
+                      constraints: const BoxConstraints(),
                     ),
                     const SizedBox(width: 8),
                   ],
@@ -287,13 +301,17 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                             onMessage: () {
                               if (currentUserId == null) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Please sign in to message')),
+                                  SnackBar(content: Text(AppLocalizations.of(context)!.signInToMessage)),
                                 );
                                 return;
                               }
                               // TODO: Implement message functionality
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Messaging seller about ${product.title}')),
+                                SnackBar(
+                                  content: Text(
+                                    AppLocalizations.of(context)!.messagingSeller(product.title),
+                                  ),
+                                ),
                               );
                             },
                             onBuy: () {

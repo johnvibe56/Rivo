@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rivo/core/error/failures.dart' show NoInternetFailure, UnauthenticatedFailure;
 import 'package:rivo/features/follow/presentation/providers/follow_provider.dart';
+import 'package:rivo/core/presentation/widgets/app_button.dart';
+import 'package:rivo/l10n/app_localizations.dart';
 
 class FollowButton extends ConsumerStatefulWidget {
   final String sellerId;
@@ -48,72 +50,82 @@ class _FollowButtonState extends ConsumerState<FollowButton> {
       return _buildLoadingButton(context, isFollowing);
     }
     
-    return GestureDetector(
-      onTap: () => _toggleFollow(context, ref, isFollowing),
-      child: Container(
-        padding: widget.padding ??
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: isFollowing
-              ? Theme.of(context).colorScheme.surfaceContainerHighest
-              : Theme.of(context).colorScheme.primary,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isFollowing
-                ? Theme.of(context).colorScheme.outline.withAlpha(128) // 0.5 opacity
-                : Colors.transparent,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              isFollowing ? Icons.person_remove : Icons.person_add,
-              size: widget.iconSize,
-              color: isFollowing
-                  ? Theme.of(context).colorScheme.onSurfaceVariant
-                  : Theme.of(context).colorScheme.onPrimary,
-            ),
-            if (widget.showText) ...[
-              const SizedBox(width: 4),
-              Text(
-                isFollowing ? 'Following' : 'Follow',
-                style: TextStyle(
-                  color: isFollowing
-                      ? Theme.of(context).colorScheme.onSurfaceVariant
-                      : Theme.of(context).colorScheme.onPrimary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
+    final buttonVariant = isFollowing ? AppButtonVariant.secondary : AppButtonVariant.primary;
+    final label = isFollowing 
+        ? AppLocalizations.of(context)!.following 
+        : AppLocalizations.of(context)!.follow;
+    final icon = isFollowing ? Icons.person_remove : Icons.person_add;
+    
+    switch (buttonVariant) {
+      case AppButtonVariant.primary:
+        return AppButton.primary(
+          onPressed: () => _toggleFollow(context, ref, isFollowing),
+          label: label,
+          icon: icon,
+          padding: widget.padding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          height: 36,
+          borderRadius: 20,
+        );
+      case AppButtonVariant.secondary:
+        return AppButton.secondary(
+          onPressed: () => _toggleFollow(context, ref, isFollowing),
+          label: label,
+          icon: icon,
+          padding: widget.padding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          height: 36,
+          borderRadius: 20,
+        );
+      default:
+        return AppButton.primary(
+          onPressed: () => _toggleFollow(context, ref, isFollowing),
+          label: label,
+          icon: icon,
+          padding: widget.padding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          height: 36,
+          borderRadius: 20,
+        );
+    }
   }
 
   Widget _buildLoadingButton(BuildContext context, bool isFollowing) {
-    return Container(
-      padding: widget.padding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: isFollowing
-            ? Theme.of(context).colorScheme.surfaceContainerHighest
-            : Theme.of(context).colorScheme.primary.withAlpha(179),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: SizedBox(
-        width: widget.showText ? 90 : widget.size,
-        height: widget.size,
-        child: const Center(
-          child: SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-        ),
-      ),
-    );
+    final buttonVariant = isFollowing ? AppButtonVariant.secondary : AppButtonVariant.primary;
+    final label = isFollowing 
+        ? AppLocalizations.of(context)!.following 
+        : AppLocalizations.of(context)!.follow;
+    final icon = isFollowing ? Icons.person_remove : Icons.person_add;
+    
+    switch (buttonVariant) {
+      case AppButtonVariant.primary:
+        return AppButton.primary(
+          onPressed: null,
+          label: label,
+          icon: icon,
+          isLoading: true,
+          padding: widget.padding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          height: 36,
+          borderRadius: 20,
+        );
+      case AppButtonVariant.secondary:
+        return AppButton.secondary(
+          onPressed: null,
+          label: label,
+          icon: icon,
+          isLoading: true,
+          padding: widget.padding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          height: 36,
+          borderRadius: 20,
+        );
+      default:
+        return AppButton.primary(
+          onPressed: null,
+          label: label,
+          icon: icon,
+          isLoading: true,
+          padding: widget.padding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          height: 36,
+          borderRadius: 20,
+        );
+    }
   }
 
   Future<void> _toggleFollow(
@@ -129,6 +141,7 @@ class _FollowButtonState extends ConsumerState<FollowButton> {
     
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final repository = ref.read(followRepositoryProvider);
+    final l10n = AppLocalizations.of(context)!;
     
     try {
       // Perform the follow/unfollow action
@@ -142,8 +155,8 @@ class _FollowButtonState extends ConsumerState<FollowButton> {
           // Show success message
           if (context.mounted) {
             final message = isCurrentlyFollowing 
-                ? 'You have unfollowed this seller' 
-                : 'You are now following this seller';
+                ? l10n.unfollowedSeller 
+                : l10n.followedSeller;
                 
             scaffoldMessenger.showSnackBar(
               SnackBar(
@@ -192,8 +205,8 @@ class _FollowButtonState extends ConsumerState<FollowButton> {
                   SnackBar(
                     content: Text(
                       error is NoInternetFailure 
-                          ? 'No internet connection' 
-                          : 'Please sign in to continue',
+                          ? l10n.noInternetConnection
+                          : l10n.pleaseSignInToContinue,
                     ),
                     backgroundColor: Colors.orange,
                     behavior: SnackBarBehavior.floating,

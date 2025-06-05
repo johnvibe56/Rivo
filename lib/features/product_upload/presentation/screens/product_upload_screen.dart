@@ -1,10 +1,19 @@
+import 'dart:async';
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:rivo/core/error/error_boundary.dart';
 import 'package:rivo/core/navigation/app_navigation.dart';
+import 'package:rivo/core/presentation/widgets/app_button.dart';
+import 'package:rivo/features/product_upload/domain/validators/product_form_validator.dart';
 import 'package:rivo/features/product_upload/presentation/providers/product_upload_provider.dart';
-import 'package:rivo/features/product_upload/presentation/widgets/image_picker_widget.dart';
+import 'package:rivo/features/product_upload/presentation/widgets/upload_form_fields.dart';
+import 'package:rivo/features/product_upload/presentation/widgets/upload_states.dart';
+import 'package:rivo/l10n/app_localizations.dart';
+
+enum UploadState { initial, loading, success, error }
 
 class ProductUploadScreen extends ConsumerStatefulWidget {
   const ProductUploadScreen({super.key});
@@ -18,204 +27,228 @@ class _ProductUploadScreenState extends ConsumerState<ProductUploadScreen> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _priceController = TextEditingController();
+  final _debounceTimer = <String, Timer>{};
+  
   File? _imageFile;
-  final ImagePicker _picker = ImagePicker();
-
-  Future<void> _pickImage(ImageSource source) async {
-    try {
-      final XFile? pickedFile = await _picker.pickImage(source: source);
-      if (pickedFile != null) {
-        setState(() {
-          _imageFile = File(pickedFile.path);
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to pick image: ${e.toString()}')),
-        );
-      }
-    }
-  }
-
-  void _removeImage() => setState(() => _imageFile = null);
-
-  Future<void> _submitForm() async {
-    if (!_formKey.currentState!.validate()) return;
-    if (_imageFile == null) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select an image')),
-        );
-      }
-      return;
-    }
-
-    final productData = {
-      'title': _titleController.text.trim(),
-      'description': _descriptionController.text.trim(),
-      'price': double.parse(_priceController.text.trim()),
-      'image_file': _imageFile!,
-    };
-
-    final success = await ref.read(productUploadProvider.notifier).uploadProduct(productData);
-
-    if (success && mounted) {
-      _formKey.currentState!.reset();
-      setState(() => _imageFile = null);
-      if (mounted) {
-        AppNavigation.goToFeed(context);
-      }
-    }
-  }
+  UploadState _uploadState = UploadState.initial;
+  String? _errorMessage;
 
   @override
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
     _priceController.dispose();
+    for (final timer in _debounceTimer.values) {
+      timer.cancel();
+    }
+    _debounceTimer.clear();
     super.dispose();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Show error message if there is one
-    final state = ref.watch(productUploadProvider);
-    if (state.error != null && state.error!.isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${state.error}'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
+  void _onTitleChanged(String value) {
+    _debounceField('title', value, () {
+      if (_formKey.currentState?.validate() ?? false) {
+        // Field is valid, update state if needed
+      }
+    });
+  }
+
+  void _onDescriptionChanged(String value) {
+    _debounceField('description', value, () {
+      if (_formKey.currentState?.validate() ?? false) {
+        // Field is valid, update state if needed
+      }
+    });
+  }
+
+  void _onPriceChanged(String value) {
+    _debounceField('price', value, () {
+      if (_formKey.currentState?.validate() ?? false) {
+        // Field is valid, update state if needed
+      }
+    });
+  }
+
+  void _debounceField(String field, String value, VoidCallback callback) {
+    _debounceTimer[field]?.cancel();
+    _debounceTimer[field] = Timer(const Duration(milliseconds: 500), callback);
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final pickedFile = await ImagePicker().pickImage(
+        source: source,
+        imageQuality: 85,
+      );
+      
+      if (pickedFile != null && mounted) {
+        setState(() => _imageFile = File(pickedFile.path));
+      }
+    } catch (e) {
+      if (mounted) {
+        _showErrorSnackBar('${AppLocalizations.of(context)!.failedToPickImage}: $e');
+      }
+    }
+  }
+
+  void _removeImage() {
+    setState(() => _imageFile = null);
+  }
+
+  bool _validateForm() {
+    if (_formKey.currentState?.validate() != true) {
+      setState(() {}); // Trigger validation
+      return false;
+    }
+    
+    final imageError = ProductFormValidator.validateImage(_imageFile, context);
+    if (imageError != null) {
+      _showErrorSnackBar(imageError);
+      return false;
+    }
+    
+    return true;
+  }
+
+  Future<void> _submitForm() async {
+    if (!_validateForm()) return;
+    
+    setState(() {
+      _uploadState = UploadState.loading;
+      _errorMessage = null;
+    });
+
+    try {
+      final productData = {
+        'title': _titleController.text.trim(),
+        'description': _descriptionController.text.trim(),
+        'price': double.parse(_priceController.text.trim()),
+        'image_file': _imageFile!,
+      };
+
+      final success = await ref
+          .read(productUploadProvider.notifier)
+          .uploadProduct(productData);
+
+      if (!mounted) return;
+
+      if (success) {
+        setState(() => _uploadState = UploadState.success);
+      } else {
+        throw Exception(AppLocalizations.of(context)!.uploadFailed);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _uploadState = UploadState.error;
+        _errorMessage = e.toString().replaceAll('Exception: ', '');
       });
     }
   }
 
+  void _resetForm() {
+    _formKey.currentState?.reset();
+    setState(() {
+      _imageFile = null;
+      _uploadState = UploadState.initial;
+      _errorMessage = null;
+    });
+  }
+
+  void _navigateToFeed() {
+    if (mounted) {
+      AppNavigation.goToFeed(context);
+    }
+  }
+
+  void _showErrorSnackBar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Theme.of(context).colorScheme.error,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(productUploadProvider);
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final isSubmitting = _uploadState == UploadState.loading;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Add New Product'),
-        actions: [
-          if (state.isLoading)
-            const Padding(
-              padding: EdgeInsets.only(right: 16.0),
-              child: Center(
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              ),
-            ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Image Picker
-              ImagePickerWidget(
-                imageFile: _imageFile,
-                onImageSelected: _pickImage,
-                onRemoveImage: _imageFile != null ? _removeImage : null,
-              ),
-              const SizedBox(height: 24),
-
-              // Title Field
-              TextFormField(
-                controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Title',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a title';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Description Field
-              TextFormField(
-                controller: _descriptionController,
-                decoration: const InputDecoration(
-                  labelText: 'Description',
-                  border: OutlineInputBorder(),
-                  alignLabelWithHint: true,
-                ),
-                maxLines: 3,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a description';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Price Field
-              TextFormField(
-                controller: _priceController,
-                decoration: const InputDecoration(
-                  labelText: 'Price',
-                  border: OutlineInputBorder(),
-                  prefixText: '\$ ',
-                ),
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a price';
-                  }
-                  final price = double.tryParse(value);
-                  if (price == null || price <= 0) {
-                    return 'Please enter a valid price';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 32),
-
-              // Submit Button
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: state.isLoading ? null : _submitForm,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+    return ErrorBoundary(
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(l10n.addNewProduct),
+          actions: [
+            if (isSubmitting)
+              const Padding(
+                padding: EdgeInsetsDirectional.only(end: 16.0),
+                child: Center(
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
                   ),
-                  child: state.isLoading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                      : const Text(
-                          'Upload Product',
-                          style: TextStyle(fontSize: 16),
-                        ),
                 ),
               ),
-            ],
-          ),
+          ],
         ),
+        body: _buildBody(theme, l10n, isSubmitting),
+      ),
+    );
+  }
+
+  Widget _buildBody(ThemeData theme, AppLocalizations l10n, bool isSubmitting) {
+    switch (_uploadState) {
+      case UploadState.loading:
+        return const UploadLoadingWidget();
+      case UploadState.success:
+        return UploadSuccessWidget(
+          onContinueShopping: _navigateToFeed,
+          onViewProduct: () {
+            // TODO: Navigate to the uploaded product
+            _navigateToFeed();
+          },
+        );
+      case UploadState.error:
+        return UploadErrorWidget(
+          errorMessage: _errorMessage ?? l10n.somethingWentWrong,
+          onRetry: _submitForm,
+          onCancel: _resetForm,
+        );
+      case UploadState.initial:
+        return _buildForm(theme, l10n, isSubmitting);
+    }
+  }
+
+  Widget _buildForm(ThemeData theme, AppLocalizations l10n, bool isSubmitting) {
+    return SingleChildScrollView(
+      padding: const EdgeInsetsDirectional.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          UploadFormFields(
+            titleController: _titleController,
+            descriptionController: _descriptionController,
+            priceController: _priceController,
+            imageFile: _imageFile,
+            isSubmitting: isSubmitting,
+            onTitleChanged: _onTitleChanged,
+            onDescriptionChanged: _onDescriptionChanged,
+            onPriceChanged: _onPriceChanged,
+            onImageSelected: _pickImage,
+            onImageRemoved: _removeImage,
+          ),
+          const SizedBox(height: 24),
+          AppButton.primary(
+            onPressed: isSubmitting ? null : _submitForm,
+            label: l10n.uploadProduct,
+            isLoading: isSubmitting,
+            fullWidth: true,
+          ),
+        ],
       ),
     );
   }

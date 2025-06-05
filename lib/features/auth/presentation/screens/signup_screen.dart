@@ -7,6 +7,8 @@ import 'dart:async';
 
 import 'package:rivo/features/auth/utils/validators.dart';
 import 'package:rivo/features/user_profile/presentation/providers/user_profile_providers.dart';
+import 'package:rivo/core/presentation/widgets/app_button.dart';
+import 'package:rivo/l10n/app_localizations.dart';
 
 // Form field keys
 const _kNameFieldKey = Key('name');
@@ -36,7 +38,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   // Debounce for username availability check
   Timer? _usernameDebounce;
 
-  bool _isLoading = false;
+  bool _isCreatingAccount = false;
   bool _isGoogleLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -138,7 +140,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     setState(() {
-      _isLoading = true;
+      _isCreatingAccount = true;
       _errorMessage = null;
     });
 
@@ -202,7 +204,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       }
     } finally {
       if (mounted) {
-        setState(() => _isLoading = false);
+        setState(() => _isCreatingAccount = false);
       }
     }
   }
@@ -260,7 +262,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      'Create an Account',
+                      AppLocalizations.of(context)!.createAnAccount,
                       style: textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -268,7 +270,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Fill in your details to get started',
+                      AppLocalizations.of(context)!.fillInYourDetails,
                       style: textTheme.bodyLarge?.copyWith(
                         color: theme.hintColor,
                       ),
@@ -311,8 +313,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   key: _kNameFieldKey,
                   controller: _nameController,
                   decoration: InputDecoration(
-                    labelText: 'Full Name',
-                    hintText: 'Enter your full name',
+                    labelText: AppLocalizations.of(context)!.fullName,
+                    hintText: AppLocalizations.of(context)!.enterYourFullName,
                     prefixIcon: const Icon(Icons.person_outline),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -330,8 +332,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   key: _kUsernameFieldKey,
                   controller: _usernameController,
                   decoration: InputDecoration(
-                    labelText: 'Username',
-                    hintText: 'Choose a username',
+                    labelText: AppLocalizations.of(context)!.username,
+                    hintText: AppLocalizations.of(context)!.chooseAUsername,
                     prefixIcon: const Icon(Icons.alternate_email_rounded),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -345,28 +347,36 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                           icon: const Icon(Icons.search),
                           onPressed: () async {
                             final scaffoldMessenger = ScaffoldMessenger.of(context);
+                            // Store context and localizations before async gap
+                            final currentContext = context;
+                            final availableText = AppLocalizations.of(currentContext)!.usernameAvailable;
+                            final takenText = AppLocalizations.of(currentContext)!.usernameTaken;
+                            final errorText = AppLocalizations.of(currentContext)!.errorCheckingUsername;
+                            
                             try {
                               final isAvailable = await ref.read(userProfileRepositoryProvider).isUsernameAvailable(value.text);
                               if (!mounted) return;
                               
-                              scaffoldMessenger.showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    isAvailable 
-                                      ? 'Username is available!'
-                                      : 'This username is already taken',
+                              if (scaffoldMessenger.mounted) {
+                                scaffoldMessenger.showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      isAvailable ? availableText : takenText,
+                                    ),
+                                    backgroundColor: isAvailable ? AppColors.success : AppColors.error,
                                   ),
-                                  backgroundColor: isAvailable ? AppColors.success : AppColors.error,
-                                ),
-                              );
+                                );
+                              }
                             } catch (e) {
                               if (!mounted) return;
-                              scaffoldMessenger.showSnackBar(
-                                const SnackBar(
-                                  content: Text('Error checking username availability'),
-                                  backgroundColor: AppColors.error,
-                                ),
-                              );
+                              if (scaffoldMessenger.mounted) {
+                                scaffoldMessenger.showSnackBar(
+                                  SnackBar(
+                                    content: Text(errorText),
+                                    backgroundColor: AppColors.error,
+                                  ),
+                                );
+                              }
                             }
                           },
                         );
@@ -384,8 +394,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   key: _kEmailFieldKey,
                   controller: _emailController,
                   decoration: InputDecoration(
-                    labelText: 'Email',
-                    hintText: 'Enter your email',
+                    labelText: AppLocalizations.of(context)!.email,
+                    hintText: AppLocalizations.of(context)!.enterYourEmail,
                     prefixIcon: const Icon(Icons.email_outlined),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -404,8 +414,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   key: _kPasswordFieldKey,
                   controller: _passwordController,
                   decoration: InputDecoration(
-                    labelText: 'Password',
-                    hintText: 'Create a strong password',
+                    labelText: AppLocalizations.of(context)!.password,
+                    hintText: AppLocalizations.of(context)!.createAStrongPassword,
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
@@ -436,8 +446,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   key: _kConfirmPasswordFieldKey,
                   controller: _confirmPasswordController,
                   decoration: InputDecoration(
-                    labelText: 'Confirm Password',
-                    hintText: 'Re-enter your password',
+                    labelText: AppLocalizations.of(context)!.confirmPassword,
+                    hintText: AppLocalizations.of(context)!.reEnterYourPassword,
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
@@ -464,24 +474,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 const SizedBox(height: 24),
 
                 // Sign up button
-                FilledButton(
-                  onPressed: _isLoading ? null : _submit,
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                      : const Text('Create Account'),
+                AppButton.primary(
+                  onPressed: _isCreatingAccount ? null : _submit,
+                  label: AppLocalizations.of(context)!.createAccount,
+                  isLoading: _isCreatingAccount,
+                  fullWidth: true,
                 ),
                 const SizedBox(height: 24),
 
@@ -504,26 +501,13 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 const SizedBox(height: 24),
 
                 // Google sign in button
-                OutlinedButton.icon(
-                  onPressed: _isGoogleLoading ? null : _signInWithGoogle,
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    side: BorderSide(color: theme.dividerColor),
-                  ),
-                  icon: _isGoogleLoading
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(
-                          Icons.g_mobiledata_rounded,
-                          size: 28,
-                        ),
-                  label: const Text('Continue with Google'),
+                AppButton.secondary(
+                  onPressed: (_isCreatingAccount || _isGoogleLoading) ? null : _signInWithGoogle,
+                  label: AppLocalizations.of(context)!.continueWithGoogle,
+                  icon: Icons.g_mobiledata,
+                  fullWidth: true,
+                  isLoading: _isGoogleLoading,
+                  enableHapticFeedback: true,
                 ),
                 const SizedBox(height: 32),
 
@@ -532,27 +516,47 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Already have an account? ',
+                      AppLocalizations.of(context)!.alreadyHaveAnAccount,
                       style: textTheme.bodyLarge,
                     ),
-                    TextButton(
-                      onPressed: _isLoading || _isGoogleLoading
+                    AppButton.text(
+                      onPressed: (_isCreatingAccount || _isGoogleLoading)
                           ? null
-                          : () => context.push('/login'),
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                        minimumSize: const Size(50, 36),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      child: const Text('Sign In'),
+                          : () => context.go('/login'),
+                      label: AppLocalizations.of(context)!.signIn,
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
                     ),
                   ],
                 ),
                 const SizedBox(height: 24),
 
                 // Terms and privacy notice
-                Text(
-                  'By creating an account, you agree to our Terms of Service and acknowledge that you have read our Privacy Policy.',
+                Text.rich(
+                  TextSpan(
+                    text: '${AppLocalizations.of(context)!.byCreatingAnAccount} ',
+                    children: [
+                      TextSpan(
+                        text: AppLocalizations.of(context)!.termsOfService,
+                        style: TextStyle(
+                          color: theme.primaryColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        // Add onTap handler for terms of service
+                      ),
+                      const TextSpan(text: ' '),
+                      TextSpan(text: AppLocalizations.of(context)!.and),
+                      const TextSpan(text: ' '),
+                      TextSpan(
+                        text: AppLocalizations.of(context)!.privacyPolicy,
+                        style: TextStyle(
+                          color: theme.primaryColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        // Add onTap handler for privacy policy
+                      ),
+                      const TextSpan(text: '.'),
+                    ],
+                  ),
                   style: textTheme.bodySmall?.copyWith(
                     color: theme.hintColor,
                   ),

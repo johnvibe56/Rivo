@@ -7,8 +7,9 @@ import 'package:rivo/features/auth/presentation/providers/auth_provider.dart';
 import 'package:rivo/features/products/presentation/providers/delete_product_provider.dart';
 import 'package:rivo/features/products/presentation/widgets/product_card.dart';
 import 'package:rivo/features/user_profile/presentation/providers/user_profile_providers.dart';
-import 'package:rivo/features/user_profile/presentation/screens/edit_profile_screen.dart';
 import 'package:rivo/features/user_profile/presentation/widgets/profile_header.dart';
+import 'package:rivo/core/presentation/widgets/app_button.dart';
+import 'package:rivo/l10n/app_localizations.dart';
 
 class UserProfileScreen extends ConsumerStatefulWidget {
   final String? userId;
@@ -71,9 +72,11 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
   Future<void> _signOut() async {
     if (!_isMounted) return;
     final navigatorContext = context;
+    final errorMessage = AppLocalizations.of(navigatorContext)!.errorSigningOut;
     
     try {
-      await ref.read(authControllerProvider).signOut();
+      final authController = ref.read(authControllerProvider);
+      await authController.signOut();
       if (!_isMounted) return;
       if (navigatorContext.mounted) {
         navigatorContext.go('/login');
@@ -82,7 +85,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
       debugPrint('Error signing out: $e');
       if (_isMounted && navigatorContext.mounted) {
         ScaffoldMessenger.of(navigatorContext).showSnackBar(
-          const SnackBar(content: Text('Error signing out')),
+          SnackBar(content: Text(errorMessage)),
         );
       }
     }
@@ -99,8 +102,10 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
   Future<void> _deleteProduct(BuildContext context, String productId) async {
     if (!_isMounted) return;
     
-    // Store the context before async gap
+    // Store the context and localizations before async gap
     final currentContext = context;
+    final productDeletedMsg = AppLocalizations.of(currentContext)!.productDeleted;
+    final failedToDeleteMsg = AppLocalizations.of(currentContext)!.failedToDeleteProduct;
     
     try {
       final success = await ref.read(deleteProductNotifierProvider.notifier).deleteProduct(productId);
@@ -112,18 +117,18 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
         
         if (_isMounted && currentContext.mounted) {
           ScaffoldMessenger.of(currentContext).showSnackBar(
-            const SnackBar(content: Text('Product deleted')),
+            SnackBar(content: Text(productDeletedMsg)),
           );
         }
       } else if (_isMounted && currentContext.mounted) {
         ScaffoldMessenger.of(currentContext).showSnackBar(
-          const SnackBar(content: Text('Failed to delete product')),
+          SnackBar(content: Text(failedToDeleteMsg)),
         );
       }
     } catch (e) {
       if (_isMounted && currentContext.mounted) {
         ScaffoldMessenger.of(currentContext).showSnackBar(
-          const SnackBar(content: Text('An error occurred while deleting the product')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.errorDeletingProduct)),
         );
       }
     }
@@ -138,17 +143,16 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
     final shouldDelete = await showDialog<bool>(
       context: currentContext,
       builder: (BuildContext dialogContext) => AlertDialog(
-        title: const Text('Delete Product'),
-        content: const Text('Are you sure you want to delete this product? This action cannot be undone.'),
+        title: Text(AppLocalizations.of(context)!.deleteProduct),
+        content: Text(AppLocalizations.of(context)!.confirmDeleteProduct),
         actions: [
-          TextButton(
+          AppButton.text(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
+            label: AppLocalizations.of(context)!.cancel,
           ),
-          TextButton(
+          AppButton.danger(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            label: AppLocalizations.of(context)!.delete,
           ),
         ],
       ),
@@ -163,31 +167,23 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
   }
 
   Future<void> _navigateToEditProfile(BuildContext context) async {
-    if (!_isMounted) return;
+    if (!mounted) return;
     
-    // Store the context before async gap
+    // Store context and localizations before async gap
     final currentContext = context;
+    final errorMessage = AppLocalizations.of(currentContext)!.failedToOpenEditProfile;
     
     try {
-      // Get the navigator before the async gap
-      final navigator = Navigator.of(currentContext, rootNavigator: true);
-      
-      // Navigate and wait for the result
-      final result = await navigator.push<bool>(
-        MaterialPageRoute<bool>(
-          builder: (BuildContext context) => const EditProfileScreen(),
-        ),
-      );
-      
-      // If we got a result and the widget is still mounted, refresh the data
-      if (_isMounted && result == true) {
-        await _loadData();
+      final result = await currentContext.push<bool>('/edit-profile');
+      if (result == true && mounted) {
+        // Refresh user data after editing profile
+        _loadData();
       }
     } catch (e) {
-      // Use the scaffold key to show the snackbar without context
-      if (_isMounted && _scaffoldKey.currentState != null) {
-        _scaffoldKey.currentState!.showSnackBar(
-          const SnackBar(content: Text('Failed to open edit profile')),
+      debugPrint('Error navigating to edit profile: $e');
+      if (mounted && currentContext.mounted) {
+        ScaffoldMessenger.of(currentContext).showSnackBar(
+          SnackBar(content: Text(errorMessage)),
         );
       }
     }
@@ -217,7 +213,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
         if (_isMounted && context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(next.errorMessage ?? 'Failed to delete product'),
+              content: Text(next.errorMessage ?? AppLocalizations.of(context)!.failedToDeleteProduct),
               backgroundColor: Colors.red,
             ),
           );
@@ -239,26 +235,28 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
           builder: (BuildContext context) {
             return Scaffold(
               appBar: AppBar(
-                title: Text(isCurrentUser ? 'My Profile' : 'Profile'),
+                title: Text(isCurrentUser 
+                    ? AppLocalizations.of(context)!.myProfile 
+                    : AppLocalizations.of(context)!.profile),
                 actions: [
                   if (isCurrentUser) ...[
                     IconButton(
                       icon: const Icon(Icons.shopping_bag_outlined),
-                      onPressed: () {
-                        // Navigate to purchase history screen
-                        context.go('/purchases');
-                      },
-                      tooltip: 'My Purchases',
+                      onPressed: () => context.go('/purchases'),
+                      tooltip: AppLocalizations.of(context)!.myPurchases,
+                      padding: const EdgeInsets.all(8),
                     ),
                     IconButton(
                       icon: const Icon(Icons.edit),
                       onPressed: () => _navigateToEditProfile(context),
-                      tooltip: 'Edit Profile',
+                      tooltip: AppLocalizations.of(context)!.editProfile,
+                      padding: const EdgeInsets.all(8),
                     ),
                     IconButton(
                       icon: const Icon(Icons.logout),
                       onPressed: _signOut,
-                      tooltip: 'Sign Out',
+                      tooltip: AppLocalizations.of(context)!.signOut,
+                      padding: const EdgeInsets.all(8),
                     ),
                   ],
                 ],
@@ -281,8 +279,8 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                     ),
                     userProductsAsync.when(
                       data: (products) => products.isEmpty
-                          ? const SliverFillRemaining(
-                              child: Center(child: Text('No products found')),
+                          ? SliverFillRemaining(
+                              child: Center(child: Text(AppLocalizations.of(context)!.noProductsFound)),
                             )
                           : SliverPadding(
                               padding: const EdgeInsets.all(16.0),
@@ -322,11 +320,13 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Text('Failed to load products'),
+                              Text(AppLocalizations.of(context)!.failedToLoadProducts),
                               const SizedBox(height: 16),
-                              ElevatedButton(
+                              AppButton.secondary(
                                 onPressed: () => _loadUserProducts(profileUserId, forceRefresh: true),
-                                child: const Text('Retry'),
+                                label: AppLocalizations.of(context)!.retry,
+                                height: 40,
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                               ),
                             ],
                           ),
@@ -339,6 +339,9 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
               floatingActionButton: isCurrentUser
                   ? FloatingActionButton(
                       onPressed: () => context.go('/sell'),
+                      elevation: 4,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
                       child: const Icon(Icons.add),
                     )
                   : null,
@@ -357,11 +360,13 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text('Failed to load profile'),
+                Text(AppLocalizations.of(context)!.failedToLoadProfile),
                 const SizedBox(height: 16),
-                ElevatedButton(
+                AppButton.secondary(
                   onPressed: _loadData,
-                  child: const Text('Retry'),
+                  label: AppLocalizations.of(context)!.retry,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  height: 36,
                 ),
               ],
             ),

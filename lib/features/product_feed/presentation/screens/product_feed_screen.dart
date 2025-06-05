@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rivo/features/product_feed/domain/models/product_feed_state.dart';
 import 'package:rivo/features/product_feed/presentation/providers/product_feed_provider.dart';
 import 'package:rivo/features/products/presentation/widgets/product_card.dart';
+import 'package:rivo/core/presentation/widgets/app_button.dart';
+import 'package:rivo/l10n/app_localizations.dart';
 
 class ProductFeedScreen extends ConsumerStatefulWidget {
   const ProductFeedScreen({super.key});
@@ -67,11 +69,12 @@ class _ProductFeedScreenState extends ConsumerState<ProductFeedScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Product Feed'),
+        title: Text(AppLocalizations.of(context)!.productFeed),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _onRefresh,
+            tooltip: AppLocalizations.of(context)!.refresh,
           ),
         ],
       ),
@@ -88,7 +91,7 @@ class _ProductFeedScreenState extends ConsumerState<ProductFeedScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Error loading products',
+              AppLocalizations.of(context)!.errorLoadingProducts,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
@@ -98,11 +101,11 @@ class _ProductFeedScreenState extends ConsumerState<ProductFeedScreen> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
-            ElevatedButton(
+            AppButton.secondary(
               onPressed: () => ref
                   .read(productFeedNotifierProvider.notifier)
                   .loadInitialProducts(),
-              child: const Text('Retry'),
+              label: AppLocalizations.of(context)!.retry,
             ),
           ],
         ),
@@ -112,7 +115,7 @@ class _ProductFeedScreenState extends ConsumerState<ProductFeedScreen> {
 
   Widget _buildProductGrid(ProductFeedState state) {
     if (state.products.isEmpty && state.status == ProductFeedStatus.success) {
-      return const Center(child: Text('No products found'));
+      return Center(child: Text(AppLocalizations.of(context)!.noProductsFound));
     }
 
     return RefreshIndicator(

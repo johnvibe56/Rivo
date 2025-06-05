@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
 import 'loading_indicator.dart';
-import 'rivo_button.dart';
+import '../presentation/widgets/app_button.dart';
 
 class EmptyState extends StatelessWidget {
   final String title;
@@ -93,11 +93,9 @@ class EmptyState extends StatelessWidget {
               ],
               if (buttonText != null && onButtonPressed != null) ...[
                 const SizedBox(height: 24.0),
-                RivoButton(
-                  text: buttonText!,
+                AppButton.primary(
+                  label: buttonText!,
                   onPressed: onButtonPressed,
-                  isExpanded: false,
-                  variant: RivoButtonVariant.primary,
                 ),
               ],
             ],

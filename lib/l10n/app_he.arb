@@ -16,6 +16,46 @@
   "@welcome": {
     "description": "Welcome message"
   },
+  "welcomeToRivo": "ברוכים הבאים לריבו",
+  "@welcomeToRivo": {
+    "description": "Welcome message on the first onboarding screen"
+  },
+  "onboardingWelcomeDescription": "גלה מוצרים מדהימים והתחבר למוכרים באזורך",
+  "@onboardingWelcomeDescription": {
+    "description": "Description text on the first onboarding screen"
+  },
+  "onboardingBuySellTitle": "קנה ומכור בקלות",
+  "@onboardingBuySellTitle": {
+    "description": "Title for the second onboarding screen"
+  },
+  "onboardingBuySellDescription": "פרסם פריטים למכירה או מצא עסקאות מעולות בסביבתך",
+  "@onboardingBuySellDescription": {
+    "description": "Description text for the second onboarding screen"
+  },
+  "onboardingSafeTitle": "בטוח ומאובטח",
+  "@onboardingSafeTitle": {
+    "description": "Title for the third onboarding screen"
+  },
+  "onboardingSafeDescription": "צ'וטט עם מוכרים וקונים בסביבה מאובטחת",
+  "@onboardingSafeDescription": {
+    "description": "Description text for the third onboarding screen"
+  },
+  "skip": "דלג",
+  "@skip": {
+    "description": "Button to skip the onboarding process"
+  },
+  "next": "הבא",
+  "@next": {
+    "description": "Button to go to the next onboarding screen"
+  },
+  "getStarted": "התחל עכשיו",
+  "@getStarted": {
+    "description": "Button to finish onboarding and proceed to the app"
+  },
+  "alreadyHaveAnAccountSignIn": "כבר יש לך חשבון? היכנס",
+  "@alreadyHaveAnAccountSignIn": {
+    "description": "Text and link to sign in for existing users"
+  },
   "products": "מוצרים",
   "@products": {
     "description": "Products section title"
@@ -39,5 +79,1237 @@
   "hebrew": "עברית",
   "@hebrew": {
     "description": "Hebrew language option"
+  },
+  "validationRequired": "שדה חובה",
+  "@validationRequired": {
+    "description": "Error message when a required field is empty"
+  },
+  "validationEmailInvalid": "נא להזין כתובת אימייל תקינה",
+  "@validationEmailInvalid": {
+    "description": "Error message when an invalid email is entered"
+  },
+  "validationPasswordTooShort": "הסיסמה חייבת להכיל לפחות 8 תווים",
+  "validationBioTooLong": "הביוגרפיה לא יכולה להכיל יותר מ-200 תווים",
+  "@validationBioTooLong": {
+    "description": "Error message when bio exceeds maximum length"
+  },
+  "unsavedChanges": "יש לך שינויים שלא נשמרו",
+  "@unsavedChanges": {
+    "description": "Warning message when there are unsaved changes"
+  },
+  "discardChangesConfirmation": "לבטל את השינויים?",
+  "@discardChangesConfirmation": {
+    "description": "Confirmation dialog title when discarding changes"
+  },
+  "selectImage": "בחר תמונה",
+  "@selectImage": {
+    "description": "Label for the button to select an image"
+  },
+  "@validationPasswordTooShort": {
+    "description": "Error message when password is too short"
+  },
+  "validationUsernameTooShort": "שם המשתמש חייב להכיל לפחות 3 תווים",
+  "@validationUsernameTooShort": {
+    "description": "Error message when username is too short"
+  },
+  "validationUsernameInvalid": "שם משתמש יכול להכיל רק אותיות, מספרים וקו תחתון",
+  "@validationUsernameInvalid": {
+    "description": "Error message when username contains invalid characters"
+  },
+  "validationPriceInvalid": "נא להזין מחיר תקין (לדוגמה: 10.99)",
+  "@validationPriceInvalid": {
+    "description": "Error message when an invalid price is entered"
+  },
+  "continueWithGoogle": "המשך עם גוגל",
+  "@continueWithGoogle": {
+    "description": "Text for Google sign in button"
+  },
+  "signIn": "התחברות",
+  "@signIn": {
+    "description": "Text for sign in button"
+  },
+  "forgotPassword": "שכחת סיסמה?",
+  "@forgotPassword": {
+    "description": "Text for forgot password link"
+  },
+  "dontHaveAnAccount": "אין לך חשבון? ",
+  "@dontHaveAnAccount": {
+    "description": "Text before sign up link"
+  },
+  "signUp": "הרשמה",
+  "@signUp": {
+    "description": "Text for sign up link"
+  },
+  "createAccount": "צור חשבון",
+  "@createAccount": {
+    "description": "Text for create account button"
+  },
+  "alreadyHaveAnAccount": "כבר יש לך חשבון? ",
+  "@alreadyHaveAnAccount": {
+    "description": "Text before sign in link"
+  },
+  "noAccountFoundWithEmail": "לא נמצא חשבון עם כתובת האימייל הזו.",
+  "@noAccountFoundWithEmail": {
+    "description": "Error message when no account is found with the provided email"
+  },
+  "networkError": "שגיאת רשת. אנא בדוק את החיבור האינטרנטי שלך ונסה שוב.",
+  "@networkError": {
+    "description": "Error message when a network error occurs"
+  },
+  "sendResetLink": "שלח קישור לאיפוס סיסמה",
+  "@sendResetLink": {
+    "description": "Text for send reset link button"
+  },
+  "checkYourEmail": "בדוק את האימייל שלך",
+  "@checkYourEmail": {
+    "description": "Title shown after password reset email is sent"
+  },
+  "resetPasswordEmailSent": "שלחנו לך אימייל עם קישור לאיפוס הסיסמה שלך. אנא בדוק את תיבת הדואר הנכנס ופעל לפי ההוראות.",
+  "@resetPasswordEmailSent": {
+    "description": "Message shown after password reset email is sent"
+  },
+  "backToSignIn": "חזור להתחברות",
+  "@backToSignIn": {
+    "description": "Text for back to sign in button"
+  },
+  "productFeed": "פיד מוצרים",
+  "@productFeed": {
+    "description": "Title for the product feed screen"
+  },
+  "refresh": "רענון",
+  "@refresh": {
+    "description": "Tooltip text for refresh button"
+  },
+  "errorLoadingProducts": "שגיאה בטעינת מוצרים",
+  "@errorLoadingProducts": {
+    "description": "Error message when products fail to load"
+  },
+  "retry": "נסה שוב",
+  "@retry": {
+    "description": "Button label to retry an action"
+  },
+  "productDetails": "פרטי מוצר",
+  "@productDetails": {
+    "description": "Title for the product details screen"
+  },
+  "productNoLongerAvailable": "המוצר הזה כבר לא זמין",
+  "@productNoLongerAvailable": {
+    "description": "Message shown when a product is no longer available"
+  },
+  "productNoLongerExists": "המוצר הזה כבר לא קיים",
+  "@productNoLongerExists": {
+    "description": "Message shown when a product doesn't exist"
+  },
+  "failedToLoadProduct": "נכשל בטעינת פרטי המוצר",
+  "@failedToLoadProduct": {
+    "description": "Error message when product details fail to load"
+  },
+  "unexpectedError": "אירעה שגיאה בלתי צפויה",
+  "@unexpectedError": {
+    "description": "Generic error message"
+  },
+  "description": "תיאור",
+  "@description": {
+    "description": "Label for product description"
+  },
+  "sellerInformation": "מידע על המוכר",
+  "@sellerInformation": {
+    "description": "Label for seller information section"
+  },
+  "chat": "צ'אט",
+  "@chat": {
+    "description": "Label for chat button"
+  },
+  "editProfile": "ערוך פרופיל",
+  "@editProfile": {
+    "description": "Title for the edit profile screen"
+  },
+  "errorLoadingProfile": "שגיאה בטעינת הפרופיל",
+  "@errorLoadingProfile": {
+    "description": "Error message when profile fails to load"
+  },
+  "failedToLoadProfile": "שגיאה בטעינת הפרופיל",
+  "@failedToLoadProfile": {
+    "description": "Error message when profile fails to load"
+  },
+  "failedToLoadProducts": "שגיאה בטעינת המוצרים",
+  "@failedToLoadProducts": {
+    "description": "Error message when products fail to load"
+  },
+  "addedToCart": "נוסף לסל",
+  "@addedToCart": {
+    "description": "Message shown when item is added to cart"
+  },
+  "viewCart": "צפה בסל",
+  "@viewCart": {
+    "description": "Button label to view cart"
+  },
+  "failedToAddToCart": "שגיאה בהוספה לסל",
+  "@failedToAddToCart": {
+    "description": "Error message when adding to cart fails"
+  },
+  "failedToPickImage": "שגיאה בבחירת תמונה",
+  "@failedToPickImage": {
+    "description": "Error message when image selection fails"
+  },
+  "profileUpdatedSuccessfully": "הפרופיל עודכן בהצלחה",
+  "@profileUpdatedSuccessfully": {
+    "description": "Success message when profile is updated"
+  },
+  "failedToUpdateProfile": "שגיאה בעדכון הפרופיל",
+  "@failedToUpdateProfile": {
+    "description": "Error message when profile update fails"
+  },
+  "changePhoto": "שנה תמונה",
+  "@changePhoto": {
+    "description": "Label for change photo button"
+  },
+  "username": "שם משתמש",
+  "@username": {
+    "description": "Label for username field"
+  },
+  "enterYourUsername": "הזן שם משתמש",
+  "@enterYourUsername": {
+    "description": "Hint text for username field"
+  },
+  "usernameAlreadyTaken": "שם המשתמש תפוס",
+  "@usernameAlreadyTaken": {
+    "description": "Error message when username is already taken"
+  },
+  "pleaseEnterUsername": "אנא הזן שם משתמש",
+  "@pleaseEnterUsername": {
+    "description": "Error message when username is empty"
+  },
+  "usernameMustBeAtLeast3Characters": "שם המשתמש חייב להכיל לפחות 3 תווים",
+  "@usernameMustBeAtLeast3Characters": {
+    "description": "Error message when username is too short"
+  },
+  "bio": "אודות",
+  "@bio": {
+    "description": "Label for bio field"
+  },
+  "tellUsAboutYourself": "ספר לנו על עצמך",
+  "@tellUsAboutYourself": {
+    "description": "Hint text for bio field"
+  },
+  "saveChanges": "שמור שינויים",
+  "@saveChanges": {
+    "description": "Label for save changes button"
+  },
+  "errorSigningOut": "שגיאה בהתנתקות",
+  "@errorSigningOut": {
+    "description": "Error message when sign out fails"
+  },
+  "productDeleted": "המוצר נמחק בהצלחה",
+  "@productDeleted": {
+    "description": "Success message when a product is deleted"
+  },
+  "failedToDeleteProduct": "שגיאה במחיקת המוצר",
+  "@failedToDeleteProduct": {
+    "description": "Error message when product deletion fails"
+  },
+  "errorDeletingProduct": "אירעה שגיאה בעת מחיקת המוצר",
+  "@errorDeletingProduct": {
+    "description": "Generic error message for product deletion"
+  },
+  "deleteProduct": "מחיקת מוצר",
+  "@deleteProduct": {
+    "description": "Title for delete product confirmation dialog"
+  },
+  "confirmDeleteProduct": "האם אתה בטוח שברצונך למחוק מוצר זה? פעולה זו אינה ניתנת לביטול.",
+  "@confirmDeleteProduct": {
+    "description": "Confirmation message for product deletion"
+  },
+  "cancel": "ביטול",
+  "@cancel": {
+    "description": "Label for cancel button"
+  },
+  "delete": "מחק",
+  "@delete": {
+    "description": "Label for delete button"
+  },
+  "failedToOpenEditProfile": "שגיאה בפתיחת מסך עריכת פרופיל",
+  "@failedToOpenEditProfile": {
+    "description": "Error message when edit profile screen fails to open"
+  },
+  "myProfile": "הפרופיל שלי",
+  "@myProfile": {
+    "description": "Title for current user's profile"
+  },
+  "profile": "פרופיל",
+  "@profile": {
+    "description": "Title for other users' profiles"
+  },
+  "myPurchases": "הרכישות שלי",
+  "@myPurchases": {
+    "description": "Tooltip for purchases button"
+  },
+  "signOut": "התנתק",
+  "@signOut": {
+    "description": "Tooltip for sign out button"
+  },
+  "noProductsFound": "לא נמצאו מוצרים",
+  "@noProductsFound": {
+    "description": "Message shown when user has no products"
+  },
+  "myWishlist": "המועדפים שלי",
+  "@myWishlist": {
+    "description": "Title for the wishlist screen"
+  },
+  "signInToViewWishlist": "אנא היכנס לחשבון כדי לצפות במועדפים שלך",
+  "@signInToViewWishlist": {
+    "description": "Message shown when user is not signed in"
+  },
+  "signIn": "התחברות",
+  "@signIn": {
+    "description": "Sign in button label"
+  },
+  "wishlistEmpty": "אין עדיין פריטים שמורים",
+  "@wishlistEmpty": {
+    "description": "Message shown when wishlist is empty"
+  },
+  "continueShopping": "המשך בקניות",
+  "@continueShopping": {
+    "description": "Button label to continue shopping"
+  },
+  "addToCart": "הוסף לסל",
+  "@addToCart": {
+    "description": "Button label for adding item to cart"
+  },
+  "removeFromWishlist": "הסר מהמועדפים",
+  "@removeFromWishlist": {
+    "description": "Message shown when item is removed from wishlist"
+  },
+  "remove": "הסר",
+  "@remove": {
+    "description": "Button label for removing item"
+  },
+  "failedToLoadWishlist": "שגיאה בטעינת המועדפים",
+  "@failedToLoadWishlist": {
+    "description": "Error message when wishlist fails to load"
+  },
+  "retry": "נסה שוב",
+  "@retry": {
+    "description": "Button label to retry an action"
+  },
+  "signInToViewWishlist": "אנא היכנס לחשבון כדי לצפות במועדפים שלך",
+  "@signInToViewWishlist": {
+    "description": "Message shown when user is not signed in"
+  },
+  "wishlistEmpty": "אין עדיין פריטים שמורים",
+  "@wishlistEmpty": {
+    "description": "Message shown when wishlist is empty"
+  },
+  "failedToLoadWishlist": "שגיאה בטעינת המועדפים",
+  "@failedToLoadWishlist": {
+    "description": "Error message when wishlist fails to load"
+  },
+  "removeFromWishlist": "הסר מהמועדפים",
+  "@removeFromWishlist": {
+    "description": "Accessibility label for remove from wishlist button"
+  },
+  "addToCart": "הוסף לסל",
+  "@addToCart": {
+    "description": "Button label for adding item to cart"
+  },
+  "remove": "הסר",
+  "@remove": {
+    "description": "Button label for removing item"
+  },
+  "productUnavailable": "המוצר כבר לא זמין",
+  "@productUnavailable": {
+    "description": "Message shown when a product in wishlist is no longer available"
+  },
+  "yourCart": "הסל שלך",
+  "@yourCart": {
+    "description": "Title for the cart screen"
+  },
+  "yourCartIsEmpty": "הסל שלך ריק",
+  "@yourCartIsEmpty": {
+    "description": "Message shown when the cart is empty"
+  },
+  "total": "סך הכל",
+  "@total": {
+    "description": "Label for total price"
+  },
+  "checkout": "לתשלום",
+  "@checkout": {
+    "description": "Label for checkout button"
+  },
+  "checkoutSimulationComplete": "סימולציית התשלום הושלמה!",
+  "@checkoutSimulationComplete": {
+    "description": "Message shown after checkout simulation"
+  },
+  "deleteProduct": "מחיקת מוצר",
+  "@deleteProduct": {
+    "description": "Title for delete product confirmation dialog"
+  },
+  "confirmDeleteProduct": "האם אתה בטוח שברצונך למחוק מוצר זה? פעולה זו אינה ניתנת לביטול.",
+  "@confirmDeleteProduct": {
+    "description": "Confirmation message shown before deleting a product"
+  },
+  "productDeletedSuccessfully": "המוצר נמחק בהצלחה",
+  "@productDeletedSuccessfully": {
+    "description": "Success message shown after deleting a product"
+  },
+  "errorDeletingProduct": "אירעה שגיאה בלתי צפויה במחיקת המוצר",
+  "@errorDeletingProduct": {
+    "description": "Error message shown when deleting a product fails"
+  },
+  "unexpectedErrorTryAgain": "אירעה שגיאה בלתי צפויה. אנא נסה שוב.",
+  "@unexpectedErrorTryAgain": {
+    "description": "Generic error message when an unexpected error occurs"
+  },
+  "pleaseLoginToPurchase": "אנא התחבר כדי לבצע רכישה",
+  "@pleaseLoginToPurchase": {
+    "description": "Message shown when user needs to log in to make a purchase"
+  },
+  "alreadyPurchasedItem": "כבר רכשת את הפריט הזה!",
+  "@alreadyPurchasedItem": {
+    "description": "Message shown when user tries to purchase an already purchased item"
+  },
+  "purchaseSuccessful": "הרכישה בוצעה בהצלחה!",
+  "@purchaseSuccessful": {
+    "description": "Message shown when a purchase is successful"
+  },
+  "purchaseFailed": "הרכישה נכשלה",
+  "@purchaseFailed": {
+    "description": "Prefix for purchase failure messages"
+  },
+  "error": "שגיאה",
+  "@error": {
+    "description": "Generic error prefix"
+  },
+  "unknownError": "שגיאה לא ידועה",
+  "@unknownError": {
+    "description": "Message shown for unknown errors"
+  },
+  "unexpectedErrorOccurred": "אירעה שגיאה בלתי צפויה",
+  "@unexpectedErrorOccurred": {
+    "description": "Message shown when an unexpected error occurs"
+  },
+  "buyNow": "קנה עכשיו",
+  "@buyNow": {
+    "description": "Label for buy now button"
+  },
+  "welcomeBack": "ברוך שובך",
+  "@welcomeBack": {
+    "description": "Welcome back message on login screen"
+  },
+  "signInToContinue": "התחבר כדי להמשיך ל-Rivo",
+  "@signInToContinue": {
+    "description": "Subtitle on login screen"
+  },
+  "email": "אימייל",
+  "@email": {
+    "description": "Label for email field"
+  },
+  "enterYourEmail": "הזן את האימייל שלך",
+  "@enterYourEmail": {
+    "description": "Hint text for email field"
+  },
+  "password": "סיסמה",
+  "@password": {
+    "description": "Label for password field"
+  },
+  "enterYourPassword": "הזן את הסיסמה שלך",
+  "@enterYourPassword": {
+    "description": "Hint text for password field"
+  },
+  "or": "או",
+  "@or": {
+    "description": "Divider text for login options"
+  },
+  "invalidEmailOrPassword": "אימייל או סיסמה שגויים. אנא נסה שוב.",
+  "@invalidEmailOrPassword": {
+    "description": "Error message for invalid login credentials"
+  },
+  "verifyEmailBeforeSignIn": "אנא אשר את האימייל שלך לפני ההתחברות. בדוק את תיבת הדואר הנכנס שלך לקבלת קישור האימות.",
+  "@verifyEmailBeforeSignIn": {
+    "description": "Error message when email is not verified"
+  },
+  "networkErrorTryAgain": "שגיאת רשת. אנא בדוק את החיבור שלך ונסה שוב.",
+  "@networkErrorTryAgain": {
+    "description": "Error message for network issues"
+  },
+  "noAccountFoundSignUp": "לא נמצא חשבון עם האימייל הזה. אנא הירשם קודם.",
+  "@noAccountFoundSignUp": {
+    "description": "Error message when no account is found"
+  },
+  "signInCanceled": "ההתחברות בוטלה. אנא נסה שוב.",
+  "@signInCanceled": {
+    "description": "Error message when sign in is canceled"
+  },
+  "googleSignInFailed": "ההתחברות עם נכשלה. אנא נסה שוב.",
+  "@googleSignInFailed": {
+    "description": "Error message when Google sign in fails"
+  },
+  "createAnAccount": "יצירת חשבון",
+  "@createAnAccount": {
+    "description": "Title for signup screen"
+  },
+  "fillInYourDetails": "מלא את הפרטים שלך כדי להתחיל",
+  "@fillInYourDetails": {
+    "description": "Subtitle for signup screen"
+  },
+  "fullName": "שם מלא",
+  "@fullName": {
+    "description": "Label for full name field"
+  },
+  "enterYourFullName": "הזן את שמך המלא",
+  "@enterYourFullName": {
+    "description": "Hint text for full name field"
+  },
+  "username": "שם משתמש",
+  "@username": {
+    "description": "Label for username field"
+  },
+  
+  "titleLabel": "כותרת",
+  "@titleLabel": {
+    "description": "Label for product title field"
+  },
+  "descriptionLabel": "תיאור",
+  "@descriptionLabel": {
+    "description": "Label for product description field"
+  },
+  "priceLabel": "מחיר",
+  "@priceLabel": {
+    "description": "Label for product price field"
+  },
+  "tapToAddImage": "הקש להוספת תמונה",
+  "@tapToAddImage": {
+    "description": "Hint text for image upload"
+  },
+  "gallery": "גלריה",
+  "@gallery": {
+    "description": "Label for gallery option"
+  },
+  "camera": "מצלמה",
+  "@camera": {
+    "description": "Label for camera option"
+  },
+  "uploading": "מעלה...",
+  "@uploading": {
+    "description": "Loading message during upload"
+  },
+  "uploadSuccessTitle": "ההעלאה הצליחה!",
+  "@uploadSuccessTitle": {
+    "description": "Title for success message"
+  },
+  "uploadSuccessMessage": "המוצר שלך הועלה בהצלחה",
+  "@uploadSuccessMessage": {
+    "description": "Success message after upload"
+  },
+  "viewProduct": "צפה במוצר",
+  "@viewProduct": {
+    "description": "Button to view the uploaded product"
+  },
+  "continueShopping": "המשך בקניות",
+  "@continueShopping": {
+    "description": "Button to continue shopping after upload"
+  },
+  "uploadErrorTitle": "העלאה נכשלה",
+  "@uploadErrorTitle": {
+    "description": "Title for upload error message"
+  },
+  "uploadErrorMessage": "אירעה שגיאה בהעלאת המוצר. נסה שוב.",
+  "@uploadErrorMessage": {
+    "description": "Error message when upload fails"
+  },
+  "titleRequired": "נדרש למלא כותרת",
+  "@titleRequired": {
+    "description": "Error message when title is empty"
+  },
+  "descriptionRequired": "נדרש למלא תיאור",
+  "@descriptionRequired": {
+    "description": "Error message when description is empty"
+  },
+  "priceRequired": "נדרש למלא מחיר",
+  "@priceRequired": {
+    "description": "Error message when price is empty"
+  },
+  "invalidPrice": "אנא הזן מחיר חוקי",
+  "@invalidPrice": {
+    "description": "Error message when price is invalid"
+  },
+  "imageRequired": "אנא בחר תמונה",
+  "@imageRequired": {
+    "description": "Error message when no image is selected"
+  },
+  
+  "chooseAUsername": "בחר שם משתמש",
+  "@chooseAUsername": {
+    "description": "Hint text for username field"
+  },
+  "usernameAvailable": "שם המשתמש זמין!",
+  "@usernameAvailable": {
+    "description": "Message shown when username is available"
+  },
+  "usernameTaken": "שם המשתמש הזה כבר תפוס",
+  "@usernameTaken": {
+    "description": "Message shown when username is already taken"
+  },
+  "errorCheckingUsername": "שגיאה בבדיקת זמינות שם המשתמש",
+  "@errorCheckingUsername": {
+    "description": "Error message when checking username availability fails"
+  },
+  "createAStrongPassword": "צור סיסמה חזקה",
+  "@createAStrongPassword": {
+    "description": "Hint text for password field"
+  },
+  "back": "חזרה",
+  "@back": {
+    "description": "Back button text"
+  },
+  "searchHint": "חפש פריטים, מותגים וקטגוריות",
+  "@searchHint": {
+    "description": "Hint text for search field"
+  },
+  "sort": "מיון",
+  "@sort": {
+    "description": "Sort button text"
+  },
+  "filter": "סינון",
+  "@filter": {
+    "description": "Filter button text"
+  },
+  "follow": "עקוב",
+  "@follow": {
+    "description": "Follow button text"
+  },
+  "following": "עוקב",
+  "@following": {
+    "description": "Following button text"
+  },
+  "unfollowedSeller": "ביטלת את המעקב אחרי מוכר זה",
+  "@unfollowedSeller": {
+    "description": "Message shown when unfollowing a seller"
+  },
+  "followedSeller": "אתה עוקב כעת אחרי מוכר זה",
+  "@followedSeller": {
+    "description": "Message shown when following a seller"
+  },
+  "noInternetConnection": "אין חיבור אינטרנט",
+  "@noInternetConnection": {
+    "description": "Error message when there's no internet connection"
+  },
+  "pleaseSignInToContinue": "אנא התחבר כדי להמשיך",
+  "@pleaseSignInToContinue": {
+    "description": "Message shown when authentication is required"
+  },
+  "addToWishlist": "הוסף למועדפים",
+  "@addToWishlist": {
+    "description": "Tooltip for add to wishlist button"
+  },
+  "removeFromWishlist": "הסר מהמועדפים",
+  "@removeFromWishlist": {
+    "description": "Tooltip for remove from wishlist button"
+  },
+  "addedToWishlist": "נוסף למועדפים",
+  "@addedToWishlist": {
+    "description": "Message shown when an item is added to wishlist"
+  },
+  "removedFromWishlist": "הוסר מהמועדפים",
+  "@removedFromWishlist": {
+    "description": "Message shown when an item is removed from wishlist"
+  },
+  "productDetails": "פרטי מוצר",
+  "@productDetails": {
+    "description": "Title for product details screen"
+  },
+  "share": "שתף",
+  "@share": {
+    "description": "Share button text"
+  },
+  "productNoLongerAvailable": "מוצר זה אינו זמין יותר",
+  "@productNoLongerAvailable": {
+    "description": "Message shown when a product has been deleted"
+  },
+  "productNoLongerExists": "מוצר זה אינו קיים יותר",
+  "@productNoLongerExists": {
+    "description": "Message shown when a product is not found"
+  },
+  "failedToLoadProduct": "שגיאה בטעינת המוצר",
+  "@failedToLoadProduct": {
+    "description": "Error message when product fails to load"
+  },
+  "unexpectedError": "אירעה שגיאה בלתי צפויה",
+  "@unexpectedError": {
+    "description": "Generic error message"
+  },
+  "like": "אהבתי",
+  "@like": {
+    "description": "Like button text"
+  },
+  "unlike": "בטל אהבתי",
+  "@unlike": {
+    "description": "Unlike button text"
+  },
+  "save": "שמור",
+  "@save": {
+    "description": "Save button text"
+  },
+  "unsave": "הסר שמירה",
+  "@unsave": {
+    "description": "Unsave button text"
+  },
+  "description": "תיאור",
+  "@description": {
+    "description": "Description section title"
+  },
+  "sellerInformation": "מידע על המוכר",
+  "@sellerInformation": {
+    "description": "Seller information section title"
+  },
+  "user": "משתמש",
+  "@user": {
+    "description": "User prefix"
+  },
+  "addNewProduct": "הוספת מוצר חדש",
+  "@addNewProduct": {
+    "description": "Title for the add new product screen"
+  },
+  "uploadProduct": "העלאת מוצר",
+  "@uploadProduct": {
+    "description": "Text for upload product button"
+  },
+  "title": "כותרת",
+  "@title": {
+    "description": "Label for title field"
+  },
+  "price": "מחיר",
+  "@price": {
+    "description": "Label for price field"
+  },
+  "fieldRequired": "שדה חובה",
+  "@fieldRequired": {
+    "description": "Error message when a required field is empty"
+  },
+  "invalidPrice": "אנא הזן מחיר תקין",
+  "@invalidPrice": {
+    "description": "Error message when an invalid price is entered"
+  },
+  "imageRequired": "אנא בחר תמונה",
+  "@imageRequired": {
+    "description": "Error message when no image is selected"
+  },
+  "tapToAddImage": "הקש להוספת תמונה",
+  "@tapToAddImage": {
+    "description": "Hint text for image picker"
+  },
+  "gallery": "גלריה",
+  "@gallery": {
+    "description": "Label for gallery image source"
+  },
+  "camera": "מצלמה",
+  "@camera": {
+    "description": "Label for camera image source"
+  },
+  "uploading": "מעלה...",
+  "@uploading": {
+    "description": "Loading message during upload"
+  },
+  "uploadSuccessTitle": "ההעלאה הצליחה!",
+  "@uploadSuccessTitle": {
+    "description": "Title shown when upload is successful"
+  },
+  "uploadSuccessMessage": "המוצר שלך הועלה בהצלחה ונראה כעת למשתמשים אחרים.",
+  "@uploadSuccessMessage": {
+    "description": "Message shown when upload is successful"
+  },
+  "viewProduct": "צפה במוצר",
+  "@viewProduct": {
+    "description": "Button to view the uploaded product"
+  },
+  "continueShopping": "המשך בקניות",
+  "@continueShopping": {
+    "description": "Button to continue shopping"
+  },
+  "uploadErrorTitle": "העלאה נכשלה",
+  "@uploadErrorTitle": {
+    "description": "Title shown when upload fails"
+  },
+  "uploadFailed": "אירעה שגיאה בהעלאת המוצר. אנא נסה שוב.",
+  "@uploadFailed": {
+    "description": "Error message when upload fails"
+  },
+  "cancel": "ביטול",
+  "@cancel": {
+    "description": "Button to cancel an action"
+  },
+  "retry": "נסה שוב",
+  "@retry": {
+    "description": "Button to retry a failed action"
+  },
+  "somethingWentWrong": "משהו השתבש. אנא נסה שוב.",
+  "@somethingWentWrong": {
+    "description": "Generic error message"
+  },
+  "failedToPickImage": "אירעה שגיאה בבחירת התמונה. אנא נסה שוב.",
+  "@failedToPickImage": {
+    "description": "Error message when image selection fails"
+  },
+  "posted": "פורסם",
+  "@posted": {
+    "description": "Posted time prefix"
+  },
+  "chat": "צ'אט",
+  "@chat": {
+    "description": "Chat button text"
+  },
+  "buyNow": "קנה עכשיו",
+  "@buyNow": {
+    "description": "Buy now button text"
+  },
+  "addToCart": "הוסף לסל",
+  "@addToCart": {
+    "description": "Add to cart button text"
+  },
+  "failedToLikeProduct": "שגיאה בסימון אהבתי למוצר",
+  "@failedToLikeProduct": {
+    "description": "Error message when liking a product fails"
+  },
+  "failedToSaveProduct": "שגיאה בשמירת המוצר",
+  "@failedToSaveProduct": {
+    "description": "Error message when saving a product fails"
+  },
+  "justNow": "ממש עכשיו",
+  "@justNow": {
+    "description": "Time indicator for just now"
+  },
+  "minutesAgo": "לפני {minutes} דק{minutes, plural, =1{ה} other{יים}}",
+  "@minutesAgo": {
+    "description": "Time indicator for minutes ago",
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+  "hoursAgo": "לפני {hours} שע{hours, plural, =1{ה} other{ות}}",
+  "@hoursAgo": {
+    "description": "Time indicator for hours ago",
+    "placeholders": {
+      "hours": {}
+    }
+  },
+  "daysAgo": "לפני {days} ימ{days, plural, =1{} other{ים}}",
+  "@daysAgo": {
+    "description": "Time indicator for days ago",
+    "placeholders": {
+      "days": {}
+    }
+  },
+  "monthsAgo": "לפני {months} חודש{months, plural, =1{} other{ים}}",
+  "@monthsAgo": {
+    "description": "Time indicator for months ago",
+    "placeholders": {
+      "months": {}
+    }
+  },
+  "failedToAddToWishlist": "שגיאה בהוספה למועדפים",
+  "@failedToAddToWishlist": {
+    "description": "Error message when adding to wishlist fails"
+  },
+  "failedToRemoveFromWishlist": "שגיאה בהסרה מהמועדפים",
+  "@failedToRemoveFromWishlist": {
+    "description": "Error message when removing from wishlist fails"
+  },
+  "confirmPassword": "אשר סיסמה",
+  "@confirmPassword": {
+    "description": "Label for confirm password field"
+  },
+  "reEnterYourPassword": "הזן שוב את הסיסמה שלך",
+  "@reEnterYourPassword": {
+    "description": "Hint text for confirm password field"
+  },
+  "alreadyHaveAnAccount": "כבר יש לך חשבון?",
+  "@alreadyHaveAnAccount": {
+    "description": "Text before sign in link"
+  },
+  "byCreatingAnAccount": "באמצעות יצירת חשבון, אתה מסכים ל",
+  "@byCreatingAnAccount": {
+    "description": "Text before terms of service link"
+  },
+  "termsOfService": "תנאי השירות",
+  "@termsOfService": {
+    "description": "Terms of service link text"
+  },
+  "and": "ו",
+  "@and": {
+    "description": "Conjunction between terms and privacy policy"
+  },
+  "privacyPolicy": "מדיניות הפרטיות",
+  "@privacyPolicy": {
+    "description": "Privacy policy link text"
+  },
+  "resetPassword": "איפוס סיסמה",
+  "@resetPassword": {
+    "description": "Title for reset password screen"
+  },
+  "forgotYourPassword": "שכחת את הסיסמה שלך?",
+  "@forgotYourPassword": {
+    "description": "Title for forgot password screen"
+  },
+  "enterYourEmailToResetPassword": "הזן את כתובת האימייל שלך ונשלח לך קישור לאיפוס הסיסמה שלך.",
+  "@enterYourEmailToResetPassword": {
+    "description": "Instructions for forgot password screen"
+  },
+  "resetPasswordInstructions": "שלחנו לך אימייל עם קישור לאיפוס הסיסמה שלך. אנא בדוק את תיבת הדואר הנכנס שלך ופעל לפי ההוראות. אם אינך רואה את האימייל, בדוק בתיקיית הספאם שלך.",
+  "@resetPasswordInstructions": {
+    "description": "Instructions shown after reset password email is sent"
+  },
+  "noAccountFoundWithEmail": "לא נמצא חשבון עם כתובת אימייל זו.",
+  "@noAccountFoundWithEmail": {
+    "description": "Error message when no account is found with the provided email"
+  },
+  "networkError": "שגיאת רשת. אנא בדוק את החיבור שלך ונסה שוב.",
+  "@networkError": {
+    "description": "Generic network error message"
+  },
+  "checkYourEmail": "בדוק את האימייל שלך",
+  "@checkYourEmail": {
+    "description": "Title shown after reset password email is sent"
+  },
+  "resetPasswordEmailSent": "שלחנו לך הודעת אימייל עם הוראות לאיפוס הסיסמה שלך. אם אינך רואה אותה, בדוק בתיקיית הספאם שלך.",
+  "@resetPasswordEmailSent": {
+    "description": "Message shown after reset password email is sent"
+  },
+  "backToLogin": "חזור להתחברות",
+  "@backToLogin": {
+    "description": "Button text to go back to login screen"
+  },
+  "productFeed": "פיד מוצרים",
+  "@productFeed": {
+    "description": "Title for product feed screen"
+  },
+  "refresh": "רענן",
+  "@refresh": {
+    "description": "Button label for refreshing content"
+  },
+  "errorLoadingProducts": "שגיאה בטעינת מוצרים",
+  "@errorLoadingProducts": {
+    "description": "Error message when products fail to load"
+  },
+  "retry": "נסה שוב",
+  "@retry": {
+    "description": "Button label to retry loading content"
+  },
+  "addYourFirstProduct": "הוסף את המוצר הראשון שלך",
+  "@addYourFirstProduct": {
+    "description": "Button label to add first product when feed is empty"
+  },
+  "searchComingSoon": "פונקציונליות החיפוש תגיע בקרוב!",
+  "@searchComingSoon": {
+    "description": "Message shown when search is not yet implemented"
+  },
+  "cartIsEmpty": "הסל שלך ריק",
+  "@cartIsEmpty": {
+    "description": "Message shown when cart is empty"
+  },
+  "signInToMessage": "אנא התחבר כדי לשלוח הודעה",
+  "@signInToMessage": {
+    "description": "Message shown when user needs to sign in to message"
+  },
+  "messagingSeller": "שולח הודעה למוכר לגבי {product}",
+  "@messagingSeller": {
+    "description": "Message shown when starting a chat with a seller",
+    "placeholders": {
+      "product": {
+        "type": "String",
+        "format": "string",
+        "optionalParameters": {}
+      }
+    }
+  },
+  "marketplace": "שוק",
+  "@marketplace": {
+    "description": "Title for the marketplace section"
+  },
+  "noProductsFound": "לא נמצאו מוצרים",
+  "@noProductsFound": {
+    "description": "Message shown when no products are found"
+  },
+  "noProductsFound": "לא נמצאו מוצרים",
+  "@noProductsFound": {
+    "description": "Message shown when no products are available"
+  },
+  "productDetails": "פרטי מוצר",
+  "@productDetails": {
+    "description": "Title for product details screen"
+  },
+  "share": "שתף",
+  "@share": {
+    "description": "Button label for sharing"
+  },
+  "productNoLongerAvailable": "מוצר זה אינו זמין יותר",
+  "@productNoLongerAvailable": {
+    "description": "Message shown when a product has been deleted"
+  },
+  "productNoLongerExists": "המוצר אינו קיים יותר",
+  "@productNoLongerExists": {
+    "description": "Message shown when a product is not found"
+  },
+  "failedToLoadProduct": "שגיאה בטעינת המוצר",
+  "@failedToLoadProduct": {
+    "description": "Error message when product loading fails"
+  },
+  "unexpectedError": "אירעה שגיאה בלתי צפויה",
+  "@unexpectedError": {
+    "description": "Generic error message"
+  },
+  "failedToLikeProduct": "שגיאה באהבת המוצר",
+  "@failedToLikeProduct": {
+    "description": "Error message when liking a product fails"
+  },
+  "failedToSaveProduct": "שגיאה בשמירת המוצר",
+  "@failedToSaveProduct": {
+    "description": "Error message when saving a product fails"
+  },
+  "description": "תיאור",
+  "@description": {
+    "description": "Label for product description"
+  },
+  "sellerInformation": "מידע על המוכר",
+  "@sellerInformation": {
+    "description": "Label for seller information section"
+  },
+  "user": "משתמש",
+  "@user": {
+    "description": "Label for user display name"
+  },
+  "posted": "פורסם",
+  "@posted": {
+    "description": "Label for post time"
+  },
+  "chat": "צ'אט",
+  "@chat": {
+    "description": "Button label for starting a chat"
+  },
+  "monthsAgo": "לפני {months, plural, one{חודש} two{חודשיים} many{חודשים} other{{months} חודשים}}",
+  "@monthsAgo": {
+    "description": "Relative time for months ago",
+    "placeholders": {
+      "months": {}
+    }
+  },
+  "daysAgo": "לפני {days, plural, one{יום} two{יומיים} many{ימים} other{{days} ימים}}",
+  "@daysAgo": {
+    "description": "Relative time for days ago",
+    "placeholders": {
+      "days": {}
+    }
+  },
+  "hoursAgo": "לפני {hours, plural, one{שעה} two{שעתיים} many{שעות} other{{hours} שעות}}",
+  "@hoursAgo": {
+    "description": "Relative time for hours ago",
+    "placeholders": {
+      "hours": {}
+    }
+  },
+  "minutesAgo": "לפני {minutes, plural, one{דקה} two{שתי דקות} many{דקות} other{{minutes} דקות}}",
+  "@minutesAgo": {
+    "description": "Relative time for minutes ago",
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+  "justNow": "כרגע",
+  "@justNow": {
+    "description": "Relative time for just now"
+  },
+  "editProfile": "עריכת פרופיל",
+  "@editProfile": {
+    "description": "Title for edit profile screen"
+  },
+  "saveChanges": "שמור שינויים",
+  "@saveChanges": {
+    "description": "Button label for saving changes"
+  },
+  "changePhoto": "שנה תמונה",
+  "@changePhoto": {
+    "description": "Button label for changing profile photo"
+  },
+  "errorLoadingProfile": "שגיאה בטעינת הפרופיל",
+  "@errorLoadingProfile": {
+    "description": "Error message when profile fails to load"
+  },
+  "failedToPickImage": "שגיאה בבחירת תמונה",
+  "@failedToPickImage": {
+    "description": "Error message when image picking fails"
+  },
+  "failedToUpdateProfile": "שגיאה בעדכון הפרופיל",
+  "@failedToUpdateProfile": {
+    "description": "Error message when profile update fails"
+  },
+  "profileUpdatedSuccessfully": "הפרופיל עודכן בהצלחה",
+  "@profileUpdatedSuccessfully": {
+    "description": "Success message when profile is updated"
+  },
+  "username": "שם משתמש",
+  "@username": {
+    "description": "Label for username field"
+  },
+  "enterYourUsername": "הזן שם משתמש",
+  "@enterYourUsername": {
+    "description": "Hint text for username field"
+  },
+  "usernameAlreadyTaken": "שם המשתמש תפוס",
+  "@usernameAlreadyTaken": {
+    "description": "Error message when username is already taken"
+  },
+  "pleaseEnterUsername": "אנא הזן שם משתמש",
+  "@pleaseEnterUsername": {
+    "description": "Error message when username is empty"
+  },
+  "usernameMustBeAtLeast3Characters": "שם המשתמש חייב להכיל לפחות 3 תווים",
+  "@usernameMustBeAtLeast3Characters": {
+    "description": "Error message when username is too short"
+  },
+  "bio": "אודות",
+  "@bio": {
+    "description": "Label for bio field"
+  },
+  "tellUsAboutYourself": "ספר/י לנו על עצמך",
+  "@tellUsAboutYourself": {
+    "description": "Hint text for bio field"
+  },
+  "title": "כותרת",
+  "@title": {
+    "description": "Label for title field"
+  },
+  "enterTitle": "הזן כותרת למוצר",
+  "@enterTitle": {
+    "description": "Hint text for title field"
+  },
+  "description": "תיאור",
+  "@description": {
+    "description": "Label for description field"
+  },
+  "enterDescription": "הזן תיאור למוצר",
+  "@enterDescription": {
+    "description": "Hint text for description field"
+  },
+  "price": "מחיר",
+  "@price": {
+    "description": "Label for price field"
+  },
+  "enterPrice": "הזן מחיר",
+  "@enterPrice": {
+    "description": "Hint text for price field"
+  },
+  "uploadProduct": "העלאת מוצר",
+  "@uploadProduct": {
+    "description": "Upload product button text"
+  },
+  "addNewProduct": "הוספת מוצר חדש",
+  "@addNewProduct": {
+    "description": "Title for add new product screen"
+  },
+  "uploading": "מעלה...",
+  "@uploading": {
+    "description": "Loading message during upload"
+  },
+  "uploadSuccess": "העלאה בוצעה בהצלחה!",
+  "@uploadSuccess": {
+    "description": "Success message after upload"
+  },
+  "uploadFailed": "העלאה נכשלה",
+  "@uploadFailed": {
+    "description": "Error message when upload fails"
+  },
+  "somethingWentWrong": "משהו השתבש",
+  "@somethingWentWrong": {
+    "description": "Title for user's own profile screen"
+  },
+  "myPurchases": "הרכישות שלי",
+  "@myPurchases": {
+    "description": "Tooltip for purchases button"
+  },
+  "signOut": "התנתק",
+  "@signOut": {
+    "description": "Tooltip for sign out button"
+  },
+  "errorSigningOut": "שגיאה בהתנתקות",
+  "@errorSigningOut": {
+    "description": "Error message when sign out fails"
+  },
+  "failedToDeleteProduct": "שגיאה במחיקת המוצר",
+  "@failedToDeleteProduct": {
+    "description": "Error message when product deletion fails"
+  },
+  "errorDeletingProduct": "שגיאה במחיקת המוצר",
+  "@errorDeletingProduct": {
+    "description": "Generic error message for product deletion"
+  },
+  "deleteProduct": "מחיקת מוצר",
+  "@deleteProduct": {
+    "description": "Title for delete confirmation dialog"
+  },
+  "failedToOpenEditProfile": "שגיאה בפתיחת עריכת פרופיל",
+  "@failedToOpenEditProfile": {
+    "description": "Error message when edit profile screen fails to open"
+  },
+  "failedToLoadProducts": "שגיאה בטעינת המוצרים",
+  "@failedToLoadProducts": {
+    "description": "Error message when products fail to load"
+  },
+  "like": "אהבתי",
+  "@like": {
+    "description": "Label for like button"
+  },
+  "unlike": "ביטול אהבה",
+  "@unlike": {
+    "description": "Label for unlike button"
+  },
+  "save": "שמור",
+  "@save": {
+    "description": "Label for save button"
+  },
+  "unsave": "בטל שמירה",
+  "@unsave": {
+    "description": "Label for unsave button"
+  },
+  "continueShopping": "המשך בקניות",
+  "@continueShopping": {
+    "description": "Button label to continue shopping"
+  },
+  "retry": "נסה שוב",
+  "@retry": {
+    "description": "Button label to retry an action"
+  },
+  "failedToAddToWishlist": "שגיאה בהוספה למועדפים",
+  "@failedToAddToWishlist": {
+    "description": "Error message when adding to wishlist fails"
+  },
+  "failedToRemoveFromWishlist": "שגיאה בהסרה מהמועדפים",
+  "@failedToRemoveFromWishlist": {
+    "description": "Error message when removing from wishlist fails"
+  },
+  "remove": "הסר",
+  "@remove": {
+    "description": "Button label to remove an item"
+  },
+  "productId": "מוצר {productId}",
+  "@productId": {
+    "description": "Product ID display format"
+  },
+  "productDetailsPlaceholder": "כאן יופיעו פרטי המוצר",
+  "@productDetailsPlaceholder": {
+    "description": "Placeholder text for product details"
+  },
+  "addToCart": "הוספה לעגלה",
+  "@addToCart": {
+    "description": "Add to cart button text"
+  },
+  "removeFromWishlist": "הסרה מרשימת המשאלות",
+  "@removeFromWishlist": {
+    "description": "Remove from wishlist button text"
+  },
+  "addToCartWithStatus": "הוספה לעגלה - {status}",
+  "@addToCartWithStatus": {
+    "description": "Add to cart button with status text",
+    "placeholders": {
+      "status": {}
+    }
   }
 }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rivo/features/cart/application/providers/cart_provider.dart';
 import 'package:rivo/features/cart/presentation/widgets/cart_item_tile.dart';
+import 'package:rivo/core/presentation/widgets/app_button.dart';
+import 'package:rivo/l10n/app_localizations.dart';
 
 class CartScreen extends ConsumerWidget {
   const CartScreen({super.key});
@@ -13,14 +15,14 @@ class CartScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Your Cart'),
+        title: Text(AppLocalizations.of(context)!.yourCart),
         centerTitle: true,
       ),
       body: Column(
         children: [
           Expanded(
             child: cartItems.isEmpty
-                ? const Center(child: Text('Your cart is empty'))
+                ? Center(child: Text(AppLocalizations.of(context)!.yourCartIsEmpty))
                 : ListView.builder(
                     itemCount: cartItems.length,
                     itemBuilder: (context, index) {
@@ -59,12 +61,8 @@ class CartScreen extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Total:',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+              Text(
+                '${AppLocalizations.of(context)!.total}:'
               ),
               Text(
                 '\$${totalPrice.toStringAsFixed(2)}',
@@ -77,19 +75,11 @@ class CartScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
+            child: AppButton.primary(
               onPressed: () => _checkout(context),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: const Text(
-                'Checkout',
-                style: TextStyle(fontSize: 16),
-              ),
+              label: AppLocalizations.of(context)!.checkout,
+              fullWidth: true,
+              padding: const EdgeInsets.symmetric(vertical: 16),
             ),
           ),
         ],
@@ -103,9 +93,9 @@ class CartScreen extends ConsumerWidget {
 
   void _checkout(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Checkout simulation complete!'),
-        duration: Duration(seconds: 2),
+      SnackBar(
+        content: Text(AppLocalizations.of(context)!.checkoutSimulationComplete),
+        duration: const Duration(seconds: 2),
       ),
     );
   }

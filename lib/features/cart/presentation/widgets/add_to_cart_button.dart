@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:rivo/features/cart/application/providers/cart_provider.dart';
 import 'package:rivo/features/cart/domain/models/cart_item_model.dart';
-import 'package:rivo/features/cart/presentation/screens/cart_screen.dart';
+import 'package:rivo/core/presentation/widgets/app_button.dart';
+import 'package:rivo/l10n/app_localizations.dart';
 
 class AddToCartButton extends ConsumerStatefulWidget {
   final String productId;
@@ -27,7 +29,7 @@ class AddToCartButton extends ConsumerStatefulWidget {
 }
 
 class _AddToCartButtonState extends ConsumerState<AddToCartButton> {
-  bool _isLoading = false;
+  bool _isAddingToCart = false;
 
   @override
   Widget build(BuildContext context) {
@@ -36,32 +38,21 @@ class _AddToCartButtonState extends ConsumerState<AddToCartButton> {
       return const SizedBox.shrink();
     }
 
-    return _isLoading
-        ? const SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-            ),
-          )
-        : Container(
-            decoration: BoxDecoration(
-              color: Colors.black26,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.add_shopping_cart, color: Colors.white),
-              onPressed: () => _addToCart(),
-              tooltip: 'Add to cart',
-            ),
-          );
+    return AppButton.primary(
+      onPressed: _isAddingToCart ? null : _addToCart,
+      label: AppLocalizations.of(context)!.addToCart,
+      icon: Icons.add_shopping_cart,
+      isLoading: _isAddingToCart,
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      height: 40.0,
+      borderRadius: 8.0,
+    );
   }
 
   Future<void> _addToCart() async {
-    if (_isLoading) return;
+    if (_isAddingToCart) return;
 
-    setState(() => _isLoading = true);
+    setState(() => _isAddingToCart = true);
 
     try {
       final cartItem = CartItem(
@@ -78,18 +69,16 @@ class _AddToCartButtonState extends ConsumerState<AddToCartButton> {
         // Show a snackbar feedback
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${widget.productName} added to cart'),
+            content: Text(
+              '${widget.productName} ${AppLocalizations.of(context)!.addedToCart}',
+            ),
             duration: const Duration(seconds: 2),
             behavior: SnackBarBehavior.floating,
             action: SnackBarAction(
-              label: 'View Cart',
+              label: AppLocalizations.of(context)!.viewCart,
               textColor: Colors.white,
               onPressed: () {
-                Navigator.of(context).push<dynamic>(
-                  MaterialPageRoute<dynamic>(
-                    builder: (context) => const CartScreen(),
-                  ),
-                );
+                context.go('/cart');
               },
             ),
           ),
@@ -98,16 +87,16 @@ class _AddToCartButtonState extends ConsumerState<AddToCartButton> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to add item to cart'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.failedToAddToCart),
             backgroundColor: Colors.red,
-            duration: Duration(seconds: 2),
+            duration: const Duration(seconds: 2),
           ),
         );
       }
     } finally {
       if (mounted) {
-        setState(() => _isLoading = false);
+        setState(() => _isAddingToCart = false);
       }
     }
   }

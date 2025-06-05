@@ -4,6 +4,7 @@ import 'app_colors.dart';
 import 'app_typography.dart' as app_typography;
 
 class AppTheme {
+  // Colors
   static const Color primaryColor = AppColors.primary;
   static const Color accentColor = AppColors.secondary;
   static const Color backgroundColor = AppColors.background;
@@ -11,6 +12,9 @@ class AppTheme {
   static const Color cardColor = AppColors.card;
   static const Color textPrimaryColor = AppColors.textPrimary;
   static const Color shadowColor = AppColors.shadow;
+  
+  // Border Radius
+  static const double borderRadius = 12.0;
 
   static ThemeData get lightTheme {
     // Create color scheme with surface instead of background

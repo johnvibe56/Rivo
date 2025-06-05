@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:rivo/core/constants/app_colors.dart';
 import 'package:rivo/features/auth/presentation/providers/auth_provider.dart';
 import 'package:rivo/features/auth/utils/validators.dart';
+import 'package:rivo/core/presentation/widgets/app_button.dart';
+import 'package:rivo/l10n/app_localizations.dart';
 
 // Form field key
 const _kEmailFieldKey = Key('email');
@@ -19,7 +21,7 @@ class ForgotPasswordScreen extends ConsumerStatefulWidget {
 class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
-  bool _isLoading = false;
+  bool _isResettingPassword = false;
   bool _isEmailSent = false;
   String? _errorMessage;
 
@@ -31,9 +33,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
   String _getErrorMessage(String error) {
     if (error.contains('user not found')) {
-      return 'No account found with this email address.';
+      return AppLocalizations.of(context)!.noAccountFoundWithEmail;
     } else if (error.contains('network-request-failed')) {
-      return 'Network error. Please check your connection and try again.';
+      return AppLocalizations.of(context)!.networkError;
     } else {
       return error.replaceAll('Exception: ', '');
     }
@@ -43,14 +45,13 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     setState(() {
-      _isLoading = true;
+      _isResettingPassword = true;
       _errorMessage = null;
     });
 
     try {
-      await ref.read(authControllerProvider).resetPassword(
-            email: _emailController.text.trim(),
-          );
+      final authController = ref.read(authControllerProvider);
+      await authController.resetPassword(email: _emailController.text.trim());
 
       if (mounted) {
         setState(() {
@@ -58,12 +59,14 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         });
       }
     } catch (e) {
-      setState(() {
-        _errorMessage = _getErrorMessage(e.toString());
-      });
+      if (mounted) {
+        setState(() {
+          _errorMessage = _getErrorMessage(e.toString());
+        });
+      }
     } finally {
       if (mounted) {
-        setState(() => _isLoading = false);
+        setState(() => _isResettingPassword = false);
       }
     }
   }
@@ -75,7 +78,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Reset Password'),
+        title: Text(AppLocalizations.of(context)!.resetPassword),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -93,7 +96,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  'Forgot your password?',
+                  AppLocalizations.of(context)!.forgotYourPassword,
                   style: textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -102,8 +105,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                 const SizedBox(height: 16),
                 Text(
                   _isEmailSent
-                      ? 'We\'ve sent you an email with a link to reset your password. Please check your inbox and follow the instructions. If you don\'t see the email, check your spam folder.'
-                      : '',
+                      ? AppLocalizations.of(context)!.resetPasswordInstructions
+                      : AppLocalizations.of(context)!.enterYourEmailToResetPassword,
                   style: textTheme.bodyLarge?.copyWith(
                     color: theme.hintColor,
                   ),
@@ -145,8 +148,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                     key: _kEmailFieldKey,
                     controller: _emailController,
                     decoration: InputDecoration(
-                      labelText: 'Email',
-                      hintText: 'Enter your email address',
+                      labelText: AppLocalizations.of(context)!.email,
+                      hintText: AppLocalizations.of(context)!.enterYourEmail,
                       prefixIcon: const Icon(Icons.email_outlined),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -160,24 +163,11 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   const SizedBox(height: 24),
 
                   // Reset password button
-                  FilledButton(
-                    onPressed: _isLoading ? null : _resetPassword,
-                    style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                            ),
-                          )
-                        : const Text('Send Reset Link'),
+                  AppButton.primary(
+                    onPressed: _isResettingPassword ? null : _resetPassword,
+                    label: AppLocalizations.of(context)!.sendResetLink,
+                    isLoading: _isResettingPassword,
+                    fullWidth: true,
                   ),
                   const SizedBox(height: 16),
                 ] else ...[
@@ -189,7 +179,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    'Check your email',
+                    AppLocalizations.of(context)!.checkYourEmail,
                     style: textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -197,7 +187,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'We\'ve sent you an email with a link to reset your password. Please check your inbox and follow the instructions.',
+                    AppLocalizations.of(context)!.resetPasswordEmailSent,
                     style: textTheme.bodyLarge?.copyWith(
                       color: theme.hintColor,
                     ),
@@ -207,18 +197,14 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                 ],
 
                 // Back to login button - always visible and clickable
-                FilledButton(
-                  onPressed: () {
+                AppButton.secondary(
+                  onPressed: _isResettingPassword ? null : () {
                     // Use GoRouter's go to navigate to login and remove forgot password from stack
                     GoRouter.of(context).go('/login');
                   },
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text('Back to Sign In'),
+                  label: AppLocalizations.of(context)!.backToLogin,
+                  fullWidth: true,
+                  isLoading: _isResettingPassword,
                 ),
               ],
             ),

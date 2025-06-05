@@ -5,9 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:rivo/core/navigation/app_navigation.dart';
+import 'package:rivo/core/utils/validation_utils.dart';
 import 'package:rivo/features/auth/presentation/providers/auth_provider.dart';
+import 'package:rivo/core/error/failures.dart';
 import 'package:rivo/features/user_profile/presentation/providers/user_profile_providers.dart';
-import 'package:rivo/features/user_profile/presentation/widgets/profile_avatar.dart';
+import 'package:rivo/features/user_profile/presentation/widgets/profile_image_picker.dart';
+import 'package:rivo/core/presentation/widgets/app_button.dart';
+import 'package:rivo/l10n/app_localizations.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
@@ -20,10 +24,13 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
+  
   File? _pickedImage;
-  bool _isLoading = false;
   bool _isUsernameAvailable = true;
+  bool _isSaving = false;
+  bool _hasUnsavedChanges = false;
   Timer? _debounce;
+  Timer? _saveDebounce;
   bool _isInitialized = false;
 
   @override
@@ -48,6 +55,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     _usernameController.dispose();
     _bioController.dispose();
     _debounce?.cancel();
+    _saveDebounce?.cancel();
     super.dispose();
   }
 
@@ -55,17 +63,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     if (!mounted) return;
     
     try {
-      setState(() => _isLoading = true);
-
-      final authState = ref.read(authStateProvider).valueOrNull;
-      final user = authState?.user;
-
+      final user = ref.read(authStateProvider).value?.user;
       if (user == null) {
         if (mounted) {
-          setState(() => _isLoading = false);
-          if (context.mounted) {
-            AppNavigation.goToLogin(context);
-          }
+          Navigator.of(context).pop();
         }
         return;
       }
@@ -73,12 +74,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       await _loadUserProfile(user.id);
     } catch (e) {
       if (mounted) {
-        setState(() => _isLoading = false);
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Error loading profile')),
-          );
-        }
+        final errorMessage = AppLocalizations.of(context)!.errorLoadingProfile;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage)),
+        );
       }
     }
   }
@@ -94,16 +93,16 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       setState(() {
         _usernameController.text = profile.username;
         _bioController.text = profile.bio ?? '';
-        _isLoading = false;
+        _hasUnsavedChanges = false;
       });
     } catch (e) {
-      if (mounted) {
-        setState(() => _isLoading = false);
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to load profile')),
-          );
-        }
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.errorLoadingProfile),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
     }
   }
@@ -118,12 +117,16 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       if (pickedFile != null && mounted) {
         setState(() {
           _pickedImage = File(pickedFile.path);
+          _hasUnsavedChanges = true;
         });
       }
     } catch (e) {
       if (mounted && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to pick image')),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.failedToPickImage),
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     }
@@ -134,6 +137,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     _debounce = Timer(const Duration(milliseconds: 500), () {
       _checkUsernameAvailability(value);
     });
+    _markFormAsChanged();
   }
 
   Future<void> _checkUsernameAvailability(String username) async {
@@ -157,6 +161,40 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     }
   }
 
+  void _onBioChanged(String value) {
+    _markFormAsChanged();
+  }
+
+  void _markFormAsChanged() {
+    if (!_hasUnsavedChanges) {
+      setState(() => _hasUnsavedChanges = true);
+    }
+  }
+
+  Future<bool> _confirmDiscardChanges() async {
+    if (!_hasUnsavedChanges) return true;
+    
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(AppLocalizations.of(context)!.unsavedChanges),
+        content: Text(AppLocalizations.of(context)!.discardChangesConfirmation),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(MaterialLocalizations.of(context).okButtonLabel),
+          ),
+        ],
+      ),
+    );
+
+    return confirmed ?? false;
+  }
+
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -164,18 +202,18 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
     if (!mounted) return;
 
-    try {
-      setState(() => _isLoading = true);
+    // Cancel any pending save
+    _saveDebounce?.cancel();
 
+    setState(() => _isSaving = true);
+
+    try {
       final authState = ref.read(authStateProvider).valueOrNull;
       final user = authState?.user;
       
       if (user == null) {
-        if (mounted) {
-          setState(() => _isLoading = false);
-          if (context.mounted) {
-            AppNavigation.goToLogin(context);
-          }
+        if (context.mounted) {
+          AppNavigation.goToLogin(context);
         }
         return;
       }
@@ -193,118 +231,131 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profile updated successfully')),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.profileUpdatedSuccessfully),
+            behavior: SnackBarBehavior.floating,
+          ),
         );
-        Navigator.of(context).pop();
+        setState(() => _hasUnsavedChanges = false);
       }
     } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e is Failure ? e.message : AppLocalizations.of(context)!.failedToUpdateProfile),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    } finally {
       if (mounted) {
-        setState(() => _isLoading = false);
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to save profile')),
-          );
-        }
+        setState(() => _isSaving = false);
       }
     }
   }
 
+  Widget _buildUsernameField() {
+    return TextFormField(
+      controller: _usernameController,
+      decoration: InputDecoration(
+        labelText: AppLocalizations.of(context)!.username,
+        hintText: AppLocalizations.of(context)!.enterYourUsername,
+        errorText: _isUsernameAvailable 
+            ? null 
+            : AppLocalizations.of(context)!.usernameAlreadyTaken,
+      ),
+      onChanged: _onUsernameChanged,
+      validator: (value) => ValidationUtils.validateUsernameAvailability(
+        context, 
+        value, 
+        _isUsernameAvailable,
+      ),
+      textInputAction: TextInputAction.next,
+    );
+  }
+
+  Widget _buildBioField() {
+    return TextFormField(
+      controller: _bioController,
+      decoration: InputDecoration(
+        labelText: AppLocalizations.of(context)!.bio,
+        hintText: AppLocalizations.of(context)!.tellUsAboutYourself,
+      ),
+      onChanged: _onBioChanged,
+      validator: (value) => ValidationUtils.validateBio(context, value),
+      maxLines: 3,
+      maxLength: 200,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Edit Profile'),
-        actions: [
-          TextButton(
-            onPressed: _isLoading ? null : _saveProfile,
-            child: _isLoading
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Text('Save'),
+    final l10n = AppLocalizations.of(context)!;
+
+    return PopScope(
+      canPop: !_hasUnsavedChanges,
+      onPopInvoked: (bool didPop) async {
+        if (didPop) return;
+        
+        final shouldPop = await _confirmDiscardChanges();
+        if (shouldPop && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(l10n.editProfile),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () async {
+              final shouldPop = await _confirmDiscardChanges();
+              if (shouldPop && context.mounted) {
+                Navigator.of(context).pop();
+              }
+            },
           ),
-        ],
-      ),
-      body: _isLoading && _usernameController.text.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Center(
-                      child: GestureDetector(
-                        onTap: _pickImage,
-                        child: Stack(
-                          children: [
-                            ProfileAvatar(
-                              imageUrl: _pickedImage?.path,
-                              radius: 50,
-                              onTap: _pickImage,
-                            ),
-                            Positioned(
-                              bottom: 0,
-                              right: 0,
-                              child: Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: const BoxDecoration(
-                                  color: Colors.blue,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.edit,
-                                  size: 16,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    TextFormField(
-                      controller: _usernameController,
-                      decoration: InputDecoration(
-                        labelText: 'Username',
-                        hintText: 'Enter your username',
-                        errorText: _isUsernameAvailable ? null : 'Username is already taken',
-                        suffixIcon: _isUsernameAvailable
-                            ? null
-                            : const Icon(Icons.error, color: Colors.red),
-                      ),
-                      onChanged: _onUsernameChanged,
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Please enter a username';
-                        }
-                        if (value.trim().length < 3) {
-                          return 'Username must be at least 3 characters long';
-                        }
-                        if (!_isUsernameAvailable) {
-                          return 'Username is already taken';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _bioController,
-                      decoration: const InputDecoration(
-                        labelText: 'Bio',
-                        hintText: 'Tell us about yourself',
-                      ),
-                      maxLines: 3,
-                      maxLength: 200,
-                    ),
-                  ],
-                ),
-              ),
+        ),
+        body: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            padding: const EdgeInsetsDirectional.symmetric(
+              horizontal: 16.0,
+              vertical: 8.0,
             ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 16),
+                Center(
+                  child: ProfileImagePicker(
+                    currentImagePath: ref.watch(authStateProvider).value?.user?.userMetadata?['avatar_url'],
+                    pickedImage: _pickedImage,
+                    onPickImage: _pickImage,
+                    isLoading: _isSaving,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                _buildUsernameField(),
+                const SizedBox(height: 16),
+                _buildBioField(),
+                const SizedBox(height: 32),
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(bottom: 24.0),
+                  child: AppButton.primary(
+                    onPressed: (_isSaving || !_isUsernameAvailable) 
+                        ? null 
+                        : _saveProfile,
+                    label: l10n.saveChanges,
+                    isLoading: _isSaving,
+                    fullWidth: true,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

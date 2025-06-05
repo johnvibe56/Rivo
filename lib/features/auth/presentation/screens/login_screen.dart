@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rivo/core/constants/app_colors.dart';
+import 'package:rivo/core/presentation/widgets/app_button.dart';
 import 'package:rivo/features/auth/presentation/providers/auth_provider.dart';
 import 'package:rivo/features/auth/utils/validators.dart';
+import 'package:rivo/l10n/app_localizations.dart';
 
 // Form field keys
 const _kEmailFieldKey = Key('email');
@@ -25,10 +27,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _isLoading = false;
+  bool _isSigningIn = false;
+  bool _isGoogleLoading = false;
   String? _errorMessage;
   bool _obscurePassword = true;
-  bool _isGoogleLoading = false;
 
   @override
   void dispose() {
@@ -41,40 +43,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     setState(() {
-      _isLoading = true;
+      _isSigningIn = true;
       _errorMessage = null;
     });
 
     try {
       await ref.read(authControllerProvider).signInWithEmail(
             email: _emailController.text.trim(),
-            password: _passwordController.text,
+            password: _passwordController.text.trim(),
           );
-      
-      if (mounted) {
-        // Clear form fields
-        _emailController.clear();
-        _passwordController.clear();
 
-        // Navigate to the intended route or home screen
-        if (context.mounted) {
-          final redirect = widget.redirect;
-          if (redirect != null && redirect.isNotEmpty) {
-            context.go(redirect);
-          } else {
-            context.go('/feed');
-          }
+      if (mounted) {
+        if (widget.redirect != null) {
+          // ignore: use_build_context_synchronously
+          context.go(widget.redirect!);
+        } else {
+          // ignore: use_build_context_synchronously
+          context.go('/');
         }
       }
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          _errorMessage = _getErrorMessage(e.toString());
-        });
-      }
+      setState(() {
+        _errorMessage = e.toString().replaceAll('Exception: ', '');
+      });
     } finally {
       if (mounted) {
-        setState(() => _isLoading = false);
+        setState(() => _isSigningIn = false);
       }
     }
   }
@@ -89,50 +83,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       await ref.read(authControllerProvider).signInWithGoogle();
       
       if (mounted) {
-        // Navigate to the intended route or home screen
-        if (context.mounted) {
-          final redirect = widget.redirect;
-          if (redirect != null && redirect.isNotEmpty) {
-            context.go(redirect);
-          } else {
-            context.go('/feed');
-          }
+        if (widget.redirect != null) {
+          context.go(widget.redirect!);
+        } else {
+          context.go('/');
         }
       }
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          _errorMessage = _getErrorMessage(e.toString());
-        });
-      }
+      setState(() {
+        _errorMessage = e.toString().replaceAll('Exception: ', '');
+      });
     } finally {
       if (mounted) {
         setState(() => _isGoogleLoading = false);
       }
-    }
-  }
-
-  String _getErrorMessage(String error) {
-    if (error.contains('Invalid login credentials') || 
-        error.contains('Invalid login')) {
-      return 'Invalid email or password. Please try again.';
-    } else if (error.contains('Email not confirmed') || 
-               error.contains('Email not verified')) {
-      return 'Please verify your email before signing in. Check your inbox for a verification link.';
-    } else if (error.contains('network-request-failed') ||
-               error.contains('Failed host lookup')) {
-      return 'Network error. Please check your connection and try again.';
-    } else if (error.contains('user not found')) {
-      return 'No account found with this email. Please sign up first.';
-    } else if (error.contains('was canceled')) {
-      return 'Sign in was canceled. Please try again.';
-    } else if (error.contains('Failed to sign in with Google')) {
-      return 'Failed to sign in with Google. Please try again.';
-    } else {
-      // Clean up the error message for display
-      return error
-          .replaceAll('Exception: ', '')
-          .replaceAll('AuthException: ', '');
     }
   }
 
@@ -160,16 +124,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      'Welcome Back',
+                      AppLocalizations.of(context)!.welcomeBack,
                       style: theme.textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Sign in to continue to Rivo',
+                      AppLocalizations.of(context)!.signInToContinue,
                       style: theme.textTheme.bodyLarge?.copyWith(
-                        color: theme.hintColor,
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                        decoration: TextDecoration.underline,
                       ),
                     ),
                   ],
@@ -193,8 +159,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         Expanded(
                           child: Text(
                             _errorMessage!,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: AppColors.error,
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurface,
+                              decoration: TextDecoration.underline,
                             ),
                           ),
                         ),
@@ -209,8 +176,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   key: _kEmailFieldKey,
                   controller: _emailController,
                   decoration: InputDecoration(
-                    labelText: 'Email',
-                    hintText: 'Enter your email',
+                    labelText: AppLocalizations.of(context)!.email,
+                    hintText: AppLocalizations.of(context)!.enterYourEmail,
                     prefixIcon: const Icon(Icons.email_outlined),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -229,8 +196,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   key: _kPasswordFieldKey,
                   controller: _passwordController,
                   decoration: InputDecoration(
-                    labelText: 'Password',
-                    hintText: 'Enter your password',
+                    labelText: AppLocalizations.of(context)!.password,
+                    hintText: AppLocalizations.of(context)!.enterYourPassword,
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
@@ -259,37 +226,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 // Forgot password
                 Align(
                   alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: _isLoading || _isGoogleLoading
+                  child: AppButton.text(
+                    onPressed: _isSigningIn || _isGoogleLoading
                         ? null
                         : () => context.push('/forgot-password'),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                    ),
-                    child: const Text('Forgot Password?'),
+                    label: AppLocalizations.of(context)!.forgotPassword,
+                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
                   ),
                 ),
                 const SizedBox(height: 24),
 
                 // Sign in button
-                FilledButton(
-                  onPressed: _isLoading ? null : _submit,
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                      : const Text('Sign In'),
+                AppButton.primary(
+                  onPressed: _isSigningIn ? null : _submit,
+                  label: AppLocalizations.of(context)!.signIn,
+                  isLoading: _isSigningIn,
+                  fullWidth: true,
                 ),
                 const SizedBox(height: 24),
 
@@ -300,8 +252,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       child: Text(
-                        'OR',
-                        style: theme.textTheme.bodySmall?.copyWith(
+                        AppLocalizations.of(context)!.or,
+                        style: theme.textTheme.bodyMedium?.copyWith(
                           color: theme.hintColor,
                         ),
                       ),
@@ -312,26 +264,45 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(height: 24),
 
                 // Google sign in button
-                OutlinedButton.icon(
-                  onPressed: _isGoogleLoading ? null : _signInWithGoogle,
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: OutlinedButton(
+                    onPressed: (_isSigningIn || _isGoogleLoading) ? null : _signInWithGoogle,
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black87,
+                      side: const BorderSide(color: Colors.grey),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
                     ),
-                    side: BorderSide(color: theme.dividerColor),
+                    child: _isGoogleLoading
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.black87),
+                            ),
+                          )
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Image.asset(
+                                'assets/images/google_logo.png',
+                                height: 24,
+                                width: 24,
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                AppLocalizations.of(context)!.continueWithGoogle,
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                            ],
+                          ),
                   ),
-                  icon: _isGoogleLoading
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(
-                          Icons.g_mobiledata_rounded,
-                          size: 28,
-                        ),
-                  label: const Text('Continue with Google'),
                 ),
                 const SizedBox(height: 32),
 
@@ -340,19 +311,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      "Don't have an account? ",
+                      AppLocalizations.of(context)!.dontHaveAnAccount,
                       style: theme.textTheme.bodyLarge,
                     ),
-                    TextButton(
-                      onPressed: _isLoading || _isGoogleLoading
+                    const SizedBox(width: 4),
+                    GestureDetector(
+                      onTap: _isSigningIn || _isGoogleLoading
                           ? null
                           : () => context.push('/signup'),
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                        minimumSize: const Size(50, 36),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      child: Text(
+                        AppLocalizations.of(context)!.signUp,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                          decoration: TextDecoration.underline,
+                        ),
                       ),
-                      child: const Text('Sign Up'),
                     ),
                   ],
                 ),

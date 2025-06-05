@@ -39,5 +39,1245 @@
   "hebrew": "עברית",
   "@hebrew": {
     "description": "Hebrew language option"
+  },
+  "validationRequired": "This field is required",
+  "@validationRequired": {
+    "description": "Error message when a required field is empty"
+  },
+  "validationEmailInvalid": "Please enter a valid email address",
+  "@validationEmailInvalid": {
+    "description": "Error message when an invalid email is entered"
+  },
+  "validationPasswordTooShort": "Password must be at least 8 characters long",
+  "validationBioTooLong": "Bio cannot be longer than 200 characters",
+  "@validationBioTooLong": {
+    "description": "Error message when bio exceeds maximum length"
+  },
+  "unsavedChanges": "You have unsaved changes",
+  "@unsavedChanges": {
+    "description": "Warning message when there are unsaved changes"
+  },
+  "discardChangesConfirmation": "Discard changes?",
+  "@discardChangesConfirmation": {
+    "description": "Confirmation dialog title when discarding changes"
+  },
+  "selectImage": "Select Image",
+  "@selectImage": {
+    "description": "Label for the button to select an image"
+  },
+  "@validationPasswordTooShort": {
+    "description": "Error message when password is too short"
+  },
+  "validationUsernameTooShort": "Username must be at least 3 characters long",
+  "@validationUsernameTooShort": {
+    "description": "Error message when username is too short"
+  },
+  "validationUsernameInvalid": "Username can only contain letters, numbers and underscores",
+  "@validationUsernameInvalid": {
+    "description": "Error message when username contains invalid characters"
+  },
+  "validationPriceInvalid": "Please enter a valid price (e.g., 10.99)",
+  "@validationPriceInvalid": {
+    "description": "Error message when an invalid price is entered"
+  },
+  "continueWithGoogle": "Continue with Google",
+  "@continueWithGoogle": {
+    "description": "Text for Google sign in button"
+  },
+  "signIn": "Sign In",
+  "@signIn": {
+    "description": "Text for sign in button"
+  },
+  "forgotPassword": "Forgot Password?",
+  "@forgotPassword": {
+    "description": "Text for forgot password link"
+  },
+  "dontHaveAnAccount": "Don't have an account? ",
+  "@dontHaveAnAccount": {
+    "description": "Text before sign up link"
+  },
+  "signUp": "Sign Up",
+  "@signUp": {
+    "description": "Text for sign up link"
+  },
+  "createAccount": "Create Account",
+  "@createAccount": {
+    "description": "Text for create account button"
+  },
+  "alreadyHaveAnAccount": "Already have an account? ",
+  "@alreadyHaveAnAccount": {
+    "description": "Text before sign in link"
+  },
+  "noAccountFoundWithEmail": "No account found with this email address.",
+  "@noAccountFoundWithEmail": {
+    "description": "Error message when no account is found with the provided email"
+  },
+  "networkError": "Network error. Please check your connection and try again.",
+  "@networkError": {
+    "description": "Error message when a network error occurs"
+  },
+  "sendResetLink": "Send Reset Link",
+  "@sendResetLink": {
+    "description": "Text for send reset link button"
+  },
+  "checkYourEmail": "Check your email",
+  "@checkYourEmail": {
+    "description": "Title shown after password reset email is sent"
+  },
+  "resetPasswordEmailSent": "We've sent you an email with a link to reset your password. Please check your inbox and follow the instructions.",
+  "@resetPasswordEmailSent": {
+    "description": "Message shown after password reset email is sent"
+  },
+  "backToSignIn": "Back to Sign In",
+  "@backToSignIn": {
+    "description": "Text for back to sign in button"
+  },
+  "productFeed": "Product Feed",
+  "@productFeed": {
+    "description": "Title for the product feed screen"
+  },
+  "refresh": "Refresh",
+  "@refresh": {
+    "description": "Tooltip text for refresh button"
+  },
+  "errorLoadingProducts": "Error loading products",
+  "@errorLoadingProducts": {
+    "description": "Error message when products fail to load"
+  },
+  "retry": "Retry",
+  "@retry": {
+    "description": "Button label to retry an action"
+  },
+  "productDetails": "Product Details",
+  "@productDetails": {
+    "description": "Title for the product details screen"
+  },
+  "productNoLongerAvailable": "This product is no longer available",
+  "@productNoLongerAvailable": {
+    "description": "Message shown when a product is no longer available"
+  },
+  "productNoLongerExists": "This product no longer exists",
+  "@productNoLongerExists": {
+    "description": "Message shown when a product doesn't exist"
+  },
+  "failedToLoadProduct": "Failed to load product",
+  "@failedToLoadProduct": {
+    "description": "Error message when product details fail to load"
+  },
+  "unexpectedError": "An unexpected error occurred",
+  "@unexpectedError": {
+    "description": "Generic error message"
+  },
+  "description": "Description",
+  "@description": {
+    "description": "Label for product description"
+  },
+  "sellerInformation": "Seller Information",
+  "@sellerInformation": {
+    "description": "Label for seller information section"
+  },
+  "chat": "Chat",
+  "@chat": {
+    "description": "Label for chat button"
+  },
+  "editProfile": "Edit Profile",
+  "@editProfile": {
+    "description": "Title for the edit profile screen"
+  },
+  "errorLoadingProfile": "Error loading profile",
+  "@errorLoadingProfile": {
+    "description": "Error message when profile fails to load"
+  },
+  "failedToLoadProfile": "Failed to load profile",
+  "@failedToLoadProfile": {
+    "description": "Error message when profile fails to load"
+  },
+  "failedToLoadProducts": "Failed to load products",
+  "@failedToLoadProducts": {
+    "description": "Error message when products fail to load"
+  },
+  "addedToCart": "Added to cart",
+  "@addedToCart": {
+    "description": "Message shown when item is added to cart"
+  },
+  "viewCart": "View Cart",
+  "@viewCart": {
+    "description": "Button label to view cart"
+  },
+  "failedToAddToCart": "Failed to add to cart",
+  "@failedToAddToCart": {
+    "description": "Error message when adding to cart fails"
+  },
+  "failedToPickImage": "Failed to pick image",
+  "@failedToPickImage": {
+    "description": "Error message when image selection fails"
+  },
+  "profileUpdatedSuccessfully": "Profile updated successfully",
+  "@profileUpdatedSuccessfully": {
+    "description": "Success message when profile is updated"
+  },
+  "failedToUpdateProfile": "Failed to update profile",
+  "@failedToUpdateProfile": {
+    "description": "Error message when profile update fails"
+  },
+  "changePhoto": "Change Photo",
+  "@changePhoto": {
+    "description": "Label for change photo button"
+  },
+  "username": "Username",
+  "@username": {
+    "description": "Label for username field"
+  },
+  "enterYourUsername": "Enter your username",
+  "@enterYourUsername": {
+    "description": "Hint text for username field"
+  },
+  "usernameAlreadyTaken": "Username is already taken",
+  "@usernameAlreadyTaken": {
+    "description": "Error message when username is already taken"
+  },
+  "pleaseEnterUsername": "Please enter a username",
+  "@pleaseEnterUsername": {
+    "description": "Error message when username is empty"
+  },
+  "usernameMustBeAtLeast3Characters": "Username must be at least 3 characters long",
+  "@usernameMustBeAtLeast3Characters": {
+    "description": "Error message when username is too short"
+  },
+  "bio": "Bio",
+  "@bio": {
+    "description": "Label for bio field"
+  },
+  "tellUsAboutYourself": "Tell us about yourself",
+  "@tellUsAboutYourself": {
+    "description": "Hint text for bio field"
+  },
+  "saveChanges": "Save Changes",
+  "@saveChanges": {
+    "description": "Label for save changes button"
+  },
+  "errorSigningOut": "Error signing out",
+  "@errorSigningOut": {
+    "description": "Error message when sign out fails"
+  },
+  "productDeleted": "Product deleted",
+  "@productDeleted": {
+    "description": "Success message when a product is deleted"
+  },
+  "failedToDeleteProduct": "Failed to delete product",
+  "@failedToDeleteProduct": {
+    "description": "Error message when product deletion fails"
+  },
+  "errorDeletingProduct": "An error occurred while deleting the product",
+  "@errorDeletingProduct": {
+    "description": "Generic error message for product deletion"
+  },
+  "deleteProduct": "Delete Product",
+  "@deleteProduct": {
+    "description": "Title for delete product confirmation dialog"
+  },
+  "confirmDeleteProduct": "Are you sure you want to delete this product? This action cannot be undone.",
+  "@confirmDeleteProduct": {
+    "description": "Confirmation message for product deletion"
+  },
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Label for cancel button"
+  },
+  "delete": "Delete",
+  "@delete": {
+    "description": "Label for delete button"
+  },
+  "failedToOpenEditProfile": "Failed to open edit profile",
+  "@failedToOpenEditProfile": {
+    "description": "Error message when edit profile screen fails to open"
+  },
+  "myProfile": "My Profile",
+  "@myProfile": {
+    "description": "Title for current user's profile"
+  },
+  "profile": "Profile",
+  "@profile": {
+    "description": "Title for other users' profiles"
+  },
+  "myPurchases": "My Purchases",
+  "@myPurchases": {
+    "description": "Tooltip for purchases button"
+  },
+  "signOut": "Sign Out",
+  "@signOut": {
+    "description": "Tooltip for sign out button"
+  },
+  "noProductsFound": "No products found",
+  "@noProductsFound": {
+    "description": "Message shown when user has no products"
+  },
+  "myWishlist": "My Wishlist",
+  "@myWishlist": {
+    "description": "Title for the wishlist screen"
+  },
+  "signInToViewWishlist": "Please sign in to view your wishlist",
+  "@signInToViewWishlist": {
+    "description": "Message shown when user is not signed in"
+  },
+  "signIn": "Sign In",
+  "@signIn": {
+    "description": "Sign in button label"
+  },
+  "wishlistEmpty": "No saved items yet",
+  "@wishlistEmpty": {
+    "description": "Message shown when wishlist is empty"
+  },
+  "continueShopping": "Continue Shopping",
+  "@continueShopping": {
+    "description": "Button label to continue shopping"
+  },
+  "addToCart": "Add to Cart",
+  "@addToCart": {
+    "description": "Button label for adding item to cart"
+  },
+  "removedFromWishlist": "Removed from wishlist",
+  "@removedFromWishlist": {
+    "description": "Message shown when item is removed from wishlist"
+  },
+  "removeFromWishlist": "Remove from wishlist",
+  "@removeFromWishlist": {
+    "description": "Accessibility label for remove from wishlist button"
+  },
+  "remove": "Remove",
+  "@remove": {
+    "description": "Button label for removing item"
+  },
+  "failedToLoadWishlist": "Failed to load wishlist",
+  "@failedToLoadWishlist": {
+    "description": "Error message when wishlist fails to load"
+  },
+  "productUnavailable": "Product no longer available",
+  "@productUnavailable": {
+    "description": "Message shown when a product in wishlist is no longer available"
+  },
+  "yourCart": "Your Cart",
+  "@yourCart": {
+    "description": "Title for the cart screen"
+  },
+  "yourCartIsEmpty": "Your cart is empty",
+  "@yourCartIsEmpty": {
+    "description": "Message shown when the cart is empty"
+  },
+  "total": "Total",
+  "@total": {
+    "description": "Label for total price"
+  },
+  "checkout": "Checkout",
+  "@checkout": {
+    "description": "Label for checkout button"
+  },
+  "checkoutSimulationComplete": "Checkout simulation complete!",
+  "@checkoutSimulationComplete": {
+    "description": "Message shown after checkout simulation"
+  },
+  "deleteProduct": "Delete Product",
+  "@deleteProduct": {
+    "description": "Title for delete product confirmation dialog"
+  },
+  "confirmDeleteProduct": "Are you sure you want to delete this product? This action cannot be undone.",
+  "@confirmDeleteProduct": {
+    "description": "Confirmation message shown before deleting a product"
+  },
+  "productDeletedSuccessfully": "Product deleted successfully",
+  "@productDeletedSuccessfully": {
+    "description": "Success message shown after deleting a product"
+  },
+  "errorDeletingProduct": "An unexpected error occurred while deleting the product",
+  "@errorDeletingProduct": {
+    "description": "Error message shown when deleting a product fails"
+  },
+  "unexpectedErrorTryAgain": "An unexpected error occurred. Please try again.",
+  "@unexpectedErrorTryAgain": {
+    "description": "Generic error message when an unexpected error occurs"
+  },
+  "pleaseLoginToPurchase": "Please log in to make a purchase",
+  "@pleaseLoginToPurchase": {
+    "description": "Message shown when user needs to log in to make a purchase"
+  },
+  "alreadyPurchasedItem": "You have already purchased this item!",
+  "@alreadyPurchasedItem": {
+    "description": "Message shown when user tries to purchase an already purchased item"
+  },
+  "purchaseSuccessful": "Purchase successful!",
+  "@purchaseSuccessful": {
+    "description": "Message shown when a purchase is successful"
+  },
+  "purchaseFailed": "Purchase failed",
+  "@purchaseFailed": {
+    "description": "Prefix for purchase failure messages"
+  },
+  "error": "Error",
+  "@error": {
+    "description": "Generic error prefix"
+  },
+  "unknownError": "Unknown error",
+  "@unknownError": {
+    "description": "Message shown for unknown errors"
+  },
+  "unexpectedErrorOccurred": "An unexpected error occurred",
+  "@unexpectedErrorOccurred": {
+    "description": "Message shown when an unexpected error occurs"
+  },
+  "buyNow": "Buy Now",
+  "@buyNow": {
+    "description": "Label for buy now button"
+  },
+  "welcomeToRivo": "Welcome to Rivo",
+  "@welcomeToRivo": {
+    "description": "Welcome message on the first onboarding screen"
+  },
+  "onboardingWelcomeDescription": "Discover amazing products and connect with sellers in your area",
+  "@onboardingWelcomeDescription": {
+    "description": "Description text on the first onboarding screen"
+  },
+  "onboardingBuySellTitle": "Buy & Sell with Ease",
+  "@onboardingBuySellTitle": {
+    "description": "Title for the second onboarding screen"
+  },
+  "onboardingBuySellDescription": "List items for sale or find great deals near you",
+  "@onboardingBuySellDescription": {
+    "description": "Description text for the second onboarding screen"
+  },
+  "onboardingSafeTitle": "Safe & Secure",
+  "@onboardingSafeTitle": {
+    "description": "Title for the third onboarding screen"
+  },
+  "onboardingSafeDescription": "Chat with sellers and buyers in a secure environment",
+  "@onboardingSafeDescription": {
+    "description": "Description text for the third onboarding screen"
+  },
+  "skip": "Skip",
+  "@skip": {
+    "description": "Button to skip the onboarding process"
+  },
+  "next": "Next",
+  "@next": {
+    "description": "Button to go to the next onboarding screen"
+  },
+  "getStarted": "Get Started",
+  "@getStarted": {
+    "description": "Button to finish onboarding and proceed to the app"
+  },
+  "alreadyHaveAnAccountSignIn": "Already have an account? Sign In",
+  "@alreadyHaveAnAccountSignIn": {
+    "description": "Text and link to sign in for existing users"
+  },
+  "welcomeBack": "Welcome Back",
+  "@welcomeBack": {
+    "description": "Welcome back message on login screen"
+  },
+  "signInToContinue": "Sign in to continue to Rivo",
+  "@signInToContinue": {
+    "description": "Subtitle on login screen"
+  },
+  "email": "Email",
+  "@email": {
+    "description": "Label for email field"
+  },
+  "enterYourEmail": "Enter your email",
+  "@enterYourEmail": {
+    "description": "Hint text for email field"
+  },
+  "password": "Password",
+  "@password": {
+    "description": "Label for password field"
+  },
+  "enterYourPassword": "Enter your password",
+  "@enterYourPassword": {
+    "description": "Hint text for password field"
+  },
+  "or": "OR",
+  "@or": {
+    "description": "Divider text for login options"
+  },
+  "invalidEmailOrPassword": "Invalid email or password. Please try again.",
+  "@invalidEmailOrPassword": {
+    "description": "Error message for invalid login credentials"
+  },
+  "verifyEmailBeforeSignIn": "Please verify your email before signing in. Check your inbox for a verification link.",
+  "@verifyEmailBeforeSignIn": {
+    "description": "Error message when email is not verified"
+  },
+  "networkErrorTryAgain": "Network error. Please check your connection and try again.",
+  "@networkErrorTryAgain": {
+    "description": "Error message for network issues"
+  },
+  "noAccountFoundSignUp": "No account found with this email. Please sign up first.",
+  "@noAccountFoundSignUp": {
+    "description": "Error message when no account is found"
+  },
+  "signInCanceled": "Sign in was canceled. Please try again.",
+  "@signInCanceled": {
+    "description": "Error message when sign in is canceled"
+  },
+  "googleSignInFailed": "Failed to sign in with Google. Please try again.",
+  "@googleSignInFailed": {
+    "description": "Error message when Google sign in fails"
+  },
+  "createAnAccount": "Create an Account",
+  "@createAnAccount": {
+    "description": "Title for signup screen"
+  },
+  "fillInYourDetails": "Fill in your details to get started",
+  "@fillInYourDetails": {
+    "description": "Subtitle for signup screen"
+  },
+  "fullName": "Full Name",
+  "@fullName": {
+    "description": "Label for full name field"
+  },
+  "enterYourFullName": "Enter your full name",
+  "@enterYourFullName": {
+    "description": "Hint text for full name field"
+  },
+  "username": "Username",
+  "@username": {
+    "description": "Label for username field"
+  },
+  "chooseAUsername": "Choose a username",
+  "@chooseAUsername": {
+    "description": "Hint text for username field"
+  },
+  "usernameAvailable": "Username is available!",
+  "@usernameAvailable": {
+    "description": "Message shown when username is available"
+  },
+  "usernameTaken": "This username is already taken",
+  "@usernameTaken": {
+    "description": "Message shown when username is already taken"
+  },
+  "errorCheckingUsername": "Error checking username availability",
+  "@errorCheckingUsername": {
+    "description": "Error message when checking username availability fails"
+  },
+  "createAStrongPassword": "Create a strong password",
+  "@createAStrongPassword": {
+    "description": "Hint text for password field"
+  },
+  "back": "Back",
+  "@back": {
+    "description": "Back button text"
+  },
+  "searchHint": "Search items, brands and categories",
+  "@searchHint": {
+    "description": "Hint text for search field"
+  },
+  "sort": "Sort",
+  "@sort": {
+    "description": "Sort button text"
+  },
+  "filter": "Filter",
+  "@filter": {
+    "description": "Filter button text"
+  },
+  "follow": "Follow",
+  "@follow": {
+    "description": "Follow button text"
+  },
+  "following": "Following",
+  "@following": {
+    "description": "Following button text"
+  },
+  "unfollowedSeller": "You have unfollowed this seller",
+  "@unfollowedSeller": {
+    "description": "Message shown when unfollowing a seller"
+  },
+  "followedSeller": "You are now following this seller",
+  "@followedSeller": {
+    "description": "Message shown when following a seller"
+  },
+  "noInternetConnection": "No internet connection",
+  "@noInternetConnection": {
+    "description": "Error message when there's no internet connection"
+  },
+  "pleaseSignInToContinue": "Please sign in to continue",
+  "@pleaseSignInToContinue": {
+    "description": "Message shown when authentication is required"
+  },
+  "addToWishlist": "Add to wishlist",
+  "@addToWishlist": {
+    "description": "Tooltip for add to wishlist button"
+  },
+  "addedToWishlist": "Added to wishlist",
+  "@addedToWishlist": {
+    "description": "Message shown when an item is added to wishlist"
+  },
+  "removedFromWishlist": "Removed from wishlist",
+  "@removedFromWishlist": {
+    "description": "Message shown when an item is removed from wishlist"
+  },
+  "productDetails": "Product Details",
+  "@productDetails": {
+    "description": "Title for product details screen"
+  },
+  "share": "Share",
+  "@share": {
+    "description": "Share button text"
+  },
+  "productNoLongerAvailable": "This product is no longer available",
+  "@productNoLongerAvailable": {
+    "description": "Message shown when a product has been deleted"
+  },
+  "productNoLongerExists": "This product no longer exists",
+  "@productNoLongerExists": {
+    "description": "Message shown when a product is not found"
+  },
+  "failedToLoadProduct": "Failed to load product",
+  "@failedToLoadProduct": {
+    "description": "Error message when product fails to load"
+  },
+  "unexpectedError": "An unexpected error occurred",
+  "@unexpectedError": {
+    "description": "Generic error message"
+  },
+  "like": "Like",
+  "@like": {
+    "description": "Like button text"
+  },
+  "unlike": "Unlike",
+  "@unlike": {
+    "description": "Unlike button text"
+  },
+  "save": "Save",
+  "@save": {
+    "description": "Save button text"
+  },
+  "unsave": "Unsave",
+  "@unsave": {
+    "description": "Unsave button text"
+  },
+  "description": "Description",
+  "@description": {
+    "description": "Description section title"
+  },
+  "sellerInformation": "Seller Information",
+  "@sellerInformation": {
+    "description": "Seller information section title"
+  },
+  "user": "User",
+  "@user": {
+    "description": "User prefix"
+  },
+  "addNewProduct": "Add New Product",
+  "@addNewProduct": {
+    "description": "Title for the add new product screen"
+  },
+  "uploadProduct": "Upload Product",
+  "@uploadProduct": {
+    "description": "Text for upload product button"
+  },
+  "title": "Title",
+  "@title": {
+    "description": "Label for title field"
+  },
+  "price": "Price",
+  "@price": {
+    "description": "Label for price field"
+  },
+  "fieldRequired": "This field is required",
+  "@fieldRequired": {
+    "description": "Error message when a required field is empty"
+  },
+  "invalidPrice": "Please enter a valid price",
+  "@invalidPrice": {
+    "description": "Error message when an invalid price is entered"
+  },
+  "imageRequired": "Please select an image",
+  "@imageRequired": {
+    "description": "Error message when no image is selected"
+  },
+  "tapToAddImage": "Tap to add an image",
+  "@tapToAddImage": {
+    "description": "Hint text for image picker"
+  },
+  "gallery": "Gallery",
+  "@gallery": {
+    "description": "Label for gallery image source"
+  },
+  "camera": "Camera",
+  "@camera": {
+    "description": "Label for camera image source"
+  },
+  "uploading": "Uploading...",
+  "@uploading": {
+    "description": "Loading message during upload"
+  },
+  "uploadSuccessTitle": "Upload Successful!",
+  "@uploadSuccessTitle": {
+    "description": "Title shown when upload is successful"
+  },
+  "uploadSuccessMessage": "Your product has been uploaded successfully and is now visible to other users.",
+  "@uploadSuccessMessage": {
+    "description": "Message shown when upload is successful"
+  },
+  "viewProduct": "View Product",
+  "@viewProduct": {
+    "description": "Button to view the uploaded product"
+  },
+  "continueShopping": "Continue Shopping",
+  "@continueShopping": {
+    "description": "Button to continue shopping"
+  },
+  "uploadErrorTitle": "Upload Failed",
+  "@uploadErrorTitle": {
+    "description": "Title shown when upload fails"
+  },
+  "uploadFailed": "Failed to upload product. Please try again.",
+  "@uploadFailed": {
+    "description": "Error message when upload fails"
+  },
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Button to cancel an action"
+  },
+  "retry": "Retry",
+  "@retry": {
+    "description": "Button to retry a failed action"
+  },
+  "somethingWentWrong": "Something went wrong. Please try again.",
+  "@somethingWentWrong": {
+    "description": "Generic error message"
+  },
+  "failedToPickImage": "Failed to pick image. Please try again.",
+  "@failedToPickImage": {
+    "description": "Error message when image selection fails"
+  },
+  "posted": "Posted",
+  "@posted": {
+    "description": "Posted time prefix"
+  },
+  "chat": "Chat",
+  "@chat": {
+    "description": "Chat button text"
+  },
+  "buyNow": "Buy Now",
+  "@buyNow": {
+    "description": "Buy now button text"
+  },
+  "addToCart": "Add to Cart",
+  "@addToCart": {
+    "description": "Add to cart button text"
+  },
+  "failedToLikeProduct": "Failed to like product",
+  "@failedToLikeProduct": {
+    "description": "Error message when liking a product fails"
+  },
+  "failedToSaveProduct": "Failed to save product",
+  "@failedToSaveProduct": {
+    "description": "Error message when saving a product fails"
+  },
+  "justNow": "just now",
+  "@justNow": {
+    "description": "Time indicator for just now"
+  },
+  "minutesAgo": "{minutes} minute{minutes, plural, =1{} other{s}} ago",
+  "@minutesAgo": {
+    "description": "Time indicator for minutes ago",
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+  "hoursAgo": "{hours} hour{hours, plural, =1{} other{s}} ago",
+  "@hoursAgo": {
+    "description": "Time indicator for hours ago",
+    "placeholders": {
+      "hours": {}
+    }
+  },
+  "daysAgo": "{days} day{days, plural, =1{} other{s}} ago",
+  "@daysAgo": {
+    "description": "Time indicator for days ago",
+    "placeholders": {
+      "days": {}
+    }
+  },
+  "monthsAgo": "{months} month{months, plural, =1{} other{s}} ago",
+  "@monthsAgo": {
+    "description": "Time indicator for months ago",
+    "placeholders": {
+      "months": {}
+    }
+  },
+  "productId": "Product {productId}",
+  "@productId": {
+    "description": "Product ID display format"
+  },
+  "productDetailsPlaceholder": "Product details would appear here",
+  "@productDetailsPlaceholder": {
+    "description": "Placeholder text for product details"
+  },
+  "addToCart": "Add to Cart",
+  "@addToCart": {
+    "description": "Add to cart button text"
+  },
+  "removeFromWishlist": "Remove from Wishlist",
+  "@removeFromWishlist": {
+    "description": "Remove from wishlist button text"
+  },
+  "addToCartWithStatus": "Add to Cart - {status}",
+  "@addToCartWithStatus": {
+    "description": "Add to cart button with status text"
+  },
+  "failedToAddToWishlist": "Failed to add to wishlist",
+  "@failedToAddToWishlist": {
+    "description": "Error message when adding to wishlist fails"
+  },
+  "failedToRemoveFromWishlist": "Failed to remove from wishlist",
+  "@failedToRemoveFromWishlist": {
+    "description": "Error message when removing from wishlist fails"
+  },
+  "confirmPassword": "Confirm Password",
+  "@confirmPassword": {
+    "description": "Label for confirm password field"
+  },
+  "reEnterYourPassword": "Re-enter your password",
+  "@reEnterYourPassword": {
+    "description": "Hint text for confirm password field"
+  },
+  "alreadyHaveAnAccount": "Already have an account?",
+  "@alreadyHaveAnAccount": {
+    "description": "Text before sign in link"
+  },
+  "byCreatingAnAccount": "By creating an account, you agree to our",
+  "@byCreatingAnAccount": {
+    "description": "Text before terms of service link"
+  },
+  "termsOfService": "Terms of Service",
+  "@termsOfService": {
+    "description": "Terms of service link text"
+  },
+  "and": "and",
+  "@and": {
+    "description": "Conjunction between terms and privacy policy"
+  },
+  "privacyPolicy": "Privacy Policy",
+  "@privacyPolicy": {
+    "description": "Privacy policy link text"
+  },
+  "resetPassword": "Reset Password",
+  "@resetPassword": {
+    "description": "Title for reset password screen"
+  },
+  "forgotYourPassword": "Forgot your password?",
+  "@forgotYourPassword": {
+    "description": "Title for forgot password screen"
+  },
+  "enterYourEmailToResetPassword": "Enter your email address and we'll send you a link to reset your password.",
+  "@enterYourEmailToResetPassword": {
+    "description": "Instructions for forgot password screen"
+  },
+  "resetPasswordInstructions": "We've sent you an email with a link to reset your password. Please check your inbox and follow the instructions. If you don't see the email, check your spam folder.",
+  "@resetPasswordInstructions": {
+    "description": "Instructions shown after reset password email is sent"
+  },
+  "noAccountFoundWithEmail": "No account found with this email address.",
+  "@noAccountFoundWithEmail": {
+    "description": "Error message when no account is found with the provided email"
+  },
+  "networkError": "Network error. Please check your connection and try again.",
+  "@networkError": {
+    "description": "Generic network error message"
+  },
+  "checkYourEmail": "Check Your Email",
+  "@checkYourEmail": {
+    "description": "Title shown after reset password email is sent"
+  },
+  "resetPasswordEmailSent": "We've sent you an email with instructions to reset your password. If you don't see it, check your spam folder.",
+  "@resetPasswordEmailSent": {
+    "description": "Message shown after reset password email is sent"
+  },
+  "backToLogin": "Back to Login",
+  "@backToLogin": {
+    "description": "Button text to go back to login screen"
+  },
+  "productFeed": "Product Feed",
+  "@productFeed": {
+    "description": "Title for product feed screen"
+  },
+  "refresh": "Refresh",
+  "@refresh": {
+    "description": "Button label for refreshing content"
+  },
+  "errorLoadingProducts": "Error loading products",
+  "@errorLoadingProducts": {
+    "description": "Error message when products fail to load"
+  },
+  "retry": "Retry",
+  "@retry": {
+    "description": "Button label to retry loading content"
+  },
+  "addYourFirstProduct": "Add your first product",
+  "@addYourFirstProduct": {
+    "description": "Button label to add first product when feed is empty"
+  },
+  "searchComingSoon": "Search functionality coming soon!",
+  "@searchComingSoon": {
+    "description": "Message shown when search is not yet implemented"
+  },
+  "cartIsEmpty": "Your cart is empty",
+  "@cartIsEmpty": {
+    "description": "Message shown when cart is empty"
+  },
+  "signInToMessage": "Please sign in to message",
+  "@signInToMessage": {
+    "description": "Message shown when user needs to sign in to message"
+  },
+  "messagingSeller": "Messaging seller about {product}",
+  "@messagingSeller": {
+    "description": "Message shown when starting a chat with a seller",
+    "placeholders": {
+      "product": {
+        "type": "String",
+        "format": "string",
+        "optionalParameters": {}
+      }
+    }
+  },
+  "marketplace": "Marketplace",
+  "@marketplace": {
+    "description": "Title for the marketplace section"
+  },
+  "noProductsFound": "No products found",
+  "@noProductsFound": {
+    "description": "Message shown when no products are found"
+  },
+  "noProductsFound": "No products found",
+  "@noProductsFound": {
+    "description": "Message shown when no products are available"
+  },
+  "productDetails": "Product Details",
+  "@productDetails": {
+    "description": "Title for product details screen"
+  },
+  "share": "Share",
+  "@share": {
+    "description": "Button label for sharing"
+  },
+  "productNoLongerAvailable": "This product is no longer available",
+  "@productNoLongerAvailable": {
+    "description": "Message shown when a product has been deleted"
+  },
+  "productNoLongerExists": "This product no longer exists",
+  "@productNoLongerExists": {
+    "description": "Message shown when a product is not found"
+  },
+  "failedToLoadProduct": "Failed to load product",
+  "@failedToLoadProduct": {
+    "description": "Error message when product loading fails"
+  },
+  "unexpectedError": "An unexpected error occurred",
+  "@unexpectedError": {
+    "description": "Generic error message"
+  },
+  "failedToLikeProduct": "Failed to like product",
+  "@failedToLikeProduct": {
+    "description": "Error message when failing to like a product"
+  },
+  "like": "Like",
+  "@like": {
+    "description": "Label for like button"
+  },
+  "unlike": "Unlike",
+  "@unlike": {
+    "description": "Label for unlike button"
+  },
+  "save": "Save",
+  "@save": {
+    "description": "Label for save button"
+  },
+  "unsave": "Unsave",
+  "@unsave": {
+    "description": "Label for unsave button"
+  },
+  "failedToSaveProduct": "Failed to save product",
+  "@failedToSaveProduct": {
+    "description": "Error message when saving a product fails"
+  },
+  "description": "Description",
+  "@description": {
+    "description": "Label for product description"
+  },
+  "sellerInformation": "Seller Information",
+  "@sellerInformation": {
+    "description": "Label for seller information section"
+  },
+  "user": "User",
+  "@user": {
+    "description": "Label for user display name"
+  },
+  "posted": "Posted",
+  "@posted": {
+    "description": "Label for post time"
+  },
+  "chat": "Chat",
+  "@chat": {
+    "description": "Button label for starting a chat"
+  },
+  "monthsAgo": "{months, plural, one{1 month ago} other{{months} months ago}}",
+  "@monthsAgo": {
+    "description": "Relative time for months ago",
+    "placeholders": {
+      "months": {}
+    }
+  },
+  "daysAgo": "{days, plural, one{1 day ago} other{{days} days ago}}",
+  "@daysAgo": {
+    "description": "Relative time for days ago",
+    "placeholders": {
+      "days": {}
+    }
+  },
+  "hoursAgo": "{hours, plural, one{1 hour ago} other{{hours} hours ago}}",
+  "@hoursAgo": {
+    "description": "Relative time for hours ago",
+    "placeholders": {
+      "hours": {}
+    }
+  },
+  "minutesAgo": "{minutes, plural, one{1 minute ago} other{{minutes} minutes ago}}",
+  "@minutesAgo": {
+    "description": "Relative time for minutes ago",
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+  "justNow": "Just now",
+  "@justNow": {
+    "description": "Relative time for just now"
+  },
+  "editProfile": "Edit Profile",
+  "@editProfile": {
+    "description": "Title for edit profile screen"
+  },
+  "saveChanges": "Save Changes",
+  "@saveChanges": {
+    "description": "Button label for saving changes"
+  },
+  "changePhoto": "Change Photo",
+  "@changePhoto": {
+    "description": "Button label for changing profile photo"
+  },
+  "errorLoadingProfile": "Error loading profile",
+  "@errorLoadingProfile": {
+    "description": "Error message when profile fails to load"
+  },
+  "failedToPickImage": "Failed to pick image",
+  "@failedToPickImage": {
+    "description": "Error message when image picking fails"
+  },
+  "failedToUpdateProfile": "Failed to update profile",
+  "@failedToUpdateProfile": {
+    "description": "Error message when profile update fails"
+  },
+  "profileUpdatedSuccessfully": "Profile updated successfully",
+  "@profileUpdatedSuccessfully": {
+    "description": "Success message when profile is updated"
+  },
+  "username": "Username",
+  "@username": {
+    "description": "Label for username field"
+  },
+  "enterYourUsername": "Enter your username",
+  "@enterYourUsername": {
+    "description": "Hint text for username field"
+  },
+  "usernameAlreadyTaken": "Username already taken",
+  "@usernameAlreadyTaken": {
+    "description": "Error message when username is already taken"
+  },
+  "pleaseEnterUsername": "Please enter a username",
+  
+  "titleLabel": "Title",
+  "@titleLabel": {
+    "description": "Label for product title field"
+  },
+  "descriptionLabel": "Description",
+  "@descriptionLabel": {
+    "description": "Label for product description field"
+  },
+  "priceLabel": "Price",
+  "@priceLabel": {
+    "description": "Label for product price field"
+  },
+  "tapToAddImage": "Tap to add image",
+  "@tapToAddImage": {
+    "description": "Hint text for image upload"
+  },
+  "gallery": "Gallery",
+  "@gallery": {
+    "description": "Label for gallery option"
+  },
+  "camera": "Camera",
+  "@camera": {
+    "description": "Label for camera option"
+  },
+  "uploading": "Uploading...",
+  "@uploading": {
+    "description": "Loading message during upload"
+  },
+  "uploadSuccessTitle": "Success!",
+  "@uploadSuccessTitle": {
+    "description": "Title for success message"
+  },
+  "uploadSuccessMessage": "Your product has been uploaded successfully",
+  "@uploadSuccessMessage": {
+    "description": "Success message after upload"
+  },
+  "viewProduct": "View Product",
+  "@viewProduct": {
+    "description": "Button to view the uploaded product"
+  },
+  "continueShopping": "Continue Shopping",
+  "@continueShopping": {
+    "description": "Button to continue shopping after upload"
+  },
+  "uploadErrorTitle": "Upload Failed",
+  "@uploadErrorTitle": {
+    "description": "Title for upload error message"
+  },
+  "uploadErrorMessage": "Failed to upload product. Please try again.",
+  "@uploadErrorMessage": {
+    "description": "Error message when upload fails"
+  },
+  "titleRequired": "Title is required",
+  "@titleRequired": {
+    "description": "Error message when title is empty"
+  },
+  "descriptionRequired": "Description is required",
+  "@descriptionRequired": {
+    "description": "Error message when description is empty"
+  },
+  "priceRequired": "Price is required",
+  "@priceRequired": {
+    "description": "Error message when price is empty"
+  },
+  "invalidPrice": "Please enter a valid price",
+  "@invalidPrice": {
+    "description": "Error message when price is invalid"
+  },
+  "imageRequired": "Please select an image",
+  "@imageRequired": {
+    "description": "Error message when no image is selected"
+  },
+  "@pleaseEnterUsername": {
+    "description": "Error message when username is empty"
+  },
+  "usernameMustBeAtLeast3Characters": "Username must be at least 3 characters",
+  "@usernameMustBeAtLeast3Characters": {
+    "description": "Error message when username is too short"
+  },
+  "bio": "Bio",
+  "@bio": {
+    "description": "Label for bio field"
+  },
+  "tellUsAboutYourself": "Tell us about yourself",
+  "@tellUsAboutYourself": {
+    "description": "Hint text for bio field"
+  },
+  "title": "Title",
+  "@title": {
+    "description": "Label for title field"
+  },
+  "enterTitle": "Enter product title",
+  "@enterTitle": {
+    "description": "Hint text for title field"
+  },
+  "description": "Description",
+  "@description": {
+    "description": "Label for description field"
+  },
+  "enterDescription": "Enter product description",
+  "@enterDescription": {
+    "description": "Hint text for description field"
+  },
+  "price": "Price",
+  "@price": {
+    "description": "Label for price field"
+  },
+  "enterPrice": "Enter price",
+  "@enterPrice": {
+    "description": "Hint text for price field"
+  },
+  "uploadProduct": "Upload Product",
+  "@uploadProduct": {
+    "description": "Upload product button text"
+  },
+  "addNewProduct": "Add New Product",
+  "@addNewProduct": {
+    "description": "Title for add new product screen"
+  },
+  "uploading": "Uploading...",
+  "@uploading": {
+    "description": "Loading message during upload"
+  },
+  "uploadSuccess": "Upload Successful!",
+  "@uploadSuccess": {
+    "description": "Success message after upload"
+  },
+  "uploadFailed": "Upload Failed",
+  "@uploadFailed": {
+    "description": "Error message when upload fails"
+  },
+  "somethingWentWrong": "Something went wrong. Please try again.",
+  "@somethingWentWrong": {
+    "description": "Generic error message"
+  },
+  "tapToAddImage": "Tap to add an image",
+  "@tapToAddImage": {
+    "description": "Hint text for image upload"
+  },
+  "gallery": "Gallery",
+  "@gallery": {
+    "description": "Label for gallery option"
+  },
+  "camera": "Camera",
+  "@camera": {
+    "description": "Label for camera option"
+  },
+  "priceRequired": "Price is required",
+  "@priceRequired": {
+    "description": "Error message when price is empty"
+  },
+  "descriptionRequired": "Description is required",
+  "@descriptionRequired": {
+    "description": "Error message when description is empty"
+  },
+  "titleRequired": "Title is required",
+  "@titleRequired": {
+    "description": "Error message when title is empty"
+  },
+  "continueShopping": "Continue Shopping",
+  "@continueShopping": {
+    "description": "Button to continue shopping after upload"
+  },
+  "uploadSuccessTitle": "Success!",
+  "@uploadSuccessTitle": {
+    "description": "Title for upload success message"
+  },
+  "uploadSuccessMessage": "Your product has been uploaded successfully.",
+  "@uploadSuccessMessage": {
+    "description": "Message shown when product upload is successful"
+  },
+  "viewProduct": "View Product",
+  "@viewProduct": {
+    "description": "Button to view the uploaded product"
+  },
+  "uploadErrorTitle": "Upload Failed",
+  "@uploadErrorTitle": {
+    "description": "Title for upload error message"
+  },
+  "uploadErrorMessage": "There was an error uploading your product. Please try again.",
+  "@uploadErrorMessage": {
+    "description": "Message shown when product upload fails"
+  },
+  "tryAgain": "Try Again",
+  "@tryAgain": {
+    "description": "Button to retry failed operation"
   }
 }

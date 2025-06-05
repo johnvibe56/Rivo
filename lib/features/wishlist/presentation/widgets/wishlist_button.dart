@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rivo/features/wishlist/presentation/providers/wishlist_providers.dart';
+import 'package:rivo/l10n/app_localizations.dart';
 
 class WishlistButton extends ConsumerStatefulWidget {
   final String productId;
@@ -51,13 +52,15 @@ class _WishlistButtonState extends ConsumerState<WishlistButton> {
     bool showError = false,
   }) {
     final theme = Theme.of(context);
-    final defaultColor = theme.colorScheme.onSurface;
-    final color = widget.color ?? Color.lerp(
-      defaultColor,
-      Colors.transparent,
+    final onSurface = theme.colorScheme.onSurface;
+    final defaultColor = Color.fromRGBO(
+      ((onSurface.r * 255.0) * 0.3).round(),
+      ((onSurface.g * 255.0) * 0.3).round(),
+      ((onSurface.b * 255.0) * 0.3).round(),
       0.3,
-    )!;
+    );
     final selectedColor = widget.selectedColor ?? theme.colorScheme.error;
+    final iconColor = isInWishlist ? selectedColor : widget.color ?? defaultColor;
 
     return Stack(
       alignment: Alignment.center,
@@ -65,14 +68,22 @@ class _WishlistButtonState extends ConsumerState<WishlistButton> {
         IconButton(
           icon: Icon(
             isInWishlist ? Icons.favorite : Icons.favorite_border,
-            color: isInWishlist ? selectedColor : color,
+            color: iconColor,
             size: widget.size,
           ),
-          onPressed: isLoading || _isProcessing
+          onPressed: (isLoading || _isProcessing)
               ? null
               : () => _toggleWishlist(!isInWishlist),
+          tooltip: isInWishlist 
+              ? AppLocalizations.of(context)?.removeFromWishlist ?? 'Remove from wishlist'
+              : AppLocalizations.of(context)?.addToWishlist ?? 'Add to wishlist',
+          padding: const EdgeInsets.all(8),
+          constraints: BoxConstraints.tightFor(
+            width: widget.size + 16,
+            height: widget.size + 16,
+          ),
         ),
-        if (isLoading || _isProcessing)
+        if (isLoading)
           Positioned.fill(
             child: Center(
               child: SizedBox(
@@ -81,7 +92,7 @@ class _WishlistButtonState extends ConsumerState<WishlistButton> {
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
                   valueColor: AlwaysStoppedAnimation<Color>(
-                    isInWishlist ? selectedColor : color,
+                    theme.colorScheme.primary,
                   ),
                 ),
               ),
@@ -133,13 +144,17 @@ class _WishlistButtonState extends ConsumerState<WishlistButton> {
           
           // Show success feedback
           if (mounted) {
+            final localizations = AppLocalizations.of(context);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  isAdding ? 'Added to wishlist' : 'Removed from wishlist',
+                  isAdding 
+                      ? localizations?.addedToWishlist ?? 'Added to wishlist'
+                      : localizations?.removedFromWishlist ?? 'Removed from wishlist',
                 ),
                 backgroundColor: Colors.green,
                 duration: const Duration(seconds: 2),
+                behavior: SnackBarBehavior.floating,
               ),
             );
           }
@@ -161,13 +176,17 @@ class _WishlistButtonState extends ConsumerState<WishlistButton> {
       
       // Show error feedback
       if (mounted) {
+        final localizations = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Failed to ${isAdding ? 'add to' : 'remove from'} wishlist',
+              isAdding 
+                  ? localizations?.failedToAddToWishlist ?? 'Failed to add to wishlist'
+                  : localizations?.failedToRemoveFromWishlist ?? 'Failed to remove from wishlist',
             ),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
           ),
         );
       }

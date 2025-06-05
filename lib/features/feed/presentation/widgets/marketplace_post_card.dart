@@ -6,11 +6,12 @@ import 'package:go_router/go_router.dart';
 import 'package:rivo/features/follow/presentation/widgets/follow_button.dart';
 import 'package:rivo/features/purchase/presentation/providers/purchase_provider.dart';
 import 'package:rivo/features/products/domain/models/product_model.dart';
-// Removed unused import
 import 'package:rivo/features/products/presentation/providers/delete_product_provider.dart';
 import 'package:rivo/features/products/presentation/providers/product_providers.dart';
 import 'package:rivo/features/wishlist/presentation/widgets/wishlist_button.dart';
 import 'package:rivo/features/cart/presentation/widgets/add_to_cart_button.dart';
+import 'package:rivo/core/presentation/widgets/app_button.dart';
+import 'package:rivo/l10n/app_localizations.dart';
 
 /// Provider for checking if a product is being deleted
 final isDeletingProductProvider = Provider.family<bool, String>((ref, productId) {
@@ -86,12 +87,12 @@ class MarketplacePostCard extends ConsumerWidget {
             shape: BoxShape.circle,
           ),
           child: isDeleting
-              ? const SizedBox(
+              ? SizedBox(
                   width: 24,
                   height: 24,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
                   ),
                 )
               : const Icon(Icons.delete, color: Colors.white, size: 24),
@@ -113,19 +114,19 @@ class MarketplacePostCard extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Product'),
-        content: const Text('Are you sure you want to delete this product? This action cannot be undone.'),
+        title: Text(AppLocalizations.of(context)!.deleteProduct),
+        content: Text(AppLocalizations.of(context)!.confirmDeleteProduct),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text(
-              'Delete',
-              style: TextStyle(color: Colors.red),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.error,
             ),
+            child: Text(AppLocalizations.of(context)!.delete),
           ),
         ],
       ),
@@ -142,12 +143,13 @@ class MarketplacePostCard extends ConsumerWidget {
       if (success) {
         // Only show success message if the widget is still in the tree
         if (context.mounted) {
+          final message = AppLocalizations.of(context)!.productDeletedSuccessfully;
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Product deleted successfully'),
+            SnackBar(
+              content: Text(message),
               backgroundColor: Colors.green,
               behavior: SnackBarBehavior.floating,
-              duration: Duration(seconds: 2),
+              duration: const Duration(seconds: 2),
             ),
           );
 
@@ -162,7 +164,7 @@ class MarketplacePostCard extends ConsumerWidget {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(errorMessage ?? 'An unexpected error occurred while deleting the product'),
+              content: Text(errorMessage ?? AppLocalizations.of(context)!.errorDeletingProduct),
               backgroundColor: Colors.red,
               behavior: SnackBarBehavior.floating,
               duration: const Duration(seconds: 4),
@@ -176,8 +178,8 @@ class MarketplacePostCard extends ConsumerWidget {
       
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('An unexpected error occurred. Please try again.'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.unexpectedErrorTryAgain),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
             duration: Duration(seconds: 4),
@@ -393,6 +395,7 @@ class MarketplacePostCard extends ConsumerWidget {
                       // Message Button
                       if (onMessage != null)
                         _buildActionButton(
+                          context: context,
                           icon: Icons.message,
                           onPressed: onMessage!,
                         ),
@@ -413,7 +416,7 @@ class MarketplacePostCard extends ConsumerWidget {
                                   if (userId.isEmpty) {
                                     if (context.mounted) {
                                       ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Please log in to make a purchase')),
+                                        SnackBar(content: Text(AppLocalizations.of(context)!.pleaseLoginToPurchase)),
                                       );
                                     }
                                     return;
@@ -432,8 +435,8 @@ class MarketplacePostCard extends ConsumerWidget {
                                             // Show appropriate message based on whether this is a new purchase or existing one
                                             if (context.mounted) {
                                               final message = purchaseResult.isAlreadyPurchased
-                                                  ? 'You have already purchased this item!'
-                                                  : 'Purchase successful!';
+                                                  ? AppLocalizations.of(context)!.alreadyPurchasedItem
+                                                  : AppLocalizations.of(context)!.purchaseSuccessful;
                                               
                                               ScaffoldMessenger.of(context).showSnackBar(
                                                 SnackBar(
@@ -471,7 +474,7 @@ class MarketplacePostCard extends ConsumerWidget {
                                             // Handle failure case
                                             ScaffoldMessenger.of(context).showSnackBar(
                                               SnackBar(
-                                                content: Text('Purchase failed: ${purchaseResult.error ?? 'Unknown error'}'),
+                                                content: Text('${AppLocalizations.of(context)!.purchaseFailed}: ${purchaseResult.error ?? AppLocalizations.of(context)!.unknownError}'),
                                                 backgroundColor: Colors.red,
                                               ),
                                             );
@@ -483,7 +486,7 @@ class MarketplacePostCard extends ConsumerWidget {
                                         error: (error, stack) {
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(
-                                              content: Text('Error: ${error.toString()}'),
+                                              content: Text('${AppLocalizations.of(context)!.error}: ${error.toString()}'),
                                               backgroundColor: Colors.red,
                                             ),
                                           );
@@ -496,7 +499,7 @@ class MarketplacePostCard extends ConsumerWidget {
                                     if (context.mounted) {
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
-                                          content: Text('An unexpected error occurred: ${e.toString()}'),
+                                          content: Text('${AppLocalizations.of(context)!.unexpectedErrorOccurred}: ${e.toString()}'),
                                           backgroundColor: Colors.red,
                                         ),
                                       );
@@ -508,29 +511,13 @@ class MarketplacePostCard extends ConsumerWidget {
                                   }
                                 }
 
-                                return ElevatedButton.icon(
+                                final buyNowLabel = AppLocalizations.of(context)!.buyNow;
+                                return AppButton.primary(
                                   onPressed: handlePurchase,
-                                  icon: isLoading
-                                      ? const SizedBox(
-                                          width: 20,
-                                          height: 20,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                          ),
-                                        )
-                                      : const Icon(Icons.shopping_bag_outlined),
-                                  label: isLoading 
-                                      ? const Text('Processing...') 
-                                      : const Text('Buy Now'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: theme.colorScheme.primary,
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                  ),
+                                  label: buyNowLabel,
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  height: 36,
+                                  borderRadius: 8,
                                 );
                               },
                             );
@@ -600,17 +587,20 @@ class MarketplacePostCard extends ConsumerWidget {
   }
 
   Widget _buildActionButton({
+    required BuildContext context,
     required IconData icon,
     required VoidCallback onPressed,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.black26,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: IconButton(
-        icon: Icon(icon, color: Colors.white),
-        onPressed: onPressed,
+    return IconButton(
+      onPressed: onPressed,
+      icon: Icon(icon, color: Theme.of(context).hintColor),
+      tooltip: '',
+      padding: const EdgeInsets.all(8),
+      constraints: const BoxConstraints(),
+      style: IconButton.styleFrom(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
       ),
     );
   }

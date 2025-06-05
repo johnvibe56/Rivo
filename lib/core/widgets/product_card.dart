@@ -7,7 +7,7 @@ import '../../features/products/domain/entities/product.dart';
 import '../animations/app_animations.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_dimens.dart';
-import 'buttons.dart';
+import '../presentation/widgets/app_button.dart' show AppButton, AppButtonVariant;
 
 class ProductCard extends ConsumerWidget {
   final Product product;
@@ -77,14 +77,13 @@ class ProductCard extends ConsumerWidget {
                   Positioned(
                     top: 8,
                     left: 8,
-                    child: RivoIconButton(
+                    child: AppButton.icon(
                       icon: isInWishlist ? Icons.favorite : Icons.favorite_border,
                       onPressed: onWishlistTap,
+                      tooltip: isInWishlist ? 'Remove from wishlist' : 'Add to wishlist',
+                      variant: isInWishlist ? AppButtonVariant.danger : AppButtonVariant.text,
                       size: 36.0,
                       iconSize: 20.0,
-                      color: isInWishlist ? AppColors.error : AppColors.textPrimary,
-                      backgroundColor: Colors.white,
-                      elevation: 2.0,
                     ),
                   ),
                 

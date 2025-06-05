@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_dimens.dart';
-import 'rivo_button.dart' show RivoButtonVariant;
-import 'rivo_icon_button.dart';
+import '../presentation/widgets/app_button.dart';
 
 class AppAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -53,12 +53,11 @@ class AppAppBar extends StatelessWidget implements PreferredSizeWidget {
       centerTitle: centerTitle,
       leading: leading ??
           (showBackButton
-              ? RivoIconButton(
+              ? AppButton.icon(
                   icon: isRtl ? Icons.arrow_forward_ios : Icons.arrow_back_ios,
                   onPressed: () => Navigator.of(context).maybePop(),
-                  size: 40.0,
-                  iconSize: 20.0,
-                  variant: RivoButtonVariant.text,
+                  tooltip: 'Back',
+                  variant: AppButtonVariant.text,
                 )
               : null),
       leadingWidth: leadingWidth,
@@ -84,21 +83,21 @@ class AppAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   // Factory constructor for search app bar
   factory AppAppBar.search({
+    required BuildContext context,
     required TextEditingController controller,
     required ValueChanged<String> onChanged,
     required VoidCallback onBackPressed,
-    String hintText = 'חפש פריטים, מותגים וקטגוריות',
+    String? hintText,
     List<Widget>? actions,
   }) {
     return AppAppBar(
       title: '',
       showBackButton: false,
-      leading: RivoIconButton(
+      leading: AppButton.icon(
         icon: Icons.arrow_forward_ios,
         onPressed: onBackPressed,
-        size: 40.0,
-        iconSize: 20.0,
-        variant: RivoButtonVariant.text,
+        tooltip: AppLocalizations.of(context)!.back,
+        variant: AppButtonVariant.text,
       ),
       actions: [
         Expanded(
@@ -110,7 +109,7 @@ class AppAppBar extends StatelessWidget implements PreferredSizeWidget {
               textAlignVertical: TextAlignVertical.center,
               style: const TextStyle(fontSize: 16),
               decoration: InputDecoration(
-                hintText: hintText,
+                hintText: hintText ?? AppLocalizations.of(context)!.searchHint,
                 hintStyle: const TextStyle(color: AppColors.textHint, fontSize: 14),
                 prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary, size: 24),
                 filled: true,
@@ -139,6 +138,7 @@ class AppAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   // Factory constructor for filter app bar
   factory AppAppBar.withFilters({
+    required BuildContext context,
     required String title,
     required VoidCallback onFilterPressed,
     required VoidCallback onSortPressed,
@@ -149,24 +149,21 @@ class AppAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: title,
       showBackButton: showBackButton,
       actions: [
-        RivoIconButton(
+        AppButton.icon(
           icon: Icons.sort,
           onPressed: onSortPressed,
-          size: 40.0,
-          iconSize: 24.0,
-          variant: RivoButtonVariant.text,
+          tooltip: AppLocalizations.of(context)!.sort,
+          variant: AppButtonVariant.text,
         ),
         const SizedBox(width: 8),
         Stack(
           alignment: Alignment.topRight,
           children: [
-            RivoIconButton(
+            AppButton.icon(
               icon: Icons.filter_list,
               onPressed: onFilterPressed,
-              size: 40.0,
-              iconSize: 24.0,
-              color: Colors.white,
-              variant: RivoButtonVariant.text,
+              tooltip: AppLocalizations.of(context)!.filter,
+              variant: AppButtonVariant.text,
             ),
             Positioned(
               right: 8,
@@ -246,13 +243,13 @@ class TransparentAppBar extends StatelessWidget implements PreferredSizeWidget {
       centerTitle: true,
       leading: leading ??
           (showBackButton
-              ? RivoIconButton(
+              ? AppButton.icon(
                   icon: isRtl ? Icons.arrow_forward_ios : Icons.arrow_back_ios,
                   onPressed: () => Navigator.of(context).maybePop(),
-                  color: iconColor ?? Colors.white,
+                  tooltip: 'Back',
+                  variant: AppButtonVariant.text,
                   size: 40.0,
                   iconSize: 20.0,
-                  variant: RivoButtonVariant.text,
                 )
               : null),
       actions: actions,

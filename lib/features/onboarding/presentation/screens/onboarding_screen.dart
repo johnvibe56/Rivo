@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:rivo/core/presentation/widgets/app_button.dart';
+import 'package:rivo/l10n/app_localizations.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -14,18 +16,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final List<OnboardingPage> _pages = [
     const OnboardingPage(
-      title: 'Welcome to Rivo',
-      description: 'Discover amazing products and connect with sellers in your area',
+      titleKey: 'welcomeToRivo',
+      descriptionKey: 'onboardingWelcomeDescription',
       imagePath: 'assets/images/onboarding_1.png',
     ),
     const OnboardingPage(
-      title: 'Buy & Sell with Ease',
-      description: 'List items for sale or find great deals near you',
+      titleKey: 'onboardingBuySellTitle',
+      descriptionKey: 'onboardingBuySellDescription',
       imagePath: 'assets/images/onboarding_2.png',
     ),
     const OnboardingPage(
-      title: 'Safe & Secure',
-      description: 'Chat with sellers and buyers in a secure environment',
+      titleKey: 'onboardingSafeTitle',
+      descriptionKey: 'onboardingSafeDescription',
       imagePath: 'assets/images/onboarding_3.png',
     ),
   ];
@@ -59,9 +61,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             // Skip button
             Align(
               alignment: Alignment.topRight,
-              child: TextButton(
+              child: AppButton.text(
                 onPressed: () => context.go('/signup'),
-                child: const Text('Skip'),
+                label: AppLocalizations.of(context)!.skip,
+                padding: const EdgeInsets.all(16),
               ),
             ),
             
@@ -101,28 +104,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             
             // Next/Get Started button
             Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: ElevatedButton(
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+              child: AppButton.primary(
                 onPressed: _onNext,
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 56),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: Text(
-                  _currentPage == _pages.length - 1 ? 'Get Started' : 'Next',
-                  style: const TextStyle(fontSize: 16),
-                ),
+                label: _currentPage == _pages.length - 1 
+                    ? AppLocalizations.of(context)!.getStarted
+                    : AppLocalizations.of(context)!.next,
+                fullWidth: true,
               ),
             ),
             
             // Sign in link
             Padding(
               padding: const EdgeInsets.only(bottom: 24.0),
-              child: TextButton(
+              child: AppButton.text(
                 onPressed: () => context.go('/login'),
-                child: const Text('Already have an account? Sign In'),
+                label: AppLocalizations.of(context)!.alreadyHaveAnAccountSignIn,
               ),
             ),
           ],
@@ -133,14 +130,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 }
 
 class OnboardingPage extends StatelessWidget {
-  final String title;
-  final String description;
+  final String titleKey;
+  final String descriptionKey;
   final String imagePath;
 
   const OnboardingPage({
     super.key,
-    required this.title,
-    required this.description,
+    required this.titleKey,
+    required this.descriptionKey,
     required this.imagePath,
   });
 
@@ -177,7 +174,7 @@ class OnboardingPage extends StatelessWidget {
           const SizedBox(height: 48),
           // Title
           Text(
-            title,
+            titleKey,
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -186,7 +183,7 @@ class OnboardingPage extends StatelessWidget {
           const SizedBox(height: 16),
           // Description
           Text(
-            description,
+            descriptionKey,
             style: theme.textTheme.bodyLarge?.copyWith(
               color: theme.textTheme.bodyLarge?.color?.withOpacity(0.8), // ignore: deprecated_member_use
             ),
