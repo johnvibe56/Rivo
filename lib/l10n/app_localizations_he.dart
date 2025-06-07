@@ -129,7 +129,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get failedToLoadProduct => 'שגיאה בטעינת המוצר';
 
   @override
-  String get unexpectedError => 'אירעה שגיאה בלתי צפויה';
+  String get unexpectedError => 'שגיאה בלתי צפויה';
 
   @override
   String get description => 'תיאור';
@@ -683,4 +683,48 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get tryAgain => 'Try Again';
+
+  @override
+  String get purchaseHistoryTitle => 'הרכישות שלי';
+
+  @override
+  String get noPurchasesYet => 'עדיין אין רכישות';
+
+  @override
+  String get purchasesWillAppearHere => 'הרכישות שלך יופיעו כאן';
+
+  @override
+  String purchasedOn(Object date) {
+    return 'נרכש ב: $date';
+  }
+
+  @override
+  String get priceNotAvailable => 'מחיר לא זמין';
+
+  @override
+  String get productInfoMissing => 'חסרים פרטי מוצר';
+
+  @override
+  String get unnamedProduct => 'מוצר ללא שם';
+
+  @override
+  String get reportIssue => 'דווח על תקלה';
+
+  @override
+  String get unexpectedErrorMessage => 'אירעה שגיאה בלתי צפויה בטעינת הרכישות שלך.\nאנא נסה שוב מאוחר יותר.';
+
+  @override
+  String get noInternetConnectionMessage => 'אין חיבור לאינטרנט. אנא בדוק את החיבור שלך ונסה שוב.';
+
+  @override
+  String get serverErrorMessage => 'לא ניתן לטעון את הרכישות. אנא נסה שוב מאוחר יותר.';
+
+  @override
+  String get signInToViewHistory => 'אנא התחבר כדי לצפות בהיסטוריית הרכישות שלך';
+
+  @override
+  String get goToLogin => 'מעבר להתחברות';
+
+  @override
+  String get loadingPurchases => 'טוען רכישות...';
 }

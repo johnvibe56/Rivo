@@ -335,10 +335,10 @@ abstract class AppLocalizations {
   /// **'Failed to load product'**
   String get failedToLoadProduct;
 
-  /// Generic error message
+  /// Title for unexpected error message
   ///
   /// In en, this message translates to:
-  /// **'An unexpected error occurred'**
+  /// **'Unexpected Error'**
   String get unexpectedError;
 
   /// Label for description field
@@ -1354,6 +1354,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Try Again'**
   String get tryAgain;
+
+  /// Title for the purchase history screen
+  ///
+  /// In en, this message translates to:
+  /// **'My Purchases'**
+  String get purchaseHistoryTitle;
+
+  /// Message shown when user has no purchase history
+  ///
+  /// In en, this message translates to:
+  /// **'No purchases yet'**
+  String get noPurchasesYet;
+
+  /// Subtitle shown when there are no purchases
+  ///
+  /// In en, this message translates to:
+  /// **'Your purchases will appear here'**
+  String get purchasesWillAppearHere;
+
+  /// Label showing purchase date
+  ///
+  /// In en, this message translates to:
+  /// **'Purchased on: {date}'**
+  String purchasedOn(Object date);
+
+  /// Fallback text when product price is not available
+  ///
+  /// In en, this message translates to:
+  /// **'Price not available'**
+  String get priceNotAvailable;
+
+  /// Message shown when product data is incomplete
+  ///
+  /// In en, this message translates to:
+  /// **'Product information is missing'**
+  String get productInfoMissing;
+
+  /// Fallback text when product has no name
+  ///
+  /// In en, this message translates to:
+  /// **'Unnamed Product'**
+  String get unnamedProduct;
+
+  /// Button text for reporting an issue
+  ///
+  /// In en, this message translates to:
+  /// **'Report Issue'**
+  String get reportIssue;
+
+  /// Message shown when an unexpected error occurs
+  ///
+  /// In en, this message translates to:
+  /// **'An unexpected error occurred while loading your purchases.\\nPlease try again later.'**
+  String get unexpectedErrorMessage;
+
+  /// Error message when there's no internet connection
+  ///
+  /// In en, this message translates to:
+  /// **'No internet connection. Please check your connection and try again.'**
+  String get noInternetConnectionMessage;
+
+  /// Error message when server request fails
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load purchases. Please try again later.'**
+  String get serverErrorMessage;
+
+  /// Message shown when user needs to sign in
+  ///
+  /// In en, this message translates to:
+  /// **'Please sign in to view your purchase history'**
+  String get signInToViewHistory;
+
+  /// Button text to navigate to login screen
+  ///
+  /// In en, this message translates to:
+  /// **'Go to Login'**
+  String get goToLogin;
+
+  /// Loading message for purchase history
+  ///
+  /// In en, this message translates to:
+  /// **'Loading purchases...'**
+  String get loadingPurchases;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -1,9 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:rivo/core/error/failures.dart';
+import 'package:rivo/core/presentation/widgets/app_button.dart';
+import 'package:rivo/core/presentation/widgets/empty_state_widget.dart';
+import 'package:rivo/core/presentation/widgets/error_state_widget.dart';
+import 'package:rivo/core/presentation/widgets/loading_widget.dart';
+import 'package:rivo/core/utils/date_utils.dart' as date_utils;
 import 'package:rivo/features/purchase_history/application/purchase_history_notifier.dart';
-import 'package:rivo/features/purchase_history/presentation/widgets/purchase_history_card.dart';
 import 'package:rivo/features/purchase_history/domain/models/purchase_with_product_model.dart';
+import 'package:rivo/features/purchase_history/presentation/widgets/purchase_history_card.dart';
+import 'package:rivo/l10n/l10n.dart';
+/// Extension to access purchase history localizations
+extension PurchaseHistoryLocalizations on BuildContext {
+  FallbackLocalizations get l10n => const FallbackLocalizations();
+  
+  String get purchaseHistoryTitle => l10n.purchaseHistoryTitle;
+  String get loadingPurchases => l10n.loadingPurchases;
+  String get noPurchasesYet => l10n.noPurchasesYet;
+  String get purchasesWillAppearHere => l10n.purchasesWillAppearHere;
+  String get signInToViewHistory => l10n.signInToViewHistory;
+  String get errorLoadingPurchases => l10n.errorLoadingPurchases;
+  String get retry => l10n.retry;
+  String get login => l10n.login;
+  String get noInternetConnection => l10n.noInternetConnection;
+  String get noInternetConnectionMessage => l10n.noInternetConnectionMessage;
+  String get serverErrorMessage => l10n.serverErrorMessage;
+  String get unexpectedError => l10n.unexpectedError;
+  String get unexpectedErrorMessage => l10n.unexpectedErrorMessage;
+  String get reportIssue => l10n.reportIssue;
+  String get goToLogin => l10n.goToLogin;
+}
+
+/// Semantic labels for screen readers
+extension PurchaseHistorySemantics on BuildContext {
+  String get purchaseListSemanticLabel => 'List of purchases';
+  String get loadingPurchasesSemanticLabel => 'Loading purchases';
+  String get purchaseItemSemanticLabel => 'Purchase item';
+  String get retryButtonSemanticLabel => 'Retry loading purchases';
+  String get signInButtonSemanticLabel => 'Sign in to view purchase history';
+}
 
 class PurchaseHistoryScreen extends ConsumerStatefulWidget {
   const PurchaseHistoryScreen({super.key});
@@ -24,206 +60,154 @@ class _PurchaseHistoryScreenState extends ConsumerState<PurchaseHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final purchaseHistoryState = ref.watch(purchaseHistoryNotifierProvider);
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Purchases'),
+        title: Text(context.purchaseHistoryTitle),
       ),
-      body: purchaseHistoryState.when(
-        data: (state) => state.when(
-          initial: () => const Center(child: Text('No purchases yet')),
-          loading: () => const Center(child: CircularProgressIndicator()),
-          loaded: (purchases) => _buildPurchaseList(purchases),
-          error: (failure) => _buildErrorState(context, failure, ref),
-        ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => _buildUnexpectedError(context, error, ref),
+      body: Consumer(
+        builder: (context, ref, child) {
+          final purchaseState = ref.watch(purchaseHistoryNotifierProvider);
+          
+          return purchaseState.when(
+            data: (state) {
+              return state.maybeWhen(
+                loaded: (purchases) => _buildPurchaseList(purchases),
+                error: (failure) => _buildErrorState(failure, ref),
+                orElse: () => _buildLoadingState(),
+              );
+            },
+            loading: () => _buildLoadingState(),
+            error: (error, stackTrace) => _buildUnexpectedError(error, stackTrace, ref),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildErrorState(
-    BuildContext context,
-    Failure failure,
-    WidgetRef ref,
-  ) {
-    final theme = Theme.of(context);
-    
-    // Different icons and messages based on error type
-    final (icon, message, actionText, showLoginButton) = switch (failure) {
-      NetworkFailure() => (
-          Icons.signal_wifi_off,
-          'No internet connection. Please check your connection and try again.',
-          'Retry',
-          false,
+  Widget _buildLoadingState() {
+    return Semantics(
+      label: context.loadingPurchasesSemanticLabel,
+      child: Directionality(
+        textDirection: Directionality.of(context),
+        child: LoadingWidget(
+          message: context.loadingPurchases,
         ),
-      ServerFailure() => (
-          Icons.error_outline,
-          'Unable to load purchases. Please try again later.\n${failure.message}',
-          'Retry',
-          false,
-        ),
-      UnauthorizedFailure() => (
-          Icons.login,
-          'Please sign in to view your purchase history',
-          'Sign In',
-          true,
-        ),
-      _ => (
-          Icons.error_outline,
-          'An error occurred: ${failure.message}',
-          'Retry',
-          false,
-        ),
-    };
+      ),
+    );
+  }
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 64,
-              color: theme.colorScheme.error.withAlpha((0.7 * 255).round()),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Error loading purchases',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.colorScheme.onSurface,
+  Widget _buildEmptyState() {
+    return Semantics(
+      label: '${context.noPurchasesYet}. ${context.purchasesWillAppearHere}',
+      child: Directionality(
+        textDirection: Directionality.of(context),
+        child: Center(
+          child: EmptyStateWidget(
+            icon: Icons.shopping_bag_outlined,
+            title: context.noPurchasesYet,
+            message: context.purchasesWillAppearHere,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorState(Failure failure, WidgetRef ref) {
+    if (failure is UnauthorizedFailure) {
+      return _buildUnauthorizedState();
+    }
+
+    return ErrorStateWidget(
+      errorMessage: _getErrorMessage(failure),
+      onRetry: () => ref.read(purchaseHistoryNotifierProvider.notifier).fetchPurchases(),
+      retryButtonSemanticLabel: context.retryButtonSemanticLabel,
+    );
+  }
+
+  Widget _buildUnauthorizedState() {
+    return Semantics(
+      label: context.signInToViewHistory,
+      child: Directionality(
+        textDirection: Directionality.of(context),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Semantics(
+                excludeSemantics: true,
+                child: const Icon(Icons.login, size: 64, color: Colors.blue),
               ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.textTheme.bodySmall?.color,
+              const SizedBox(height: 16),
+              Text(
+                context.signInToViewHistory,
+                style: Theme.of(context).textTheme.titleMedium,
+                textAlign: TextAlign.center,
+                textDirection: TextDirection.ltr,
               ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            FilledButton.tonal(
-              onPressed: () => ref
-                  .read(purchaseHistoryNotifierProvider.notifier)
-                  .fetchPurchases(),
-              child: Text(actionText),
-            ),
-            if (showLoginButton) ...[
-              const SizedBox(height: 12),
-              TextButton(
-                onPressed: () {
-                  // Navigate to login screen
-                  // context.push('/login');
-                },
-                child: const Text('Go to Login'),
+              const SizedBox(height: 24),
+              Semantics(
+                button: true,
+                label: context.signInButtonSemanticLabel,
+                child: AppButton.primary(
+                  onPressed: () {
+                    // TODO: Navigate to login
+                  },
+                  label: context.login,
+                ),
               ),
             ],
-          ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildUnexpectedError(
-    BuildContext context,
     Object error,
+    StackTrace stackTrace,
     WidgetRef ref,
   ) {
-    final theme = Theme.of(context);
-    
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.warning_amber_rounded,
-              size: 64,
-              color: theme.colorScheme.error.withAlpha((0.7 * 255).round()),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Unexpected Error',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.colorScheme.onSurface,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'An unexpected error occurred while loading your purchases.\nPlease try again later.',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.textTheme.bodySmall?.color,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            FilledButton.tonal(
-              onPressed: () => ref
-                  .read(purchaseHistoryNotifierProvider.notifier)
-                  .fetchPurchases(),
-              child: const Text('Retry'),
-            ),
-            const SizedBox(height: 12),
-            TextButton(
-              onPressed: () {
-                // Optionally report the error
-                debugPrint('Purchase history error: $error');
-              },
-              child: const Text('Report Issue'),
-            ),
-          ],
-        ),
-      ),
+    return ErrorStateWidget(
+      errorMessage: context.unexpectedErrorMessage,
+      onRetry: () => ref.read(purchaseHistoryNotifierProvider.notifier).fetchPurchases(),
+      retryButtonSemanticLabel: context.retryButtonSemanticLabel,
     );
+  }
+
+  String _getErrorMessage(Failure failure) {
+    if (failure is ServerFailure) {
+      return context.serverErrorMessage;
+    } else if (failure is NetworkFailure) {
+      return context.noInternetConnectionMessage;
+    } else if (failure is UnauthorizedFailure) {
+      return context.signInToViewHistory;
+    } else {
+      return '${context.unexpectedErrorMessage}\n${failure.toString()}';
+    }
   }
 
   Widget _buildPurchaseList(List<PurchaseWithProduct> purchases) {
     if (purchases.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.shopping_bag_outlined,
-              size: 64,
-              color: Theme.of(context).colorScheme.outline,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No purchases yet',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Your purchases will appear here',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ],
-        ),
-      );
+      return _buildEmptyState();
     }
 
     return RefreshIndicator(
-      onRefresh: () => ref
-          .read(purchaseHistoryNotifierProvider.notifier)
-          .fetchPurchases(),
+      onRefresh: () => ref.read(purchaseHistoryNotifierProvider.notifier).fetchPurchases(),
       child: ListView.builder(
+        padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 16.w),
         itemCount: purchases.length,
         itemBuilder: (context, index) {
           final purchase = purchases[index];
-          return PurchaseHistoryCard(
-            purchase: purchase,
-            onTap: () {
-              // Navigate to product detail screen
-              // TODO: Uncomment and implement navigation when ProductDetailScreen is available
-              // context.push('/product/${purchase.product.id}');
-            },
+          return Semantics(
+            button: true,
+            label: '${purchase.product?.name ?? 'Purchase'} - ${date_utils.AppDateUtils.formatPurchaseDate(purchase.createdAt.toLocal(), context)}',
+            child: PurchaseHistoryCard(
+              key: ValueKey('purchase-${purchase.id}'),
+              purchase: purchase,
+              onTap: () {
+                // TODO: Navigate to purchase details
+              },
+            ),
           );
         },
       ),

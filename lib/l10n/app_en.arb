@@ -1279,5 +1279,71 @@
   "tryAgain": "Try Again",
   "@tryAgain": {
     "description": "Button to retry failed operation"
+  },
+  "purchaseHistoryTitle": "My Purchases",
+  "dateFormat": "MMM d, yyyy",
+  "dateFormatShort": "MM/dd/yyyy",
+  "purchasedOn": "Purchased on {date}",
+  "@purchaseHistoryTitle": {
+    "description": "Title for the purchase history screen"
+  },
+  "noPurchasesYet": "No purchases yet",
+  "@noPurchasesYet": {
+    "description": "Message shown when there are no purchases"
+  },
+  "purchasesWillAppearHere": "Your purchases will appear here",
+  "@purchasesWillAppearHere": {
+    "description": "Subtitle shown when there are no purchases"
+  },
+  "purchasedOn": "Purchased on: {date}",
+  "@purchasedOn": {
+    "description": "Label showing purchase date",
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "priceNotAvailable": "Price not available",
+  "@priceNotAvailable": {
+    "description": "Fallback text when product price is not available"
+  },
+  "productInfoMissing": "Product information is missing",
+  "@productInfoMissing": {
+    "description": "Message shown when product data is incomplete"
+  },
+  "unnamedProduct": "Unnamed Product",
+  "@unnamedProduct": {
+    "description": "Fallback text when product has no name"
+  },
+  "reportIssue": "Report Issue",
+  "@reportIssue": {
+    "description": "Button text for reporting an issue"
+  },
+  "unexpectedError": "Unexpected Error",
+  "@unexpectedError": {
+    "description": "Title for unexpected error message"
+  },
+  "unexpectedErrorMessage": "An unexpected error occurred while loading your purchases.\\nPlease try again later.",
+  "@unexpectedErrorMessage": {
+    "description": "Message shown when an unexpected error occurs"
+  },
+  "noInternetConnectionMessage": "No internet connection. Please check your connection and try again.",
+  "@noInternetConnectionMessage": {
+    "description": "Error message when there's no internet connection"
+  },
+  "serverErrorMessage": "Unable to load purchases. Please try again later.",
+  "@serverErrorMessage": {
+    "description": "Error message when server request fails"
+  },
+  "signInToViewHistory": "Please sign in to view your purchase history",
+  "@signInToViewHistory": {
+    "description": "Message shown when user needs to sign in"
+  },
+  "goToLogin": "Go to Login",
+  "@goToLogin": {
+    "description": "Button text to navigate to login screen"
+  },
+  "loadingPurchases": "Loading purchases...",
+  "@loadingPurchases": {
+    "description": "Loading message for purchase history"
   }
 }

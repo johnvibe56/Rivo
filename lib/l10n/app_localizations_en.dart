@@ -129,7 +129,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get failedToLoadProduct => 'Failed to load product';
 
   @override
-  String get unexpectedError => 'An unexpected error occurred';
+  String get unexpectedError => 'Unexpected Error';
 
   @override
   String get description => 'Description';
@@ -675,4 +675,48 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tryAgain => 'Try Again';
+
+  @override
+  String get purchaseHistoryTitle => 'My Purchases';
+
+  @override
+  String get noPurchasesYet => 'No purchases yet';
+
+  @override
+  String get purchasesWillAppearHere => 'Your purchases will appear here';
+
+  @override
+  String purchasedOn(Object date) {
+    return 'Purchased on: $date';
+  }
+
+  @override
+  String get priceNotAvailable => 'Price not available';
+
+  @override
+  String get productInfoMissing => 'Product information is missing';
+
+  @override
+  String get unnamedProduct => 'Unnamed Product';
+
+  @override
+  String get reportIssue => 'Report Issue';
+
+  @override
+  String get unexpectedErrorMessage => 'An unexpected error occurred while loading your purchases.\\nPlease try again later.';
+
+  @override
+  String get noInternetConnectionMessage => 'No internet connection. Please check your connection and try again.';
+
+  @override
+  String get serverErrorMessage => 'Unable to load purchases. Please try again later.';
+
+  @override
+  String get signInToViewHistory => 'Please sign in to view your purchase history';
+
+  @override
+  String get goToLogin => 'Go to Login';
+
+  @override
+  String get loadingPurchases => 'Loading purchases...';
 }

@@ -1311,5 +1311,79 @@
     "placeholders": {
       "status": {}
     }
+  },
+  "purchaseHistoryTitle": "הרכישות שלי",
+  "dateFormat": "d בMMM yyyy",
+  "dateFormatShort": "dd/MM/yyyy",
+  "purchasedOn": "נרכש ב-{date}",
+  "@purchaseHistoryTitle": {
+    "description": "Title for the purchase history screen"
+  },
+  "noPurchasesYet": "עדיין אין רכישות",
+  "@noPurchasesYet": {
+    "description": "Message shown when there are no purchases"
+  },
+  "purchasesWillAppearHere": "הרכישות שלך יופיעו כאן",
+  "@purchasesWillAppearHere": {
+    "description": "Subtitle shown when there are no purchases"
+  },
+  "purchasedOn": "נרכש בתאריך: {date}",
+  "@purchasedOn": {
+    "description": "Label showing purchase date",
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "priceNotAvailable": "מחיר לא זמין",
+  "@priceNotAvailable": {
+    "description": "Fallback text when product price is not available"
+  },
+  "productInfoMissing": "חסרות פרטי מוצר",
+  "@productInfoMissing": {
+    "description": "Message shown when product data is incomplete"
+  },
+  "unnamedProduct": "מוצר ללא שם",
+  "@unnamedProduct": {
+    "description": "Fallback text when product has no name"
+  },
+  "reportIssue": "דווח על בעיה",
+  "@reportIssue": {
+    "description": "Button text for reporting an issue"
+  },
+  "unexpectedError": "שגיאה בלתי צפויה",
+  "@unexpectedError": {
+    "description": "Title for unexpected error message"
+  },
+  "unexpectedErrorMessage": "אירעה שגיאה בלתי צפויה בטעינת הרכישות שלך.\nאנא נסה שוב מאוחר יותר.",
+  "@unexpectedErrorMessage": {
+    "description": "Message shown when an unexpected error occurs"
+  },
+  "noInternetConnectionMessage": "אין חיבור לאינטרנט. אנא בדוק את החיבור שלך ונסה שוב.",
+  "@noInternetConnectionMessage": {
+    "description": "Error message when there's no internet connection"
+  },
+  "serverErrorMessage": "לא ניתן לטעון את הרכישות. אנא נסה שוב מאוחר יותר.",
+  "@serverErrorMessage": {
+    "description": "Error message when server request fails"
+  },
+  "signInToViewHistory": "אנא התחבר כדי לצפות בהיסטוריית הרכישות שלך",
+  "@signInToViewHistory": {
+    "description": "Message shown when user needs to sign in"
+  },
+  "goToLogin": "מעבר להתחברות",
+  "@goToLogin": {
+    "description": "Button text to navigate to login screen"
+  },
+  "loadingPurchases": "טוען רכישות...",
+  "@loadingPurchases": {
+    "description": "Loading message for purchase history"
+  },
+  "errorLoadingPurchases": "שגיאה בטעינת הרכישות",
+  "@errorLoadingPurchases": {
+    "description": "Error message when purchases fail to load"
+  },
+  "noInternetConnection": "אין חיבור לאינטרנט",
+  "@noInternetConnection": {
+    "description": "Error message when there's no internet connection"
   }
 }

@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:rivo/core/presentation/widgets/app_button.dart';
+import 'package:rivo/core/utils/date_utils.dart' as date_utils;
 import 'package:rivo/features/purchase_history/domain/models/purchase_with_product_model.dart';
+import 'package:rivo/l10n/l10n.dart' show LocalizationExtension;
 
 class PurchaseHistoryCard extends StatelessWidget {
   final PurchaseWithProduct purchase;
@@ -13,24 +17,33 @@ class PurchaseHistoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final theme = Theme.of(context);
-    final purchaseDate = '${purchase.createdAt.toLocal()}'.split('.')[0];
+    final formattedDate = date_utils.AppDateUtils.formatPurchaseDate(
+      purchase.createdAt.toLocal(),
+      context,
+    );
+    final purchaseDate = date_utils.AppDateUtils.getPurchasedOnText(
+      formattedDate,
+      context,
+    );
 
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsetsDirectional.symmetric(horizontal: 16, vertical: 8),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(12.0),
           child: Row(
+            textDirection: Directionality.of(context),
             children: [
               // Product Image
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: _buildProductImage(theme),
               ),
-              const SizedBox(width: 16),
+              SizedBox(width: 16.w),
               // Product Details
               Expanded(
                 child: Column(
@@ -74,16 +87,18 @@ class PurchaseHistoryCard extends StatelessWidget {
                           Text(
                             'Purchased on: $purchaseDate',
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.textTheme.bodySmall?.color?.withOpacity(0.7), // ignore: deprecated_member_use
+                              color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
                             ),
                           ),
                         ],
                       ),
-                    // Purchase date is already displayed in the product details
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right),
+              Icon(
+                Icons.chevron_right,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ],
           ),
         ),
@@ -101,7 +116,11 @@ class PurchaseHistoryCard extends StatelessWidget {
           color: theme.colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: const Icon(Icons.shopping_bag_outlined, size: 40),
+        child: Icon(
+          Icons.shopping_bag_outlined, 
+          size: 40,
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
       );
     }
 
@@ -111,51 +130,58 @@ class PurchaseHistoryCard extends StatelessWidget {
         ? purchase.product!.imageUrl!
         : placeholder;
 
-    return Image.network(
-      imageUrl,
-      width: 80,
-      height: 80,
-      fit: BoxFit.cover,
-      loadingBuilder: (context, child, loadingProgress) {
-        if (loadingProgress == null) return child;
-        return Container(
-          width: 80,
-          height: 80,
-          color: theme.colorScheme.surfaceContainerHighest,
-          child: Center(
-            child: CircularProgressIndicator(
-              value: loadingProgress.expectedTotalBytes != null
-                  ? loadingProgress.cumulativeBytesLoaded /
-                      loadingProgress.expectedTotalBytes!
-                  : null,
-              strokeWidth: 2,
-            ),
-          ),
-        );
-      },
-      errorBuilder: (context, error, stackTrace) {
-        return Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
+    return Semantics(
+      label: purchase.product?.name ?? 'Unnamed Product',
+      child: Image.network(
+        imageUrl,
+        width: 80,
+        height: 80,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Container(
+            width: 80,
+            height: 80,
             color: theme.colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.broken_image, size: 30),
-              const SizedBox(height: 4),
-              Text(
-                'No Image',
-                style: theme.textTheme.labelSmall?.copyWith(
+            child: Center(
+              child: CircularProgressIndicator(
+                value: loadingProgress.expectedTotalBytes != null
+                    ? loadingProgress.cumulativeBytesLoaded /
+                        loadingProgress.expectedTotalBytes!
+                    : null,
+                strokeWidth: 2,
+              ),
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.broken_image, 
+                  size: 30,
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
-              ),
-            ],
-          ),
-        );
-      },
+                const SizedBox(height: 4),
+                Text(
+                  'No Image',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }
